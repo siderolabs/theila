@@ -1,0 +1,12 @@
+# THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
+#
+# Generated on 2021-03-30T02:57:27Z by kres 40e845d-dirty.
+
+---
+root: true
+env:
+  node: true
+extends:
+  - "plugin:vue/essential"
+  - "eslint:recommended"
+  - "@vue/typescript"

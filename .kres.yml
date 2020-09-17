@@ -1,0 +1,5 @@
+---
+kind: auto.CommandConfig
+name: build
+spec:
+  disableImage: true
