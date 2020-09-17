@@ -1,0 +1,10 @@
+// THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
+//
+// Generated on 2021-03-30T13:16:09Z by kres 9f398f8-dirty.
+
+module.exports = {
+  preset: '@vue/cli-plugin-unit-jest/presets/typescript-and-babel/',
+  transform: {
+    '^.+\\.vue$': '@vue/test-utils'
+  }
+}
