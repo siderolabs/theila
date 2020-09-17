@@ -1,0 +1,22 @@
+# THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
+#
+# Generated on 2021-03-30T12:54:37Z by kres 3971480.
+
+**
+!frontend/src
+!frontend/tests
+!frontend/public
+!internal
+!cmd
+!frontend/*.json
+!frontend/*.js
+!.babelrc
+!.tsconfig
+!.jestrc
+!.eslintrc.yaml
+!internal/frontend/frontend.go
+!go.mod
+!go.sum
+!.golangci.yml
+!README.md
+!.markdownlint.json
