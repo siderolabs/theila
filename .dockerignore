@@ -1,11 +1,13 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2020-08-30T12:21:44Z by kres latest.
+# Generated on 2020-10-05T10:50:08Z by kres ce6bee5-dirty.
 
 **
+!frontend
 !internal
 !pkg
 !cmd
+!pkged.go
 !go.mod
 !go.sum
 !.golangci.yml

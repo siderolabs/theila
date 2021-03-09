@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2020-09-17T12:52:13Z by kres latest.
+# Generated on 2020-10-05T10:45:27Z by kres ce6bee5-dirty.
 
 # common variables
 
@@ -31,9 +31,11 @@ COMMON_ARGS += --build-arg=ARTIFACTS=$(ARTIFACTS)
 COMMON_ARGS += --build-arg=SHA=$(SHA)
 COMMON_ARGS += --build-arg=TAG=$(TAG)
 COMMON_ARGS += --build-arg=USERNAME=$(USERNAME)
+COMMON_ARGS += --build-arg=TOOLCHAIN_JS=$(TOOLCHAIN_JS)
 COMMON_ARGS += --build-arg=TOOLCHAIN=$(TOOLCHAIN)
 COMMON_ARGS += --build-arg=GOFUMPT_VERSION=$(GOFUMPT_VERSION)
 COMMON_ARGS += --build-arg=TESTPKGS=$(TESTPKGS)
+TOOLCHAIN_JS ?= docker.io/node:14.11.0-alpine
 TOOLCHAIN ?= docker.io/golang:1.15-alpine
 
 # help menu
@@ -69,7 +71,7 @@ respectively.
 
 endef
 
-all: unit-tests theila image-theila lint
+all: frontend unit-tests theila image-theila lint
 
 .PHONY: clean
 clean:  ## Cleans up all artifacts.
@@ -80,6 +82,17 @@ target-%:  ## Builds the specified target defined in the Dockerfile. The build r
 
 local-%:  ## Builds the specified target defined in the Dockerfile using the local output type. The build result will be output to the specified local destination.
 	@$(MAKE) target-$* TARGET_ARGS="--output=type=local,dest=$(DEST) $(TARGET_ARGS)"
+
+.PHONY: base-js
+base-js:  ## Prepare js base toolchain
+	@$(MAKE) target-$@
+
+.PHONY: $(ARTIFACTS)/frontend-js
+$(ARTIFACTS)/frontend-js:
+	@$(MAKE) local-frontend DEST=$(ARTIFACTS)
+
+.PHONY: frontend
+frontend: $(ARTIFACTS)/frontend-js  ## Builds js release for frontend.
 
 lint-golangci-lint:  ## Runs golangci-lint linter.
 	@$(MAKE) target-$@

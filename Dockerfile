@@ -2,8 +2,9 @@
 
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2020-08-30T12:21:44Z by kres latest.
+# Generated on 2020-10-05T10:50:08Z by kres ce6bee5-dirty.
 
+ARG TOOLCHAIN_JS
 ARG TOOLCHAIN
 
 FROM autonomy/ca-certificates:v0.2.0-29-gdda8024 AS image-ca-certificates
@@ -23,6 +24,10 @@ RUN markdownlint --ignore "**/node_modules/**" --ignore '**/hack/chglog/**' --ru
 FROM ${TOOLCHAIN} AS toolchain
 RUN apk --update --no-cache add bash curl build-base
 
+# base toolchain image
+FROM ${TOOLCHAIN_JS} AS toolchain-js
+RUN apk --update --no-cache add bash curl
+
 # build tools
 FROM toolchain AS tools
 ENV GO111MODULE on
@@ -35,6 +40,9 @@ RUN cd $(mktemp -d) \
 	&& go get mvdan.cc/gofumpt/gofumports@${GOFUMPT_VERSION} \
 	&& mv /go/bin/gofumports /bin/gofumports
 
+# build tools for javascript
+FROM toolchain-js AS tools-js
+
 # tools and sources
 FROM tools AS base
 WORKDIR /src
@@ -45,7 +53,13 @@ RUN --mount=type=cache,target=/go/pkg go mod verify
 COPY ./internal ./internal
 COPY ./pkg ./pkg
 COPY ./cmd ./cmd
+COPY ./pkged.go ./pkged.go
 RUN --mount=type=cache,target=/go/pkg go list -mod=readonly all >/dev/null
+
+# tools and sources
+FROM tools-js AS base-js
+WORKDIR /src
+COPY ./frontend ./frontend
 
 # runs gofumpt
 FROM base AS lint-gofumpt
@@ -72,6 +86,12 @@ RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/g
 FROM base AS unit-tests-run
 ARG TESTPKGS
 RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg --mount=type=cache,target=/tmp go test -v -covermode=atomic -coverprofile=coverage.txt -count 1 ${TESTPKGS}
+
+# builds frontend
+FROM base-js AS frontend
+WORKDIR /src/frontend
+RUN npm version ${VERSION}
+RUN npm run build
 
 FROM scratch AS theila
 COPY --from=theila-build /theila /theila

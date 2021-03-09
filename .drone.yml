@@ -1,7 +1,7 @@
 ---
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2020-08-30T12:21:44Z by kres latest.
+# Generated on 2020-10-05T10:30:13Z by kres ce6bee5-dirty.
 
 kind: pipeline
 type: kubernetes
@@ -33,6 +33,40 @@ steps:
     path: /root/.docker/buildx
   - name: ssh
     path: /root/.ssh
+
+- name: base-js
+  pull: always
+  image: autonomy/build-container:latest
+  commands:
+  - make base-js
+  volumes:
+  - name: outer-docker-socket
+    path: /var/outer-run
+  - name: docker-socket
+    path: /var/run
+  - name: buildx
+    path: /root/.docker/buildx
+  - name: ssh
+    path: /root/.ssh
+  depends_on:
+  - setup-ci
+
+- name: frontend
+  pull: always
+  image: autonomy/build-container:latest
+  commands:
+  - make frontend
+  volumes:
+  - name: outer-docker-socket
+    path: /var/outer-run
+  - name: docker-socket
+    path: /var/run
+  - name: buildx
+    path: /root/.docker/buildx
+  - name: ssh
+    path: /root/.ssh
+  depends_on:
+  - base-js
 
 - name: base
   pull: always
