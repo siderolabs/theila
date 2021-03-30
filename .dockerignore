@@ -1,13 +1,20 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2020-10-05T10:50:08Z by kres ce6bee5-dirty.
+# Generated on 2021-03-30T12:54:37Z by kres 3971480.
 
 **
-!frontend
+!frontend/src
+!frontend/tests
+!frontend/public
 !internal
-!pkg
 !cmd
-!pkged.go
+!frontend/*.json
+!frontend/*.js
+!.babelrc
+!.tsconfig
+!.jestrc
+!.eslintrc.yaml
+!internal/frontend/frontend.go
 !go.mod
 !go.sum
 !.golangci.yml

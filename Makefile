@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2020-10-05T10:45:27Z by kres ce6bee5-dirty.
+# Generated on 2021-03-29T21:06:20Z by kres 40e845d-dirty.
 
 # common variables
 
@@ -8,13 +8,16 @@ SHA := $(shell git describe --match=none --always --abbrev=8 --dirty)
 TAG := $(shell git describe --tag --always --dirty)
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 ARTIFACTS := _out
-REGISTRY ?= docker.io
-USERNAME ?= autonomy
+REGISTRY ?= ghcr.io
+USERNAME ?= talos-systems
 REGISTRY_AND_USERNAME ?= $(REGISTRY)/$(USERNAME)
+TESTPKGS ?= ./...
 GOFUMPT_VERSION ?= abc0db2c416aca0f60ea33c23c76665f6e7ba0b6
 GO_VERSION ?= 1.14
+PROTOBUF_GO_VERSION ?= 1.25.0
+GRPC_GO_VERSION ?= 1.1.0
 TESTPKGS ?= ./...
-KRES_IMAGE ?= autonomy/kres:latest
+KRES_IMAGE ?= ghcr.io/talos-systems/kres:latest
 
 # docker build settings
 
@@ -31,12 +34,14 @@ COMMON_ARGS += --build-arg=ARTIFACTS=$(ARTIFACTS)
 COMMON_ARGS += --build-arg=SHA=$(SHA)
 COMMON_ARGS += --build-arg=TAG=$(TAG)
 COMMON_ARGS += --build-arg=USERNAME=$(USERNAME)
-COMMON_ARGS += --build-arg=TOOLCHAIN_JS=$(TOOLCHAIN_JS)
+COMMON_ARGS += --build-arg=JS_TOOLCHAIN=$(JS_TOOLCHAIN)
 COMMON_ARGS += --build-arg=TOOLCHAIN=$(TOOLCHAIN)
 COMMON_ARGS += --build-arg=GOFUMPT_VERSION=$(GOFUMPT_VERSION)
+COMMON_ARGS += --build-arg=PROTOBUF_GO_VERSION=$(PROTOBUF_GO_VERSION)
+COMMON_ARGS += --build-arg=GRPC_GO_VERSION=$(GRPC_GO_VERSION)
 COMMON_ARGS += --build-arg=TESTPKGS=$(TESTPKGS)
-TOOLCHAIN_JS ?= docker.io/node:14.11.0-alpine
-TOOLCHAIN ?= docker.io/golang:1.15-alpine
+JS_TOOLCHAIN ?= docker.io/node:15.12.0-alpine3.10
+TOOLCHAIN ?= docker.io/golang:1.16-alpine
 
 # help menu
 
@@ -71,7 +76,7 @@ respectively.
 
 endef
 
-all: frontend unit-tests theila image-theila lint
+all: unit-tests-frontend lint-eslint frontend unit-tests theila image-theila lint
 
 .PHONY: clean
 clean:  ## Cleans up all artifacts.
@@ -83,8 +88,15 @@ target-%:  ## Builds the specified target defined in the Dockerfile. The build r
 local-%:  ## Builds the specified target defined in the Dockerfile using the local output type. The build result will be output to the specified local destination.
 	@$(MAKE) target-$* TARGET_ARGS="--output=type=local,dest=$(DEST) $(TARGET_ARGS)"
 
-.PHONY: base-js
-base-js:  ## Prepare js base toolchain
+.PHONY: js
+js:  ## Prepare js base toolchain.
+	@$(MAKE) target-$@
+
+.PHONY: unit-tests-frontend
+unit-tests-frontend:  ## Performs unit tests
+	@$(MAKE) local-$@ DEST=$(ARTIFACTS)
+
+lint-eslint:  ## Runs eslint linter.
 	@$(MAKE) target-$@
 
 .PHONY: $(ARTIFACTS)/frontend-js
@@ -108,7 +120,7 @@ fmt:  ## Formats the source code
 		cd - && gofumports -w -local github.com/talos-systems/theila ."
 
 .PHONY: base
-base:  ## Prepare base toolchain
+base: frontend  ## Prepare base toolchain
 	@$(MAKE) target-$@
 
 .PHONY: unit-tests

@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2020-08-30T12:21:44Z by kres latest.
+# Generated on 2021-03-29T21:06:20Z by kres 40e845d-dirty.
 
 
 # options for analysis running
@@ -75,8 +75,6 @@ linters-settings:
   lll:
     line-length: 200
     tab-width: 4
-  maligned:
-    suggest-new: true
   misspell:
     locale: US
     ignore-words: []
@@ -112,6 +110,9 @@ linters-settings:
     allow-separated-leading-comment: false
   gofumpt:
     extra-rules: false
+  cyclop:
+      # the maximal code complexity to report
+      max-complexity: 20
 
 linters:
   enable-all: true
@@ -125,6 +126,10 @@ linters:
     - gomnd
     - goerr113
     - nestif
+    - wrapcheck
+    - paralleltest
+    - exhaustivestruct
+    - forbidigo
   disable-all: false
   fast: false
 

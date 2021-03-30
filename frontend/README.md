@@ -1,4 +1,4 @@
-# frontend
+# theila-web
 
 ## Project setup
 ```

@@ -5,45 +5,55 @@
 package main
 
 import (
-	"context"
-	"flag"
 	"fmt"
+	"io/fs"
 	"log"
-	"os"
-	"os/signal"
-	"syscall"
+	"net/http"
 
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 
-	"github.com/talos-systems/theila/pkg/server"
+	"github.com/talos-systems/theila/internal/frontend"
 )
 
 func main() {
-	flag.Int("port", 8042, "port to listen on")
-	flag.String("bind-address", "0.0.0.0", "address to bind")
-	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
-	pflag.Parse()
+	log.Println("Starting app")
 
-	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
-		log.Fatalf("failed to parse input arguments: %s", err)
+	router := registerRoutes()
+
+	port := 8080
+
+	log.Printf("Serving on port %d", port)
+
+	if err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), router); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func registerRoutes() http.Handler {
+	log.Println("Registering routes")
+
+	r := chi.NewMux()
+
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
+	sub, err := fs.Sub(frontend.Dist, "dist")
+	if err != nil {
+		log.Fatalf("failed to get dist/frontend directory")
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	r.Handle("/*", http.FileServer(http.FS(sub)))
 
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+	logRoutes(r)
 
-	go func() {
-		<-sigCh
+	return r
+}
 
-		cancel()
-	}()
-
-	config := &server.Config{
-		Endpoint: fmt.Sprintf("%s:%d", viper.GetString("bind-address"), viper.GetInt("port")),
-	}
-
-	s := server.NewHTTPServer(config)
-	s.Serve(ctx)
+func logRoutes(r chi.Router) {
+	log.Println("Serving with routes:")
+	chi.Walk(r, func(method, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
+		log.Printf("\t%s %s", method, route)
+		return nil
+	})
 }

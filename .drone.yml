@@ -1,7 +1,7 @@
 ---
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2020-10-05T10:30:13Z by kres ce6bee5-dirty.
+# Generated on 2021-03-30T12:47:15Z by kres 3971480.
 
 kind: pipeline
 type: kubernetes
@@ -34,11 +34,11 @@ steps:
   - name: ssh
     path: /root/.ssh
 
-- name: base-js
+- name: js
   pull: always
   image: autonomy/build-container:latest
   commands:
-  - make base-js
+  - make js
   volumes:
   - name: outer-docker-socket
     path: /var/outer-run
@@ -50,6 +50,23 @@ steps:
     path: /root/.ssh
   depends_on:
   - setup-ci
+
+- name: unit-tests-frontend
+  pull: always
+  image: autonomy/build-container:latest
+  commands:
+  - make unit-tests-frontend
+  volumes:
+  - name: outer-docker-socket
+    path: /var/outer-run
+  - name: docker-socket
+    path: /var/run
+  - name: buildx
+    path: /root/.docker/buildx
+  - name: ssh
+    path: /root/.ssh
+  depends_on:
+  - js
 
 - name: frontend
   pull: always
@@ -66,7 +83,7 @@ steps:
   - name: ssh
     path: /root/.ssh
   depends_on:
-  - base-js
+  - js
 
 - name: base
   pull: always
@@ -84,6 +101,7 @@ steps:
     path: /root/.ssh
   depends_on:
   - setup-ci
+  - frontend
 
 - name: unit-tests
   pull: always
@@ -196,13 +214,13 @@ steps:
   pull: always
   image: autonomy/build-container:latest
   commands:
-  - docker login --username "$${DOCKER_USERNAME}" --password "$${DOCKER_PASSWORD}"
+  - docker login ghcr.io --username "$${GHCR_USERNAME}" --password "$${GHCR_PASSWORD}"
   - make image-theila
   environment:
-    DOCKER_PASSWORD:
-      from_secret: docker_password
-    DOCKER_USERNAME:
-      from_secret: docker_username
+    GHCR_PASSWORD:
+      from_secret: ghcr_token
+    GHCR_USERNAME:
+      from_secret: ghcr_username
     PUSH: true
   volumes:
   - name: outer-docker-socket
@@ -224,13 +242,13 @@ steps:
   pull: always
   image: autonomy/build-container:latest
   commands:
-  - docker login --username "$${DOCKER_USERNAME}" --password "$${DOCKER_PASSWORD}"
+  - docker login ghcr.io --username "$${GHCR_USERNAME}" --password "$${GHCR_PASSWORD}"
   - make image-theila TAG=latest
   environment:
-    DOCKER_PASSWORD:
-      from_secret: docker_password
-    DOCKER_USERNAME:
-      from_secret: docker_username
+    GHCR_PASSWORD:
+      from_secret: ghcr_token
+    GHCR_USERNAME:
+      from_secret: ghcr_username
     PUSH: true
   volumes:
   - name: outer-docker-socket
@@ -260,7 +278,6 @@ services:
   - --dns=8.8.4.4
   - --mtu=1500
   - --log-level=error
-  - --insecure-registry=http://registry.ci.svc:5000
   privileged: true
   volumes:
   - name: outer-docker-socket

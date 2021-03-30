@@ -1,15 +1,22 @@
-# syntax = docker/dockerfile-upstream:1.1.7-experimental
+# syntax = docker/dockerfile-upstream:1.2.0-labs
 
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2020-10-05T10:50:08Z by kres ce6bee5-dirty.
+# Generated on 2021-03-30T12:54:37Z by kres 3971480.
 
-ARG TOOLCHAIN_JS
+ARG JS_TOOLCHAIN
 ARG TOOLCHAIN
 
-FROM autonomy/ca-certificates:v0.2.0-29-gdda8024 AS image-ca-certificates
+# cleaned up specs and compiled versions
+FROM scratch AS generate
 
-FROM autonomy/fhs:v0.2.0-29-gdda8024 AS image-fhs
+FROM ghcr.io/talos-systems/ca-certificates:v0.3.0-12-g90722c3 AS image-ca-certificates
+
+FROM ghcr.io/talos-systems/fhs:v0.3.0-12-g90722c3 AS image-fhs
+
+# base toolchain image
+FROM ${JS_TOOLCHAIN} AS js-toolchain
+RUN apk --update --no-cache add bash curl
 
 # runs markdownlint
 FROM node:14.8.0-alpine AS lint-markdown
@@ -22,26 +29,48 @@ RUN markdownlint --ignore "**/node_modules/**" --ignore '**/hack/chglog/**' --ru
 
 # base toolchain image
 FROM ${TOOLCHAIN} AS toolchain
-RUN apk --update --no-cache add bash curl build-base
+RUN apk --update --no-cache add bash curl build-base protoc protobuf-dev
 
-# base toolchain image
-FROM ${TOOLCHAIN_JS} AS toolchain-js
-RUN apk --update --no-cache add bash curl
+# tools and sources
+FROM js-toolchain AS js
+WORKDIR /src
+COPY frontend/package.json ./
+COPY frontend/package-lock.json ./
+RUN --mount=type=cache,target=/src/node_modules npm version ${VERSION}
+RUN --mount=type=cache,target=/src/node_modules npm install
+COPY .eslintrc.yaml ./
+COPY .babelrc ./babel.config.js
+COPY .jestrc ./jest.config.js
+COPY .tsconfig ./tsconfig.json
+COPY ./frontend/src ./src
+COPY ./frontend/tests ./tests
+COPY ./frontend/public ./public
 
 # build tools
 FROM toolchain AS tools
 ENV GO111MODULE on
 ENV CGO_ENABLED 0
 ENV GOPATH /go
-RUN curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b /bin v1.30.0
+RUN curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b /bin v1.38.0
 ARG GOFUMPT_VERSION
 RUN cd $(mktemp -d) \
 	&& go mod init tmp \
 	&& go get mvdan.cc/gofumpt/gofumports@${GOFUMPT_VERSION} \
 	&& mv /go/bin/gofumports /bin/gofumports
 
-# build tools for javascript
-FROM toolchain-js AS tools-js
+# builds frontend
+FROM js AS frontend
+RUN --mount=type=cache,target=/src/node_modules npm run build
+RUN mkdir -p /internal/frontend/dist
+RUN cp -rf ./dist/* /internal/frontend/dist
+
+# runs eslint
+FROM js AS lint-eslint
+RUN --mount=type=cache,target=/src/node_modules npm run lint
+
+# runs js unit-tests
+FROM js AS unit-tests-frontend
+RUN --mount=type=cache,target=/src/node_modules CI=true npm run test
 
 # tools and sources
 FROM tools AS base
@@ -51,15 +80,9 @@ COPY ./go.sum .
 RUN --mount=type=cache,target=/go/pkg go mod download
 RUN --mount=type=cache,target=/go/pkg go mod verify
 COPY ./internal ./internal
-COPY ./pkg ./pkg
 COPY ./cmd ./cmd
-COPY ./pkged.go ./pkged.go
+COPY --from=frontend /internal/frontend/dist ./internal/frontend/dist
 RUN --mount=type=cache,target=/go/pkg go list -mod=readonly all >/dev/null
-
-# tools and sources
-FROM tools-js AS base-js
-WORKDIR /src
-COPY ./frontend ./frontend
 
 # runs gofumpt
 FROM base AS lint-gofumpt
@@ -74,6 +97,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/r
 
 # builds theila
 FROM base AS theila-build
+COPY --from=generate / /
 WORKDIR /src/cmd/theila
 RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg go build -ldflags "-s -w" -o /theila
 
@@ -85,13 +109,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/g
 # runs unit-tests
 FROM base AS unit-tests-run
 ARG TESTPKGS
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg --mount=type=cache,target=/tmp go test -v -covermode=atomic -coverprofile=coverage.txt -count 1 ${TESTPKGS}
-
-# builds frontend
-FROM base-js AS frontend
-WORKDIR /src/frontend
-RUN npm version ${VERSION}
-RUN npm run build
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg --mount=type=cache,target=/tmp go test -v -covermode=atomic -coverprofile=coverage.txt -coverpkg=${TESTPKGS} -count 1 ${TESTPKGS}
 
 FROM scratch AS theila
 COPY --from=theila-build /theila /theila
