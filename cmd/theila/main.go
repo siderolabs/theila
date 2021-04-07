@@ -5,57 +5,55 @@
 package main
 
 import (
-	"fmt"
-	"io/fs"
+	"context"
+	"errors"
 	"log"
 	"net/http"
+	"os/signal"
+	"syscall"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/spf13/cobra"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
-	"github.com/talos-systems/theila/internal/frontend"
+	"github.com/talos-systems/theila/internal/backend"
+	"github.com/talos-systems/theila/internal/backend/logging"
 )
 
+// rootCmd represents the base command when called without any subcommands.
+var rootCmd = &cobra.Command{
+	Use:   "theila",
+	Short: "Talos and Sidero frontend",
+	Long:  ``,
+}
+
+var rootCmdArgs struct {
+	address string
+	port    int
+}
+
 func main() {
-	log.Println("Starting app")
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 
-	router := registerRoutes()
-
-	port := 8080
-
-	log.Printf("Serving on port %d", port)
-
-	if err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), router); err != nil {
-		log.Fatal(err)
-	}
-}
-
-func registerRoutes() http.Handler {
-	log.Println("Registering routes")
-
-	r := chi.NewMux()
-
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-
-	sub, err := fs.Sub(frontend.Dist, "dist")
+	zapLogger, err := config.Build()
 	if err != nil {
-		log.Fatalf("failed to get dist/frontend directory")
+		log.Fatalf("failed to set up logging %s", err)
 	}
 
-	r.Handle("/*", http.FileServer(http.FS(sub)))
+	logger := zapLogger.Sugar()
+	logging.Logger = logger
 
-	logRoutes(r)
+	server := backend.NewServer(rootCmdArgs.address, rootCmdArgs.port)
 
-	return r
+	ctx, _ := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+
+	if err := server.Run(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		logger.Fatalf("failed to run server %s", err)
+	}
 }
 
-func logRoutes(r chi.Routes) {
-	log.Println("Serving with routes:")
-	//nolint:errcheck
-	chi.Walk(r, func(method, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
-		log.Printf("\t%s %s", method, route)
-
-		return nil
-	})
+func init() {
+	rootCmd.Flags().IntVarP(&rootCmdArgs.port, "port", "p", 8080, "Start HTTP server on the defined port.")
+	rootCmd.Flags().StringVar(&rootCmdArgs.address, "address", "", "Start HTTP server on the defined address.")
 }

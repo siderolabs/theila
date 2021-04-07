@@ -2,7 +2,7 @@
 
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-03-30T15:28:27Z by kres def665a-dirty.
+# Generated on 2021-04-02T18:16:15Z by kres 957c8d9-dirty.
 
 ARG JS_TOOLCHAIN
 ARG TOOLCHAIN
@@ -45,6 +45,8 @@ COPY .tsconfig ./tsconfig.json
 COPY ./frontend/src ./src
 COPY ./frontend/tests ./tests
 COPY ./frontend/public ./public
+COPY ./frontend/postcss.config.js ./postcss.config.js
+COPY ./frontend/tailwind.config.js ./tailwind.config.js
 
 # build tools
 FROM toolchain AS tools
