@@ -16,6 +16,7 @@ func (k EventKind) String() string {
 		"EventItemAdd",
 		"EventItemDelete",
 		"EventItemUpdate",
+		"EventError",
 	}[k]
 }
 
@@ -26,6 +27,8 @@ const (
 	EventItemDelete
 	// EventItemUpdate triggered when some item is updated.
 	EventItemUpdate
+	// EventError triggered when watch encounters some error and has to be terminated.
+	EventError
 )
 
 // Event runtime event.
