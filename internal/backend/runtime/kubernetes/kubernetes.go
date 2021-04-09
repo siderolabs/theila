@@ -8,12 +8,14 @@ package kubernetes
 import (
 	"context"
 	"fmt"
+	"strings"
 
-	"golang.org/x/sync/errgroup"
-	k8sruntime "k8s.io/apimachinery/pkg/runtime"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/dynamic/dynamicinformer"
 	"k8s.io/client-go/rest"
 	toolscache "k8s.io/client-go/tools/cache"
-	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
 	"github.com/talos-systems/theila/internal/backend/runtime"
@@ -24,15 +26,11 @@ const Name = "kubernetes"
 
 // New creates new Runtime.
 func New() *Runtime {
-	return &Runtime{
-		scheme: getScheme(),
-	}
+	return &Runtime{}
 }
 
 // Runtime implements runtime.Runtime.
-type Runtime struct {
-	scheme *k8sruntime.Scheme
-}
+type Runtime struct{}
 
 // Watch creates new kubernetes watch.
 func (p *Runtime) Watch(ctx context.Context, resource string, events chan runtime.Event) error {
@@ -47,7 +45,6 @@ func (p *Runtime) Watch(ctx context.Context, resource string, events chan runtim
 		resource: resource,
 		events:   events,
 		config:   config,
-		scheme:   p.scheme,
 		ctx:      ctx,
 		cancel:   cancel,
 	}
@@ -66,28 +63,47 @@ type Watch struct {
 	cancel   context.CancelFunc
 	ctx      context.Context
 	config   *rest.Config
-	scheme   *k8sruntime.Scheme
 	events   chan runtime.Event
 	resource string
 }
 
 func (w *Watch) run(ctx context.Context) error {
-	obj, ok := Types[w.resource]
-	if !ok {
-		return fmt.Errorf("unknown resource type %s", w.resource)
-	}
-
-	cache, err := cache.New(w.config, cache.Options{Scheme: w.scheme})
+	dc, err := dynamic.NewForConfig(w.config)
 	if err != nil {
 		return err
 	}
 
-	informer, err := cache.GetInformer(ctx, obj)
-	if err != nil {
+	dynamicInformer := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dc, 0, v1.NamespaceAll, nil)
+
+	var gvr *schema.GroupVersionResource
+
+	parts := strings.Split(w.resource, ".")
+
+	if len(parts) == 2 {
+		gvr = &schema.GroupVersionResource{
+			Resource: parts[0],
+			Version:  parts[1],
+		}
+	} else {
+		gvr, _ = schema.ParseResourceArg(w.resource)
+	}
+
+	if gvr == nil {
+		return fmt.Errorf("couldn't parse resource name")
+	}
+
+	informer := dynamicInformer.ForResource(*gvr)
+
+	if err := informer.Informer().SetWatchErrorHandler(func(reflector *toolscache.Reflector, e error) {
+		w.events <- runtime.Event{
+			Kind: runtime.EventError,
+			Spec: e.Error(),
+		}
+	}); err != nil {
 		return err
 	}
 
-	informer.AddEventHandler(toolscache.ResourceEventHandlerFuncs{
+	informer.Informer().AddEventHandler(toolscache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			w.events <- runtime.Event{
 				Kind: runtime.EventItemAdd,
@@ -111,17 +127,11 @@ func (w *Watch) run(ctx context.Context) error {
 		},
 	})
 
-	var eg errgroup.Group
+	go func() {
+		dynamicInformer.Start(ctx.Done())
 
-	eg.Go(func() error {
-		return cache.Start(ctx)
-	})
+		<-ctx.Done()
+	}()
 
-	if ok := cache.WaitForCacheSync(ctx); !ok {
-		w.cancel()
-
-		return fmt.Errorf("failed to sync cache")
-	}
-
-	return eg.Wait()
+	return nil
 }

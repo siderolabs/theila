@@ -81,7 +81,10 @@ func (s *Session) startWatch(request *message.Message) (*message.Message, error)
 
 	request.Spec = w
 
-	subscription := NewSubscription(s.ctx, r, w, s.conn)
+	subscription, err := NewSubscription(s.ctx, r, w, s.conn)
+	if err != nil {
+		return nil, err
+	}
 
 	s.subscriptionsMu.Lock()
 	s.subscriptions[subscription.ID] = subscription

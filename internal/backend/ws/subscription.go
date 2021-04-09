@@ -35,7 +35,7 @@ type Subscription struct { //nolint:govet
 }
 
 // NewSubscription creates new Subscription.
-func NewSubscription(ctx context.Context, r runtime.Runtime, watch *message.WatchRequest, conn *websocket.Conn) *Subscription {
+func NewSubscription(ctx context.Context, r runtime.Runtime, watch *message.WatchRequest, conn *websocket.Conn) (*Subscription, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	id := uuid.New().String()
 
@@ -55,12 +55,14 @@ func NewSubscription(ctx context.Context, r runtime.Runtime, watch *message.Watc
 		events: make(chan runtime.Event),
 	}
 
-	subscription.run()
+	if err := subscription.run(); err != nil {
+		return nil, err
+	}
 
-	return subscription
+	return subscription, nil
 }
 
-func (s *Subscription) run() {
+func (s *Subscription) run() error {
 	s.wg.Add(1)
 
 	go func() {
@@ -69,6 +71,9 @@ func (s *Subscription) run() {
 		for {
 			select {
 			case <-s.ctx.Done():
+				s.logger.Debug("unsubscribed")
+				close(s.events)
+
 				return
 			case event := <-s.events:
 				s.handleEvent(event)
@@ -76,32 +81,28 @@ func (s *Subscription) run() {
 		}
 	}()
 
-	s.wg.Add(1)
-
-	go func() {
-		defer s.wg.Done()
-
-		if err := s.runtime.Watch(s.ctx, s.watch.Resource, s.events); err != nil {
-			s.logger.Errorw("failed to start watch", logging.ErrorContext(err)...)
-		}
-
+	if err := s.runtime.Watch(s.ctx, s.watch.Resource, s.events); err != nil {
 		s.cancel()
-	}()
+
+		return err
+	}
 
 	s.logger.Debugw("subscribed")
+
+	return nil
 }
 
 func (s *Subscription) shutdown() {
-	s.logger.Debug("unsubscribed")
-
 	s.cancel()
 
 	s.wg.Wait()
-
-	close(s.events)
 }
 
 func (s *Subscription) handleEvent(e runtime.Event) {
+	if e.Kind == runtime.EventError {
+		s.cancel()
+	}
+
 	err := s.conn.WriteJSON(message.NewRuntimeEvent(
 		s.ID,
 		e,

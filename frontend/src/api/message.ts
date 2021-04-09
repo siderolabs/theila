@@ -50,9 +50,10 @@ export enum Kind {
   None = "None",
   Watch = "Watch",
   Unsubscribe = "Unsubscribe",
-  Update = "EventItemUpdate",
-  Add = "EventItemAdd",
-  Delete = "EventItemDelete",
+  EventItemUpdate = "EventItemUpdate",
+  EventItemAdd = "EventItemAdd",
+  EventItemDelete = "EventItemDelete",
+  EventError = "EventError",
 
   // Server -> Client
   Error = "Error"

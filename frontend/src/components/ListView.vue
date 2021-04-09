@@ -36,22 +36,22 @@ import { Source, Kind, Message } from '../api/message';
     };
   },
 
-  mounted() {
+  async mounted() {
     this.loading = false;
     this.err = null;
 
-    this.subscribe();
+    await this.subscribe();
   },
 
   watch: { 
-    resource: function(newVal: string, oldVal: string) {
+    async resource(newVal: string, oldVal: string) {
       if (newVal != oldVal)
-        this.subscribe();
+        await this.subscribe();
     }
   },
 
-  beforeDestroy() {
-    this.unsubscribe();
+  async beforeDestroy() {
+    await this.unsubscribe();
   },
 
   methods: {
@@ -68,21 +68,20 @@ import { Source, Kind, Message } from '../api/message';
         this.loading = true;
       }
 
-      await this.unsubscribe();
+      try {
+        await this.unsubscribe();
+        if (this.resource) {
+          this.err = null;
 
-      if (this.resource) {
-        this.err = null;
+          this.watch = context.api.watch(this.source, this.resource);
 
-        this.watch = context.api.watch(this.source, this.resource);
-
-        try {
           await this.watch.start(this.updateList);
-        } catch (err) {
-          this.err = err;
-          this.watch= null;
-        } finally {
-          this.loading = false;
         }
+      } catch (err) {
+        this.err = err;
+        this.watch = null;
+      } finally {
+        this.loading = false;
       }
     },
 
@@ -113,27 +112,31 @@ import { Source, Kind, Message } from '../api/message';
     updateList(message: Message) {
       let index;
       switch(message.kind) {
-        case Kind.Add:
+        case Kind.EventItemAdd:
           if(this.findIndex(message.spec) != -1) {
             return;
           }
 
           this.items.push(message.spec);
           break;
-        case Kind.Delete:
+        case Kind.EventItemDelete:
           index = this.findIndex(message.spec);
           if(index == -1) {
             return;
           }
           this.items.splice(index, 1);
           break;
-        case Kind.Update:
+        case Kind.EventItemUpdate:
           index = this.findIndex(message.spec["old"]);
           if(index == -1) {
             return;
           }
           this.items[index] = message.spec["new"];
           break;
+        case Kind.EventError:
+          this.items = [];
+          this.unsubscribe();
+          this.err = message.spec;
       }
     }
   }

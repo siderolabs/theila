@@ -121,7 +121,7 @@ export class Client {
   }
   
   // send message to the socket and wait for server to reply using the same socket.
-  public async send(message: Message, timeout?: number): Promise<Message> {
+  public send(message: Message, timeout?: number): Promise<Message> {
     if (!this.connected) {
       throw new SocketError("socket connection not established")
     }
@@ -135,6 +135,7 @@ export class Client {
         }
       })
 
+      this.log.info(`>> ${message.uid} ${message.kind}`)
       this.ws.send(message.encode());
 
       setTimeout(() => {
@@ -186,7 +187,7 @@ export class Client {
     
     message.decode(event.data);
 
-    this.log.info(`incoming message ${message.uid} ${message.kind}`)
+    this.log.info(`<< ${message.uid} ${message.kind}`)
 
     const sub = this.subcriptions[message.uid];
 
@@ -223,7 +224,7 @@ export class Watch {
     return message;
   }
 
-  public async stop(): Promise<Message> {
+  public stop(): Promise<Message> {
     if (!this.uid) {
       return Promise.reject(new SubscriptionError("failed to stop: not subscribed"));
     }
