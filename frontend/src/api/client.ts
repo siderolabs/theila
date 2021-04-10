@@ -3,10 +3,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import { WatchRequest, UnsubscribeRequest, Message, Kind, Source } from './message';
-
+import { backOff, IBackOffOptions } from "exponential-backoff";
 import { EventEmitter } from 'events';
-
-import { Category } from "typescript-logging";
 
 declare const client: Client;
 
@@ -63,6 +61,9 @@ class AwaitCallback {
 
 const SubscriptionEvent = "subscriptionEvent";
 
+const ClientReconnected = "clientReconnected";
+const ClientDisconnected = "clientDisconnected";
+
 class CallbackList extends EventEmitter {
   constructor() {
     super();
@@ -73,17 +74,22 @@ class CallbackList extends EventEmitter {
   }
 }
 
+function delay(ms: number) {
+    return new Promise( resolve => setTimeout(resolve, ms) );
+}
+
 // Client is used to establish connection to the websocket provided by the backend
 // and defines low level methods implemented by the protocol.
-export class Client {
+export class Client extends EventEmitter {
   private ws: any = null;
   private connected: boolean = false;
   private subcriptions = new Map<string, Subscription>();
   private timeout: number = 5000;
   private address: string;
-  private log: Category = new Category("api");
 
   constructor(address?: string, timeout?: number) {
+    super();
+
     this.address = address || window.location.host;
 
     if (timeout) {
@@ -98,7 +104,14 @@ export class Client {
 
     this.ws.onmessage = this.onmessage.bind(this);
     this.ws.onclose = () => {
+      const reconnect = this.connected;
+
       this.connected = false;
+      this.emit(ClientDisconnected);
+
+      if (reconnect) {
+        this.reconnect();
+      }
     }
 
     return new Promise((resolve, reject) => {
@@ -135,7 +148,7 @@ export class Client {
         }
       })
 
-      this.log.info(`>> ${message.uid} ${message.kind}`)
+      console.log("api socket >>", message)
       this.ws.send(message.encode());
 
       setTimeout(() => {
@@ -187,17 +200,47 @@ export class Client {
     
     message.decode(event.data);
 
-    this.log.info(`<< ${message.uid} ${message.kind}`)
+    console.log("api socket <<", message)
 
     const sub = this.subcriptions[message.uid];
 
     if (sub == null) {
-      this.log.warn(`orphaned message ${message.uid} ${message.kind}`)
+      console.error("api socket orphaned message", message)
 
       return
     }
 
     sub.callback(message);
+  }
+
+  private async reconnect() {
+    console.warn("lost connection to server, reconnecting...");
+
+    try {
+      const backoffOptions:Partial<IBackOffOptions> = {
+        numOfAttempts: Infinity,
+        maxDelay: 500 * 1000,
+        jitter: "full",
+      };
+
+      await backOff(async () => {
+        try {
+          await this.connect(this.timeout);
+        } catch(e) {
+          console.error("failed to connect to server", e);
+          throw e;
+        }
+      }, backoffOptions);
+    } catch(e) {
+      console.error("failed to reconnect to server", e)
+
+      return;
+    }
+
+    console.log("reconnected to server");
+    this.emit(ClientReconnected);
+
+    return;
   }
 }
 
@@ -212,6 +255,7 @@ export class Watch {
     this.client = client;
     this.source = source;
     this.resource = resource;
+    this.client.addListener(ClientReconnected, this.handleReconnect.bind(this));
   }
 
   public async start(callback: Callback): Promise<Message> {
@@ -234,5 +278,13 @@ export class Watch {
     }
 
     return this.client.send(new UnsubscribeRequest(this.uid));
+  }
+
+  public async handleReconnect() {
+    try {
+      await this.start(this.callback);
+    } catch(e) {
+      console.log("failed to restart watch", e)
+    }
   }
 }
