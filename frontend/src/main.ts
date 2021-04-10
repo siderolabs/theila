@@ -6,8 +6,4 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import { Vue } from 'vue-property-decorator';
 
-import { CategoryServiceFactory,CategoryConfiguration,LogLevel } from "typescript-logging";
-
-CategoryServiceFactory.setDefaultConfiguration(new CategoryConfiguration(LogLevel.Info));
-
 createApp(App).mount('#app')

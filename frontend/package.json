@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
-    "typescript-logging": "^1.0.0",
+    "exponential-backoff": "^3.1.0",
     "uuid": "^3.4.0",
     "vue": "^3.0.0",
     "vue-class-component": "^8.0.0-0",
