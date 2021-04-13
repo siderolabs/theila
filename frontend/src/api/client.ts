@@ -2,9 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import { WatchRequest, UnsubscribeRequest, Message, Kind, Source } from './message';
+import { WatchSpec, UnsubscribeSpec, Message, Kind, Source } from './message';
 import { backOff, IBackOffOptions } from "exponential-backoff";
 import { EventEmitter } from 'events';
+import { v4 as uuidv4 } from 'uuid';
 
 declare const client: Client;
 
@@ -32,7 +33,13 @@ export class SubscriptionError extends Error {
 export class RequestError extends Error {
   public response: Message;
   constructor(response: Message) {
-    super(response.spec.error);
+    let err: any = "unknown";
+
+    if (response.spec) {
+      err = JSON.parse(response.spec)["error"];
+    }
+
+    super(err);
 
     this.response = response;
     this.name = "RequestError";
@@ -101,6 +108,7 @@ export class Client extends EventEmitter {
   // should receive the session after that.
   public connect(timeout?: number): Promise<void> {
     this.ws = new WebSocket("ws://" + this.address + "/ws");
+    this.ws.binaryType = "arraybuffer";
 
     this.ws.onmessage = this.onmessage.bind(this);
     this.ws.onclose = () => {
@@ -139,8 +147,16 @@ export class Client extends EventEmitter {
       throw new SocketError("socket connection not established")
     }
 
+    if (!message.metadata) {
+      message.metadata = {
+        uid: uuidv4(),
+      };
+    }
+
+    const uid = message.metadata.uid;
+
     const p:Promise<Message> = new Promise((resolve, reject) => {
-      this.subcriptions[message.uid] = new AwaitCallback((response: Message) => {
+      this.subcriptions[uid] = new AwaitCallback((response: Message) => {
         if (response.kind == Kind.Error) {
           reject(new RequestError(response));
         } else {
@@ -149,15 +165,17 @@ export class Client extends EventEmitter {
       })
 
       console.log("api socket >>", message)
-      this.ws.send(message.encode());
+
+      const data = Message.encode(message).finish();
+      this.ws.send(data);
 
       setTimeout(() => {
-        reject(new AwaitError("timeout expired while waiting for message: " + message.uid + " response"));
+        reject(new AwaitError("timeout expired while waiting for message: " + uid + " response"));
       }, timeout || this.timeout);
     })
 
     p.finally(() => {
-      delete this.subcriptions[message.uid];
+      delete this.subcriptions[uid];
     })
 
     return p
@@ -196,18 +214,22 @@ export class Client extends EventEmitter {
   }
 
   private onmessage(event: MessageEvent): void {
-    const message = new Message(); 
-    
-    message.decode(event.data);
+    const message = Message.decode(new Uint8Array(event.data)); 
 
-    console.log("api socket <<", message)
+    console.log("api socket <<", message);
 
-    const sub = this.subcriptions[message.uid];
+    if (!message.metadata) {
+      console.error("api socket no metadata in the message", message);
+
+      return;
+    }
+
+    const sub = this.subcriptions[message.metadata.uid];
 
     if (sub == null) {
       console.error("api socket orphaned message", message)
 
-      return
+      return;
     }
 
     sub.callback(message);
@@ -261,9 +283,24 @@ export class Watch {
   public async start(callback: Callback): Promise<Message> {
     this.callback = callback;
 
-    const message = await this.client.send(new WatchRequest(this.source, this.resource));
-    this.client.subscribe(message.spec["uid"], callback);
-    this.uid = message.spec["uid"];
+    const watchRequest = newMessage(
+      Kind.Watch,
+      WatchSpec.fromPartial({
+        resource: this.resource,
+        source: this.source,
+      }),
+    )
+
+    const message = await this.client.send(watchRequest);
+
+    if (!message.spec) {
+      throw new Error("empty spec in the response");
+    }
+
+    const spec = JSON.parse(message.spec);
+
+    this.client.subscribe(spec["uid"], callback);
+    this.uid = spec["uid"];
 
     return message;
   }
@@ -277,7 +314,14 @@ export class Watch {
       return Promise.reject(new SubscriptionError("failed to stop: not subscribed"))
     }
 
-    return this.client.send(new UnsubscribeRequest(this.uid));
+    const unsubscribe = newMessage(
+      Kind.Unsubscribe,
+      UnsubscribeSpec.fromPartial({
+        uid: this.uid,
+      }),
+    )
+
+    return this.client.send(unsubscribe);
   }
 
   public async handleReconnect() {
@@ -287,4 +331,14 @@ export class Watch {
       console.log("failed to restart watch", e)
     }
   }
+}
+
+function newMessage(kind: Kind, spec: any): Message {
+  return Message.fromPartial({
+    kind: kind,
+    metadata: {
+      uid: uuidv4(),
+    },
+    spec: JSON.stringify(spec),
+  });
 }

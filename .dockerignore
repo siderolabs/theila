@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-03-30T12:54:37Z by kres 3971480.
+# Generated on 2021-04-12T14:10:42Z by kres 2e6fbed-dirty.
 
 **
 !frontend/src
@@ -8,6 +8,7 @@
 !frontend/public
 !internal
 !cmd
+!api
 !frontend/*.json
 !frontend/*.js
 !.babelrc

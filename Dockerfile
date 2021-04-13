@@ -2,13 +2,10 @@
 
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-04-02T18:16:15Z by kres 957c8d9-dirty.
+# Generated on 2021-04-13T16:44:58Z by kres 87cd05c-dirty.
 
 ARG JS_TOOLCHAIN
 ARG TOOLCHAIN
-
-# cleaned up specs and compiled versions
-FROM scratch AS generate
 
 FROM ghcr.io/talos-systems/ca-certificates:v0.3.0-12-g90722c3 AS image-ca-certificates
 
@@ -16,7 +13,7 @@ FROM ghcr.io/talos-systems/fhs:v0.3.0-12-g90722c3 AS image-fhs
 
 # base toolchain image
 FROM ${JS_TOOLCHAIN} AS js-toolchain
-RUN apk --update --no-cache add bash curl
+RUN apk --update --no-cache add bash curl protoc protobuf-dev
 
 # runs markdownlint
 FROM node:14.8.0-alpine AS lint-markdown
@@ -26,6 +23,14 @@ WORKDIR /src
 COPY .markdownlint.json .
 COPY ./README.md ./README.md
 RUN markdownlint --ignore "**/node_modules/**" --ignore '**/hack/chglog/**' --rules /node_modules/sentences-per-line/index.js .
+
+# collects proto specs
+FROM scratch AS proto-specs
+ADD api/socket/message.proto /api/socket/message/
+
+# collects proto specs
+FROM scratch AS proto-specs-frontend
+ADD api/socket/message.proto /frontend/src/api/
 
 # base toolchain image
 FROM ${TOOLCHAIN} AS toolchain
@@ -47,6 +52,8 @@ COPY ./frontend/tests ./tests
 COPY ./frontend/public ./public
 COPY ./frontend/postcss.config.js ./postcss.config.js
 COPY ./frontend/tailwind.config.js ./tailwind.config.js
+ARG PROTOBUF_TS_VERSION
+RUN npm install -g ts-proto@^${PROTOBUF_TS_VERSION}
 
 # build tools
 FROM toolchain AS tools
@@ -59,6 +66,12 @@ RUN cd $(mktemp -d) \
 	&& go mod init tmp \
 	&& go get mvdan.cc/gofumpt/gofumports@${GOFUMPT_VERSION} \
 	&& mv /go/bin/gofumports /bin/gofumports
+ARG PROTOBUF_GO_VERSION
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v${PROTOBUF_GO_VERSION}
+RUN mv /go/bin/protoc-gen-go /bin
+ARG GRPC_GO_VERSION
+RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v${GRPC_GO_VERSION}
+RUN mv /go/bin/protoc-gen-go-grpc /bin
 
 # builds frontend
 FROM js AS frontend
@@ -70,9 +83,21 @@ RUN cp -rf ./dist/* /internal/frontend/dist
 FROM js AS lint-eslint
 RUN --mount=type=cache,target=/src/node_modules npm run lint
 
+# runs protobuf compiler
+FROM js AS proto-compile-frontend
+COPY --from=proto-specs-frontend / /
+RUN protoc -I/frontend/src --ts_proto_out=paths=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd /frontend/src/api/message.proto
+RUN find /frontend/src -name "*.proto" | xargs rm
+
 # runs js unit-tests
 FROM js AS unit-tests-frontend
 RUN --mount=type=cache,target=/src/node_modules CI=true npm run test
+
+# runs protobuf compiler
+FROM tools AS proto-compile
+COPY --from=proto-specs / /
+RUN protoc -I/api --go_out=paths=source_relative:/api --go-grpc_out=paths=source_relative:/api /api/socket/message/message.proto
+RUN find /api -name "*.proto" | xargs rm
 
 # tools and sources
 FROM tools AS base
@@ -83,8 +108,17 @@ RUN --mount=type=cache,target=/go/pkg go mod download
 RUN --mount=type=cache,target=/go/pkg go mod verify
 COPY ./internal ./internal
 COPY ./cmd ./cmd
+COPY ./api ./api
 COPY --from=frontend /internal/frontend/dist ./internal/frontend/dist
 RUN --mount=type=cache,target=/go/pkg go list -mod=readonly all >/dev/null
+
+# cleaned up specs and compiled versions
+FROM scratch AS generate-frontend
+COPY --from=proto-compile-frontend frontend/ frontend/
+
+# cleaned up specs and compiled versions
+FROM scratch AS generate
+COPY --from=proto-compile /api/ /api/
 
 # runs gofumpt
 FROM base AS lint-gofumpt
@@ -97,12 +131,6 @@ COPY .golangci.yml .
 ENV GOGC 50
 RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/root/.cache/golangci-lint --mount=type=cache,target=/go/pkg golangci-lint run --config .golangci.yml
 
-# builds theila
-FROM base AS theila-build
-COPY --from=generate / /
-WORKDIR /src/cmd/theila
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg go build -ldflags "-s -w" -o /theila
-
 # runs unit-tests with race detector
 FROM base AS unit-tests-race
 ARG TESTPKGS
@@ -113,15 +141,22 @@ FROM base AS unit-tests-run
 ARG TESTPKGS
 RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg --mount=type=cache,target=/tmp go test -v -covermode=atomic -coverprofile=coverage.txt -coverpkg=${TESTPKGS} -count 1 ${TESTPKGS}
 
-FROM scratch AS theila
-COPY --from=theila-build /theila /theila
+# builds theila
+FROM base AS theila-build
+COPY --from=generate / /
+WORKDIR /src/cmd/theila
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg go build -ldflags "-s -w" -o /theila
 
 FROM scratch AS unit-tests
 COPY --from=unit-tests-run /src/coverage.txt /coverage.txt
+
+FROM scratch AS theila
+COPY --from=theila-build /theila /theila
 
 FROM scratch AS image-theila
 COPY --from=theila / /
 COPY --from=image-fhs / /
 COPY --from=image-ca-certificates / /
+LABEL org.opencontainers.image.source https://github.com/talos-systems/theila
 ENTRYPOINT ["/theila"]
 

@@ -111,32 +111,40 @@ import { Source, Kind, Message } from '../api/message';
 
     updateList(message: Message) {
       let index;
+      if (!message.spec) {
+        console.error("got a message with empty spec", message);
+
+        return;
+      }
+
+      const spec = JSON.parse(message.spec);
+
       switch(message.kind) {
         case Kind.EventItemAdd:
-          if(this.findIndex(message.spec) != -1) {
+          if(this.findIndex(spec) != -1) {
             return;
           }
 
-          this.items.push(message.spec);
+          this.items.push(spec);
           break;
         case Kind.EventItemDelete:
-          index = this.findIndex(message.spec);
+          index = this.findIndex(spec);
           if(index == -1) {
             return;
           }
           this.items.splice(index, 1);
           break;
         case Kind.EventItemUpdate:
-          index = this.findIndex(message.spec["old"]);
+          index = this.findIndex(spec["old"]);
           if(index == -1) {
             return;
           }
-          this.items[index] = message.spec["new"];
+          this.items[index] = spec["new"];
           break;
         case Kind.EventError:
           this.items = [];
           this.unsubscribe();
-          this.err = message.spec;
+          this.err = spec;
       }
     }
   }

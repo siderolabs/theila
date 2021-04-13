@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-03-29T21:06:20Z by kres 40e845d-dirty.
+# Generated on 2021-04-12T15:00:29Z by kres 2e6fbed-dirty.
 
 # common variables
 
@@ -11,6 +11,7 @@ ARTIFACTS := _out
 REGISTRY ?= ghcr.io
 USERNAME ?= talos-systems
 REGISTRY_AND_USERNAME ?= $(REGISTRY)/$(USERNAME)
+PROTOBUF_TS_VERSION ?= 1.79.2
 TESTPKGS ?= ./...
 GOFUMPT_VERSION ?= abc0db2c416aca0f60ea33c23c76665f6e7ba0b6
 GO_VERSION ?= 1.14
@@ -35,12 +36,13 @@ COMMON_ARGS += --build-arg=SHA=$(SHA)
 COMMON_ARGS += --build-arg=TAG=$(TAG)
 COMMON_ARGS += --build-arg=USERNAME=$(USERNAME)
 COMMON_ARGS += --build-arg=JS_TOOLCHAIN=$(JS_TOOLCHAIN)
+COMMON_ARGS += --build-arg=PROTOBUF_TS_VERSION=$(PROTOBUF_TS_VERSION)
 COMMON_ARGS += --build-arg=TOOLCHAIN=$(TOOLCHAIN)
 COMMON_ARGS += --build-arg=GOFUMPT_VERSION=$(GOFUMPT_VERSION)
 COMMON_ARGS += --build-arg=PROTOBUF_GO_VERSION=$(PROTOBUF_GO_VERSION)
 COMMON_ARGS += --build-arg=GRPC_GO_VERSION=$(GRPC_GO_VERSION)
 COMMON_ARGS += --build-arg=TESTPKGS=$(TESTPKGS)
-JS_TOOLCHAIN ?= docker.io/node:15.12.0-alpine3.10
+JS_TOOLCHAIN ?= docker.io/node:15.14.0-alpine3.13
 TOOLCHAIN ?= docker.io/golang:1.16-alpine
 
 # help menu
@@ -88,6 +90,9 @@ target-%:  ## Builds the specified target defined in the Dockerfile. The build r
 local-%:  ## Builds the specified target defined in the Dockerfile using the local output type. The build result will be output to the specified local destination.
 	@$(MAKE) target-$* TARGET_ARGS="--output=type=local,dest=$(DEST) $(TARGET_ARGS)"
 
+generate-frontend:  ## Generate .proto definitions.
+	@$(MAKE) local-$@ DEST=./
+
 .PHONY: js
 js:  ## Prepare js base toolchain.
 	@$(MAKE) target-$@
@@ -118,6 +123,9 @@ fmt:  ## Formats the source code
 		bash -c "export GO111MODULE=on; export GOPROXY=https://proxy.golang.org; \
 		cd /tmp && go mod init tmp && go get mvdan.cc/gofumpt/gofumports@$(GOFUMPT_VERSION) && \
 		cd - && gofumports -w -local github.com/talos-systems/theila ."
+
+generate:  ## Generate .proto definitions.
+	@$(MAKE) local-$@ DEST=./
 
 .PHONY: base
 base: frontend  ## Prepare base toolchain
