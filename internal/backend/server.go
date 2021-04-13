@@ -15,6 +15,7 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/talos-systems/theila/api/socket/message"
 	"github.com/talos-systems/theila/internal/backend/logging"
 	"github.com/talos-systems/theila/internal/backend/runtime"
 	"github.com/talos-systems/theila/internal/backend/runtime/kubernetes"
@@ -27,7 +28,7 @@ type Server struct {
 	ctx      context.Context
 	logger   *zap.SugaredLogger
 	ws       *ws.Server
-	runtimes map[string]runtime.Runtime
+	runtimes map[message.Source]runtime.Runtime
 	address  string
 	port     int
 }
@@ -40,16 +41,16 @@ func NewServer(address string, port int) *Server {
 		logger: logging.With(
 			logging.Component("server"),
 		),
-		runtimes: map[string]runtime.Runtime{},
+		runtimes: map[message.Source]runtime.Runtime{},
 	}
 
-	s.RegisterRuntime(kubernetes.Name, kubernetes.New())
+	s.RegisterRuntime(message.Source_Kubernetes, kubernetes.New())
 
 	return s
 }
 
 // RegisterRuntime adds a runtime.
-func (s *Server) RegisterRuntime(name string, runtime runtime.Runtime) {
+func (s *Server) RegisterRuntime(name message.Source, runtime runtime.Runtime) {
 	s.runtimes[name] = runtime
 }
 

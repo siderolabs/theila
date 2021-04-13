@@ -18,6 +18,7 @@ import (
 	toolscache "k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
+	"github.com/talos-systems/theila/api/socket/message"
 	"github.com/talos-systems/theila/internal/backend/runtime"
 )
 
@@ -96,7 +97,7 @@ func (w *Watch) run(ctx context.Context) error {
 
 	if err := informer.Informer().SetWatchErrorHandler(func(reflector *toolscache.Reflector, e error) {
 		w.events <- runtime.Event{
-			Kind: runtime.EventError,
+			Kind: message.Kind_EventError,
 			Spec: e.Error(),
 		}
 	}); err != nil {
@@ -106,13 +107,13 @@ func (w *Watch) run(ctx context.Context) error {
 	informer.Informer().AddEventHandler(toolscache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			w.events <- runtime.Event{
-				Kind: runtime.EventItemAdd,
+				Kind: message.Kind_EventItemAdd,
 				Spec: obj,
 			}
 		},
 		UpdateFunc: func(oldObj, newObj interface{}) {
 			w.events <- runtime.Event{
-				Kind: runtime.EventItemUpdate,
+				Kind: message.Kind_EventItemUpdate,
 				Spec: &runtime.EventUpdate{
 					Old: oldObj,
 					New: newObj,
@@ -121,7 +122,7 @@ func (w *Watch) run(ctx context.Context) error {
 		},
 		DeleteFunc: func(obj interface{}) {
 			w.events <- runtime.Event{
-				Kind: runtime.EventItemDelete,
+				Kind: message.Kind_EventItemDelete,
 				Spec: obj,
 			}
 		},

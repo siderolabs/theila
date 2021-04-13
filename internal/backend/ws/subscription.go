@@ -9,12 +9,12 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 
+	"github.com/talos-systems/theila/api/socket/message"
 	"github.com/talos-systems/theila/internal/backend/logging"
 	"github.com/talos-systems/theila/internal/backend/runtime"
-	"github.com/talos-systems/theila/internal/backend/ws/message"
+	"github.com/talos-systems/theila/internal/backend/ws/proto"
 )
 
 // Subscription is a reactive list of items that sends updates to the websocket on each state change.
@@ -24,18 +24,18 @@ type Subscription struct { //nolint:govet
 	ID string
 
 	wg      sync.WaitGroup
-	conn    *websocket.Conn
+	conn    *Conn
 	logger  *zap.SugaredLogger
 	ctx     context.Context
 	cancel  context.CancelFunc
 	runtime runtime.Runtime
-	watch   *message.WatchRequest
+	watch   *message.WatchSpec
 	items   []interface{}
 	events  chan runtime.Event
 }
 
 // NewSubscription creates new Subscription.
-func NewSubscription(ctx context.Context, r runtime.Runtime, watch *message.WatchRequest, conn *websocket.Conn) (*Subscription, error) {
+func NewSubscription(ctx context.Context, r runtime.Runtime, watch *message.WatchSpec, conn *Conn) (*Subscription, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	id := uuid.New().String()
 
@@ -99,15 +99,22 @@ func (s *Subscription) shutdown() {
 }
 
 func (s *Subscription) handleEvent(e runtime.Event) {
-	if e.Kind == runtime.EventError {
+	var err error
+
+	defer func() {
+		if err != nil {
+			s.logger.Errorw("failed to write event to the socket", logging.ErrorContext(err)...)
+		}
+	}()
+
+	if e.Kind == message.Kind_EventError {
 		s.cancel()
 	}
 
-	err := s.conn.WriteJSON(message.NewRuntimeEvent(
-		s.ID,
-		e,
-	))
+	event, err := proto.NewRuntimeEvent(s.ID, e)
 	if err != nil {
-		s.logger.Errorw("failed to write event to the socket", logging.ErrorContext(err)...)
+		return
 	}
+
+	err = s.conn.WriteProtobuf(event)
 }

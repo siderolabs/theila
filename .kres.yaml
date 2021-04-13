@@ -1,0 +1,18 @@
+---
+kind: auto.CommandConfig
+name: build
+spec:
+  disableImage: true
+---
+kind: golang.Protobuf
+spec:
+  specs:
+    - source: api/socket/message.proto
+      subdirectory: socket/message/
+---
+kind: js.Protobuf
+spec:
+  specs:
+    - source: api/socket/message.proto
+      subdirectory: api
+      destinationRoot: src

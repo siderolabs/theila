@@ -5,36 +5,16 @@
 // Package runtime implements connectors to various runtimes.
 package runtime
 
-import "context"
+import (
+	"context"
 
-// EventKind runtime event kind.
-type EventKind int
-
-// String implements fmt.Stringer.
-func (k EventKind) String() string {
-	return []string{
-		"EventItemAdd",
-		"EventItemDelete",
-		"EventItemUpdate",
-		"EventError",
-	}[k]
-}
-
-const (
-	// EventItemAdd triggered when a new item is added.
-	EventItemAdd = iota
-	// EventItemDelete triggered when some item is delete.
-	EventItemDelete
-	// EventItemUpdate triggered when some item is updated.
-	EventItemUpdate
-	// EventError triggered when watch encounters some error and has to be terminated.
-	EventError
+	"github.com/talos-systems/theila/api/socket/message"
 )
 
 // Event runtime event.
 type Event struct {
 	Spec interface{}
-	Kind EventKind
+	Kind message.Kind
 }
 
 // EventUpdate spec for update event.

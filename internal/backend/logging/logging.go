@@ -5,7 +5,12 @@
 // Package logging contains zap logging heplers.
 package logging
 
-import "go.uber.org/zap"
+import (
+	"log"
+
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+)
 
 // Setter implements context field setter.
 type Setter func() (string, interface{})
@@ -62,4 +67,16 @@ var Logger *zap.SugaredLogger
 // With creates new logger.
 func With(setters ...Setter) *zap.SugaredLogger {
 	return Logger.With(Context(setters...)...)
+}
+
+func init() {
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+
+	zapLogger, err := config.Build()
+	if err != nil {
+		log.Fatalf("failed to set up logging %s", err)
+	}
+
+	Logger = zapLogger.Sugar()
 }
