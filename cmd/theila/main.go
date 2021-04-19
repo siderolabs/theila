@@ -17,7 +17,6 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/talos-systems/theila/internal/backend"
-	"github.com/talos-systems/theila/internal/backend/logging"
 )
 
 // rootCmd represents the base command when called without any subcommands.
@@ -36,20 +35,17 @@ func main() {
 	config := zap.NewDevelopmentConfig()
 	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 
-	zapLogger, err := config.Build()
+	logger, err := config.Build()
 	if err != nil {
 		log.Fatalf("failed to set up logging %s", err)
 	}
-
-	logger := zapLogger.Sugar()
-	logging.Logger = logger
 
 	server := backend.NewServer(rootCmdArgs.address, rootCmdArgs.port)
 
 	ctx, _ := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 
 	if err := server.Run(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		logger.Fatalf("failed to run server %s", err)
+		logger.Fatal("failed to run server", zap.Error(err))
 	}
 }
 

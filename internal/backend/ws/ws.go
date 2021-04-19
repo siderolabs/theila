@@ -23,7 +23,7 @@ import (
 
 // Server is a websocket server.
 type Server struct {
-	logger   *zap.SugaredLogger
+	logger   *zap.Logger
 	ctx      context.Context
 	runtimes map[message.Source]runtime.Runtime
 	upgrader *websocket.Upgrader
@@ -60,13 +60,13 @@ func (ws *Server) createSession(rw http.ResponseWriter, r *http.Request) {
 		})
 
 		if err != nil {
-			ws.logger.Errorw("faield to encode error response", logging.ErrorContext(err)...)
+			ws.logger.Error("faield to encode error response", zap.Error(err))
 
 			return
 		}
 
 		if _, err = rw.Write(data); err != nil {
-			ws.logger.Errorw("failed to write error", logging.ErrorContext(err)...)
+			ws.logger.Error("failed to write error", zap.Error(err))
 		}
 
 		return
@@ -91,7 +91,7 @@ func (ws *Server) createSession(rw http.ResponseWriter, r *http.Request) {
 		case websocket.BinaryMessage:
 			request, err := proto.Decode(data)
 			if err != nil {
-				ws.logger.Errorw("failed to decode request message", logging.ErrorContext(err)...)
+				ws.logger.Error("failed to decode request message", zap.Error(err))
 
 				continue
 			}
@@ -102,23 +102,23 @@ func (ws *Server) createSession(rw http.ResponseWriter, r *http.Request) {
 
 				errResponse, err = proto.NewErrorResponse(request, err)
 				if err != nil {
-					ws.logger.Errorw("failed to encode error response", logging.ErrorContext(err)...)
+					ws.logger.Error("failed to encode error response", zap.Error(err))
 
 					continue
 				}
 
 				if err = conn.WriteProtobuf(errResponse); err != nil {
-					ws.logger.Errorw("failed to write error response", logging.ErrorContext(err)...)
+					ws.logger.Error("failed to write error response", zap.Error(err))
 				}
 
 				continue
 			}
 
 			if err = conn.WriteProtobuf(response); err != nil {
-				ws.logger.Errorw("failed to write response", logging.ErrorContext(err)...)
+				ws.logger.Error("failed to write response", zap.Error(err))
 			}
 		default:
-			ws.logger.Errorf("unhandled message type %d", mt)
+			ws.logger.Sugar().Errorf("unhandled message type %d", mt)
 		}
 	}
 }

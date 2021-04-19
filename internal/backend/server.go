@@ -26,7 +26,7 @@ import (
 // Server is main backend entrypoint that starts REST API, WebSocket and Serves static contents.
 type Server struct {
 	ctx      context.Context
-	logger   *zap.SugaredLogger
+	logger   *zap.Logger
 	ws       *ws.Server
 	runtimes map[message.Source]runtime.Runtime
 	address  string
@@ -63,7 +63,7 @@ func (s *Server) Run(ctx context.Context) error {
 		return err
 	}
 
-	s.logger.Infof("Serving on port %d", s.port)
+	s.logger.Sugar().Infof("Serving on port %d", s.port)
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", s.address, s.port),

@@ -8,9 +8,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <div>
       <ul class="flex w-full flex-wrap items-center h-10">
         <li class="block relative">
-          <dropdown :options="sources"/>
-        </li>
-        <li class="block relative ml-4">
           <input type="text" name="resource" class="
                                      inline-flex 
                                      justify-center 
@@ -42,7 +39,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 <script lang="ts">
 import { Options, Vue } from 'vue-class-component';
-import { Source } from '../api/message';
 
 import ListView from './ListView.vue';
 import Dropdown from './Dropdown.vue';
@@ -55,7 +51,6 @@ import Dropdown from './Dropdown.vue';
 
   data() {
     return {
-      source: Source.Kubernetes,
       resource: null,
       resourceInput: "",
     }
@@ -68,6 +63,5 @@ import Dropdown from './Dropdown.vue';
   },
 })
 export default class HelloWorld extends Vue {
-  sources: Source[] = [Source.Kubernetes, Source.Talos];
 }
 </script>
