@@ -12,71 +12,33 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// Setter implements context field setter.
-type Setter func() (string, interface{})
-
 // SubscriptionID watch subscription id.
-func SubscriptionID(id string) Setter {
-	return func() (string, interface{}) {
-		return "subscription_id", id
-	}
+func SubscriptionID(id string) zap.Field {
+	return zap.String("subscription", id)
 }
 
 // Component log subsystem.
-func Component(name string) Setter {
-	return func() (string, interface{}) {
-		return "component", name
-	}
-}
-
-// Error logs error.
-func Error(err error) Setter {
-	return func() (string, interface{}) {
-		return "err", err
-	}
-}
-
-// Context constructs logging context based on provided options.
-func Context(setters ...Setter) []interface{} {
-	fields := make([]interface{}, len(setters)*2)
-
-	index := 0
-
-	for _, setter := range setters {
-		key, value := setter()
-
-		fields[index] = key
-		fields[index+1] = value
-
-		index += 2 //nolint:wastedassign
-	}
-
-	return fields
-}
-
-// ErrorContext is a shortcut that creates a context with an error.
-func ErrorContext(err error, setters ...Setter) []interface{} {
-	setters = append(setters, Error(err))
-
-	return Context(setters...)
+func Component(name string) zap.Field {
+	return zap.String("component", name)
 }
 
 // Logger is a global logger instance from which we deliver all other logger instances.
-var Logger *zap.SugaredLogger
+var Logger *zap.Logger
 
 // With creates new logger.
-func With(setters ...Setter) *zap.SugaredLogger {
-	return Logger.With(Context(setters...)...)
+func With(fields ...zap.Field) *zap.Logger {
+	return Logger.With(fields...)
 }
 
 func init() {
 	config := zap.NewDevelopmentConfig()
 	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	config.EncoderConfig.ConsoleSeparator = " "
 
 	zapLogger, err := config.Build()
 	if err != nil {
 		log.Fatalf("failed to set up logging %s", err)
 	}
 
-	Logger = zapLogger.Sugar()
+	Logger = zapLogger
 }

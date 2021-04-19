@@ -25,7 +25,7 @@ type Subscription struct { //nolint:govet
 
 	wg      sync.WaitGroup
 	conn    *Conn
-	logger  *zap.SugaredLogger
+	logger  *zap.Logger
 	ctx     context.Context
 	cancel  context.CancelFunc
 	runtime runtime.Runtime
@@ -87,7 +87,7 @@ func (s *Subscription) run() error {
 		return err
 	}
 
-	s.logger.Debugw("subscribed")
+	s.logger.Debug("subscribed")
 
 	return nil
 }
@@ -103,7 +103,7 @@ func (s *Subscription) handleEvent(e runtime.Event) {
 
 	defer func() {
 		if err != nil {
-			s.logger.Errorw("failed to write event to the socket", logging.ErrorContext(err)...)
+			s.logger.Error("failed to write event to the socket", zap.Error(err))
 		}
 	}()
 

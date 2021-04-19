@@ -23,7 +23,7 @@ type Session struct { //nolint:govet
 	cancel          context.CancelFunc
 	runtimes        map[message.Source]runtime.Runtime
 	conn            *Conn
-	logger          *zap.SugaredLogger
+	logger          *zap.Logger
 	subscriptionsMu sync.RWMutex
 	subscriptions   map[string]*Subscription
 }
