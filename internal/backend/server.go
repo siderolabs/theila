@@ -12,6 +12,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"os"
 
 	"go.uber.org/zap"
 
@@ -103,9 +104,24 @@ func (s *Server) registerRoutes() (*http.ServeMux, error) {
 		return nil, fmt.Errorf("failed to get dist/frontend directory")
 	}
 
-	mux.Handle("/", http.FileServer(http.FS(sub)))
+	mux.Handle("/", http.FileServer(&singlePage{http.FS(sub)}))
 
 	s.ws = ws.New(s.ctx, mux, s.runtimes)
 
 	return mux, nil
+}
+
+type singlePage struct {
+	wrapped http.FileSystem
+}
+
+func (s *singlePage) Open(name string) (http.File, error) {
+	// only difference here is that if the file is not found we always fallback to the /index.html
+	f, err := s.wrapped.Open(name)
+
+	if os.IsNotExist(err) {
+		return s.wrapped.Open("/index.html")
+	}
+
+	return f, err
 }
