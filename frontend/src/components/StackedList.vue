@@ -3,26 +3,41 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
-
 <template>
-  <div v-if="loading" class="m-4 justify-center text-gray-300">Loading...</div>
-  <div v-else class="border border-gray-500 rounded-md text-gray-300">
-    <div v-if="err" class="m-4 justify-center text-gray-300">{{ err }}</div>
-    <div v-else-if="items.length == 0" class="m-4 justify-center">No Records</div>
-    <template v-else>
-      <div class="m-3" v-for="item in items" v-bind:key="item.metadata.name">{{ item.metadata.name }}</div>
-    </template>
+  <div>
+    <div v-if="loading" class="flex flex-row justify-center items-center w-full h-full">
+      <t-spinner/>
+    </div>
+    <div v-else class="flex flex-col w-full overflow-hidden bg-white border rounded-md border-talos-gray-300 dark:border-talos-gray-600 dark:bg-talos-gray-900 text-talos-gray-900 dark:text-talos-gray-100">
+      <div v-if="err" class="m-4 justify-center">{{ err }}</div>
+      <div v-else-if="items.length == 0" class="m-4 justify-center">No Records</div>
+      <template v-else>
+        <ul class="divide-y divide-talos-gray-300 dark:divide-talos-gray-600">
+          <li
+            v-for="item in items"
+            :key="getID(item)"
+            >
+            <slot :item="item"></slot>
+          </li>
+        </ul>
+      </template>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import { Options, Vue } from 'vue-class-component';
-import { context } from '../context';
-import { Source, Kind, Message } from '../api/message';
+import { Options, Vue } from "vue-class-component";
+import { context } from "../context";
+import { Source, Kind, Message } from "../api/message";
+import TSpinner from './TSpinner.vue';
 
 @Options({
+  components: {
+    TSpinner,
+  },
+
   props: {
-    source: Source,
+    provider: Source,
     resource: String,
     idField: String
   },
@@ -34,6 +49,10 @@ import { Source, Kind, Message } from '../api/message';
       err: null,
       watch: null,
     };
+  },
+
+  async unmounted() {
+    await this.unsubscribe();
   },
 
   async mounted() {
@@ -48,10 +67,6 @@ import { Source, Kind, Message } from '../api/message';
       if (newVal != oldVal)
         await this.subscribe();
     }
-  },
-
-  async beforeDestroy() {
-    await this.unsubscribe();
   },
 
   methods: {
@@ -73,7 +88,7 @@ import { Source, Kind, Message } from '../api/message';
         if (this.resource) {
           this.err = null;
 
-          this.watch = context.api.watch(this.source, this.resource);
+          this.watch = context.api.watch(this.provider, this.resource);
 
           await this.watch.start(this.updateList);
         }
@@ -149,5 +164,5 @@ import { Source, Kind, Message } from '../api/message';
     }
   }
 })
-export default class ListView extends Vue {}
+export default class StackedList extends Vue {}
 </script>
