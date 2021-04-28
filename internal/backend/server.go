@@ -16,22 +16,21 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/talos-systems/theila/api/socket/message"
 	"github.com/talos-systems/theila/internal/backend/logging"
 	"github.com/talos-systems/theila/internal/backend/runtime"
 	"github.com/talos-systems/theila/internal/backend/runtime/kubernetes"
+	"github.com/talos-systems/theila/internal/backend/runtime/talos"
 	"github.com/talos-systems/theila/internal/backend/ws"
 	"github.com/talos-systems/theila/internal/frontend"
 )
 
 // Server is main backend entrypoint that starts REST API, WebSocket and Serves static contents.
 type Server struct {
-	ctx      context.Context
-	logger   *zap.Logger
-	ws       *ws.Server
-	runtimes map[message.Source]runtime.Runtime
-	address  string
-	port     int
+	ctx     context.Context
+	logger  *zap.Logger
+	ws      *ws.Server
+	address string
+	port    int
 }
 
 // NewServer creates new HTTP server.
@@ -42,17 +41,17 @@ func NewServer(address string, port int) *Server {
 		logger: logging.With(
 			logging.Component("server"),
 		),
-		runtimes: map[message.Source]runtime.Runtime{},
 	}
 
-	s.RegisterRuntime(message.Source_Kubernetes, kubernetes.New())
+	runtime.Install(kubernetes.Name, kubernetes.New())
+	runtime.Install(talos.Name, talos.New())
 
 	return s
 }
 
 // RegisterRuntime adds a runtime.
-func (s *Server) RegisterRuntime(name message.Source, runtime runtime.Runtime) {
-	s.runtimes[name] = runtime
+func (s *Server) RegisterRuntime(name string, r runtime.Runtime) {
+	runtime.Install(name, r)
 }
 
 // Run runs HTTP server.
@@ -106,7 +105,7 @@ func (s *Server) registerRoutes() (*http.ServeMux, error) {
 
 	mux.Handle("/", http.FileServer(&singlePage{http.FS(sub)}))
 
-	s.ws = ws.New(s.ctx, mux, s.runtimes)
+	s.ws = ws.New(s.ctx, mux)
 
 	return mux, nil
 }

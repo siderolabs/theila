@@ -21,7 +21,6 @@ import (
 type Session struct { //nolint:govet
 	ctx             context.Context
 	cancel          context.CancelFunc
-	runtimes        map[message.Source]runtime.Runtime
 	conn            *Conn
 	logger          *zap.Logger
 	subscriptionsMu sync.RWMutex
@@ -29,10 +28,9 @@ type Session struct { //nolint:govet
 }
 
 // NewSession creates a new session.
-func NewSession(ctx context.Context, runtimes map[message.Source]runtime.Runtime, conn *Conn) *Session {
+func NewSession(ctx context.Context, conn *Conn) *Session {
 	s := &Session{
 		logger:        logging.With(logging.Component("session")),
-		runtimes:      runtimes,
 		subscriptions: map[string]*Subscription{},
 		conn:          conn,
 	}
@@ -77,7 +75,7 @@ func (s *Session) startWatch(request *message.Message) (*message.Message, error)
 		return nil, err
 	}
 
-	r, err := s.getRuntime(w)
+	r, err := runtime.Get(w.Source.String())
 	if err != nil {
 		return nil, err
 	}
@@ -115,13 +113,4 @@ func (s *Session) unsubscribe(request *message.Message) (*message.Message, error
 	delete(s.subscriptions, unsubscribe.Uid)
 
 	return proto.NewOkResponse(request)
-}
-
-func (s *Session) getRuntime(watch *message.WatchSpec) (runtime.Runtime, error) {
-	p, ok := s.runtimes[watch.Source]
-	if !ok {
-		return nil, fmt.Errorf("failed to get %s runtime", watch.Source)
-	}
-
-	return p, nil
 }

@@ -81,7 +81,7 @@ func (s *Subscription) run() error {
 		}
 	}()
 
-	if err := s.runtime.Watch(s.ctx, s.watch.Resource, s.events); err != nil {
+	if err := s.runtime.Watch(s.ctx, s.watch, s.events); err != nil {
 		s.cancel()
 
 		return err

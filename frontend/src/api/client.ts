@@ -2,10 +2,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import { WatchSpec, UnsubscribeSpec, Message, Kind, Source } from './message';
+import { WatchSpec, UnsubscribeSpec, Message, Kind, Source, Context } from './message';
 import { backOff, IBackOffOptions } from "exponential-backoff";
 import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
+import { DateTime, Duration } from 'luxon';
 
 declare const client: Client;
 
@@ -81,10 +82,6 @@ class CallbackList extends EventEmitter {
   }
 }
 
-function delay(ms: number) {
-    return new Promise( resolve => setTimeout(resolve, ms) );
-}
-
 // Client is used to establish connection to the websocket provided by the backend
 // and defines low level methods implemented by the protocol.
 export class Client extends EventEmitter {
@@ -93,6 +90,7 @@ export class Client extends EventEmitter {
   private subcriptions = new Map<string, Subscription>();
   private timeout: number = 5000;
   private address: string;
+  private lastReconnect?: DateTime;
 
   constructor(address?: string, timeout?: number) {
     super();
@@ -181,8 +179,8 @@ export class Client extends EventEmitter {
     return p
   }
 
-  public watch(source: Source, resource: string): Watch {
-    return new Watch(this, source, resource);
+  public watch(source: Source, resource: string, context?: string): Watch {
+    return new Watch(this, source, resource, context);
   }
 
   public subscribe(uid: string, func: Callback): void {
@@ -236,7 +234,22 @@ export class Client extends EventEmitter {
   }
 
   private async reconnect() {
-    console.warn("lost connection to server, reconnecting...");
+    console.warn("lost connection to server, reconnecting in...");
+
+    // trottle reconnection rate in case if server has closed the connection without an error.
+    if (this.lastReconnect != null) {
+      const delta = this.lastReconnect.diff(DateTime.now()).milliseconds;
+      const minDelay = 1000;
+
+      const d = minDelay + minDelay * Math.random() - delta;
+      if (d > 0) {
+        console.log(`delay ${d}ms`)
+
+        await delay(d);
+      }
+    }
+
+    this.lastReconnect = DateTime.now();
 
     try {
       const backoffOptions:Partial<IBackOffOptions> = {
@@ -272,23 +285,31 @@ export class Watch {
   private resource: string;
   private uid!: string;
   private callback!: Callback;
+  private context?: Object;
 
-  constructor(client: Client, source: Source, resource: string) {
+  constructor(client: Client, source: Source, resource: string, context?: string) {
     this.client = client;
     this.source = source;
     this.resource = resource;
+    this.context = context;
     this.client.addListener(ClientReconnected, this.handleReconnect.bind(this));
   }
 
   public async start(callback: Callback): Promise<Message> {
     this.callback = callback;
 
+    const params = {
+      resource: this.resource,
+      source: this.source,
+    }
+
+    if (this.context) {
+      params["context"] = Context.fromPartial(this.context);
+    }
+
     const watchRequest = newMessage(
       Kind.Watch,
-      WatchSpec.fromPartial({
-        resource: this.resource,
-        source: this.source,
-      }),
+      WatchSpec.fromPartial(params),
     )
 
     const message = await this.client.send(watchRequest);
@@ -341,4 +362,8 @@ function newMessage(kind: Kind, spec: any): Message {
     },
     spec: JSON.stringify(spec),
   });
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
