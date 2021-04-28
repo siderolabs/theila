@@ -10,12 +10,19 @@
           >
           <div class="flex items-center px-4 py-4 sm:px-6">
             <div class="flex items-center flex-1 min-w-0">
-              <div class="flex-1 min-w-0 md:grid md:grid-cols-5 md:gap-4">
+              <div class="flex-1 min-w-0 md:grid md:grid-cols-7 md:gap-4">
                 <div class="col-span-2 block">
                   <p
                     class="text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100"
                     >
                     {{ slot.item.metadata.name }}
+                  </p>
+                </div>
+                <div class="block">
+                  <p
+                    class="text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100"
+                    >
+                    {{ slot.item.spec.hostname }}
                   </p>
                 </div>
                 <div class="block">

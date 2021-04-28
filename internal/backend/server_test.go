@@ -23,22 +23,29 @@ import (
 	"github.com/talos-systems/theila/api/socket/message"
 	"github.com/talos-systems/theila/internal/backend"
 	"github.com/talos-systems/theila/internal/backend/runtime"
+	"github.com/talos-systems/theila/internal/backend/runtime/talos"
 	"github.com/talos-systems/theila/internal/backend/ws/proto"
 )
-
-const fakeSource message.Source = -1
 
 type testRuntime struct {
 	events chan runtime.Event
 }
 
-func (t *testRuntime) Watch(ctx context.Context, resource string, events chan runtime.Event) error {
-	if resource == "boom" {
+func (t *testRuntime) Watch(ctx context.Context, watch *message.WatchSpec, events chan runtime.Event) error {
+	if watch.Resource == "boom" {
 		return fmt.Errorf("failed to watch this particular resource")
 	}
 
 	t.events = events
 
+	return nil
+}
+
+func (t *testRuntime) AddContext(id string, data []byte) error {
+	return nil
+}
+
+func (t *testRuntime) Get(ctx context.Context, dest interface{}, setters ...runtime.QueryOption) error {
 	return nil
 }
 
@@ -57,7 +64,7 @@ func (s *ServerSuite) SetupTest() {
 	s.runtime = &testRuntime{}
 	s.server = backend.NewServer("", 3000)
 
-	s.server.RegisterRuntime(fakeSource, s.runtime)
+	s.server.RegisterRuntime(talos.Name, s.runtime)
 
 	s.ctx, s.cancel = context.WithCancel(context.Background())
 
@@ -184,7 +191,7 @@ loop:
 func (s *ServerSuite) TestSubscription() {
 	response, err := s.sendMessage(message.Kind_Watch, message.WatchSpec{
 		Resource: "node",
-		Source:   fakeSource,
+		Source:   message.Source_Talos,
 	})
 
 	s.Require().NoError(err)
@@ -284,7 +291,7 @@ func (s *ServerSuite) TestSubscription() {
 func (s *ServerSuite) TestSubscribeUnsubscribe() {
 	resp, err := s.sendMessage(message.Kind_Watch, &message.WatchSpec{
 		Resource: "nope",
-		Source:   fakeSource,
+		Source:   message.Source_Talos,
 	})
 
 	s.Require().NoError(err)
@@ -310,7 +317,7 @@ func (s *ServerSuite) TestBadInputs() {
 
 	_, err = s.sendMessage(message.Kind_Watch, &message.WatchSpec{
 		Resource: "boom",
-		Source:   fakeSource,
+		Source:   message.Source_Talos,
 	})
 	s.Require().Error(err)
 

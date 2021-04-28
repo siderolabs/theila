@@ -39,6 +39,7 @@ import TSpinner from './TSpinner.vue';
   props: {
     provider: Source,
     resource: String,
+    context: Object,
     idField: String
   },
 
@@ -88,7 +89,7 @@ import TSpinner from './TSpinner.vue';
         if (this.resource) {
           this.err = null;
 
-          this.watch = context.api.watch(this.provider, this.resource);
+          this.watch = context.api.watch(this.provider, this.resource, this.context);
 
           await this.watch.start(this.updateList);
         }

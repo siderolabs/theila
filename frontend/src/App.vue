@@ -6,21 +6,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 <template>
   <shell v-if="connected">
     <template v-slot:menu>
-      <shell-menu-item :link="{name: 'Clusters'}" name="Clusters">
-        <template v-slot:icon>
-          <view-grid-icon class="w-6 h-6"/>
-        </template>
-      </shell-menu-item>
-      <shell-menu-item :link="{name: 'Servers'}" name="Servers">
-        <template v-slot:icon>
-          <server-icon class="w-6 h-6"/>
-        </template>
-      </shell-menu-item>
-      <shell-menu-item :link="{name: 'Demo'}" name="Demo">
-        <template v-slot:icon>
-          <beaker-icon class="w-6 h-6"/>
-        </template>
-      </shell-menu-item>
+      <router-view name="sidebar"/>
     </template>
     <template v-slot:content>
       <router-view class="w-full h-full"/>

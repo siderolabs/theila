@@ -140,11 +140,31 @@ export interface Message {
   spec: string;
 }
 
+/** Cluster contains settings for fetching the config from cluster resource in Kubernetes. */
+export interface Cluster {
+  /** Name of the cluster. */
+  name: string;
+  /** Namespace of the cluster. */
+  namespace: string;
+  /** UID of the cluster. */
+  UID: string;
+}
+
+/** Context represents Kubernetes or Talos config source. */
+export interface Context {
+  /** Name fetches the config from the top level Kubeconfig or Talosconfig. */
+  name: string;
+  /** Cluster fetches the context from the cluster resource in Kubernetes. */
+  cluster: Cluster | undefined;
+}
+
 export interface WatchSpec {
   /** Resource name to watch. */
   resource: string;
   /** Source to get the watch data from. */
   source: Source;
+  /** Context settings to fetch the data from. */
+  context: Context | undefined;
 }
 
 /** Watch response. */
@@ -315,6 +335,170 @@ export const Message = {
   },
 };
 
+const baseCluster: object = { name: "", namespace: "", UID: "" };
+
+export const Cluster = {
+  encode(message: Cluster, writer: Writer = Writer.create()): Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.namespace !== "") {
+      writer.uint32(18).string(message.namespace);
+    }
+    if (message.UID !== "") {
+      writer.uint32(26).string(message.UID);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): Cluster {
+    const reader = input instanceof Reader ? input : new Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseCluster } as Cluster;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.name = reader.string();
+          break;
+        case 2:
+          message.namespace = reader.string();
+          break;
+        case 3:
+          message.UID = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Cluster {
+    const message = { ...baseCluster } as Cluster;
+    if (object.name !== undefined && object.name !== null) {
+      message.name = String(object.name);
+    } else {
+      message.name = "";
+    }
+    if (object.namespace !== undefined && object.namespace !== null) {
+      message.namespace = String(object.namespace);
+    } else {
+      message.namespace = "";
+    }
+    if (object.UID !== undefined && object.UID !== null) {
+      message.UID = String(object.UID);
+    } else {
+      message.UID = "";
+    }
+    return message;
+  },
+
+  toJSON(message: Cluster): unknown {
+    const obj: any = {};
+    message.name !== undefined && (obj.name = message.name);
+    message.namespace !== undefined && (obj.namespace = message.namespace);
+    message.UID !== undefined && (obj.UID = message.UID);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<Cluster>): Cluster {
+    const message = { ...baseCluster } as Cluster;
+    if (object.name !== undefined && object.name !== null) {
+      message.name = object.name;
+    } else {
+      message.name = "";
+    }
+    if (object.namespace !== undefined && object.namespace !== null) {
+      message.namespace = object.namespace;
+    } else {
+      message.namespace = "";
+    }
+    if (object.UID !== undefined && object.UID !== null) {
+      message.UID = object.UID;
+    } else {
+      message.UID = "";
+    }
+    return message;
+  },
+};
+
+const baseContext: object = { name: "" };
+
+export const Context = {
+  encode(message: Context, writer: Writer = Writer.create()): Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.cluster !== undefined) {
+      Cluster.encode(message.cluster, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): Context {
+    const reader = input instanceof Reader ? input : new Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseContext } as Context;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.name = reader.string();
+          break;
+        case 2:
+          message.cluster = Cluster.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Context {
+    const message = { ...baseContext } as Context;
+    if (object.name !== undefined && object.name !== null) {
+      message.name = String(object.name);
+    } else {
+      message.name = "";
+    }
+    if (object.cluster !== undefined && object.cluster !== null) {
+      message.cluster = Cluster.fromJSON(object.cluster);
+    } else {
+      message.cluster = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: Context): unknown {
+    const obj: any = {};
+    message.name !== undefined && (obj.name = message.name);
+    message.cluster !== undefined &&
+      (obj.cluster = message.cluster
+        ? Cluster.toJSON(message.cluster)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<Context>): Context {
+    const message = { ...baseContext } as Context;
+    if (object.name !== undefined && object.name !== null) {
+      message.name = object.name;
+    } else {
+      message.name = "";
+    }
+    if (object.cluster !== undefined && object.cluster !== null) {
+      message.cluster = Cluster.fromPartial(object.cluster);
+    } else {
+      message.cluster = undefined;
+    }
+    return message;
+  },
+};
+
 const baseWatchSpec: object = { resource: "", source: 0 };
 
 export const WatchSpec = {
@@ -324,6 +508,9 @@ export const WatchSpec = {
     }
     if (message.source !== 0) {
       writer.uint32(16).int32(message.source);
+    }
+    if (message.context !== undefined) {
+      Context.encode(message.context, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -340,6 +527,9 @@ export const WatchSpec = {
           break;
         case 2:
           message.source = reader.int32() as any;
+          break;
+        case 3:
+          message.context = Context.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -361,6 +551,11 @@ export const WatchSpec = {
     } else {
       message.source = 0;
     }
+    if (object.context !== undefined && object.context !== null) {
+      message.context = Context.fromJSON(object.context);
+    } else {
+      message.context = undefined;
+    }
     return message;
   },
 
@@ -368,6 +563,10 @@ export const WatchSpec = {
     const obj: any = {};
     message.resource !== undefined && (obj.resource = message.resource);
     message.source !== undefined && (obj.source = sourceToJSON(message.source));
+    message.context !== undefined &&
+      (obj.context = message.context
+        ? Context.toJSON(message.context)
+        : undefined);
     return obj;
   },
 
@@ -382,6 +581,11 @@ export const WatchSpec = {
       message.source = object.source;
     } else {
       message.source = 0;
+    }
+    if (object.context !== undefined && object.context !== null) {
+      message.context = Context.fromPartial(object.context);
+    } else {
+      message.context = undefined;
     }
     return message;
   },
@@ -663,7 +867,14 @@ function base64FromBytes(arr: Uint8Array): string {
   return btoa(bin.join(""));
 }
 
-type Builtin = Date | Function | Uint8Array | string | number | undefined;
+type Builtin =
+  | Date
+  | Function
+  | Uint8Array
+  | string
+  | number
+  | boolean
+  | undefined;
 export type DeepPartial<T> = T extends Builtin
   ? T
   : T extends Array<infer U>

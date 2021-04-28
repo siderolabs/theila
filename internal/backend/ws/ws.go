@@ -17,7 +17,6 @@ import (
 
 	"github.com/talos-systems/theila/api/socket/message"
 	"github.com/talos-systems/theila/internal/backend/logging"
-	"github.com/talos-systems/theila/internal/backend/runtime"
 	"github.com/talos-systems/theila/internal/backend/ws/proto"
 )
 
@@ -25,18 +24,16 @@ import (
 type Server struct {
 	logger   *zap.Logger
 	ctx      context.Context
-	runtimes map[message.Source]runtime.Runtime
 	upgrader *websocket.Upgrader
 }
 
 // New creates new websocket server instance and registers routes in the gin engine.
-func New(ctx context.Context, mux *http.ServeMux, runtimes map[message.Source]runtime.Runtime) *Server {
+func New(ctx context.Context, mux *http.ServeMux) *Server {
 	ws := &Server{
 		ctx: ctx,
 		logger: logging.With(
 			logging.Component("websocket"),
 		),
-		runtimes: runtimes,
 		upgrader: &websocket.Upgrader{},
 	}
 
@@ -45,6 +42,7 @@ func New(ctx context.Context, mux *http.ServeMux, runtimes map[message.Source]ru
 	return ws
 }
 
+//nolint:gocognit
 func (ws *Server) createSession(rw http.ResponseWriter, r *http.Request) {
 	c, err := ws.upgrader.Upgrade(rw, r, nil)
 	if err != nil {
@@ -76,7 +74,7 @@ func (ws *Server) createSession(rw http.ResponseWriter, r *http.Request) {
 
 	conn := &Conn{Conn: c}
 
-	session := NewSession(ws.ctx, ws.runtimes, conn)
+	session := NewSession(ws.ctx, conn)
 	defer session.Shutdown()
 
 	for {
@@ -89,34 +87,42 @@ func (ws *Server) createSession(rw http.ResponseWriter, r *http.Request) {
 		case websocket.CloseMessage:
 			return
 		case websocket.BinaryMessage:
-			request, err := proto.Decode(data)
-			if err != nil {
-				ws.logger.Error("failed to decode request message", zap.Error(err))
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						ws.logger.Error("panic in message loop %s", zap.Reflect("recover", r))
+					}
+				}()
 
-				continue
-			}
-
-			response, err := session.handleMessage(request)
-			if err != nil {
-				var errResponse *message.Message
-
-				errResponse, err = proto.NewErrorResponse(request, err)
+				request, err := proto.Decode(data)
 				if err != nil {
-					ws.logger.Error("failed to encode error response", zap.Error(err))
+					ws.logger.Error("failed to decode request message", zap.Error(err))
 
-					continue
+					return
 				}
 
-				if err = conn.WriteProtobuf(errResponse); err != nil {
-					ws.logger.Error("failed to write error response", zap.Error(err))
+				response, err := session.handleMessage(request)
+				if err != nil {
+					var errResponse *message.Message
+
+					errResponse, err = proto.NewErrorResponse(request, err)
+					if err != nil {
+						ws.logger.Error("failed to encode error response", zap.Error(err))
+
+						return
+					}
+
+					if err = conn.WriteProtobuf(errResponse); err != nil {
+						ws.logger.Error("failed to write error response", zap.Error(err))
+					}
+
+					return
 				}
 
-				continue
-			}
-
-			if err = conn.WriteProtobuf(response); err != nil {
-				ws.logger.Error("failed to write response", zap.Error(err))
-			}
+				if err = conn.WriteProtobuf(response); err != nil {
+					ws.logger.Error("failed to write response", zap.Error(err))
+				}
+			}()
 		default:
 			ws.logger.Sugar().Errorf("unhandled message type %d", mt)
 		}

@@ -5,7 +5,8 @@
     </div>
     <stacked-list class="flex-1" resource="clusters.v1alpha3.cluster.x-k8s.io" idField="metadata.name" :provider="0">
       <template v-slot:default="slot">
-        <a
+        <router-link
+          :to="{name: 'Nodes', params: { cluster: slot.item.metadata.name, namespace: slot.item.metadata.namespace, uid: slot.item.metadata.uid }}"
           class="block hover:bg-talos-gray-50 dark:hover:bg-talos-gray-800"
           >
           <div class="flex items-center px-4 py-4 sm:px-6">
@@ -60,7 +61,7 @@
               </t-button>
             </div>
           </div>
-        </a>
+        </router-link>
       </template>
     </stacked-list>
   </div>
