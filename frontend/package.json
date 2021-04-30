@@ -17,6 +17,7 @@
     "exponential-backoff": "^3.1.0",
     "long": "^4.0.0",
     "luxon": "^1.26.0",
+    "pluralize": "^8.0.0",
     "postcss": "^7",
     "protobufjs": "^6.10.2",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.0.2",

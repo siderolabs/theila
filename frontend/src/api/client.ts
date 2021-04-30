@@ -286,13 +286,14 @@ export class Watch {
   private uid!: string;
   private callback!: Callback;
   private context?: Object;
+  private handler?: any;
 
   constructor(client: Client, source: Source, resource: string, context?: string) {
     this.client = client;
     this.source = source;
     this.resource = resource;
     this.context = context;
-    this.client.addListener(ClientReconnected, this.handleReconnect.bind(this));
+    this.handler = this.handleReconnect.bind(this);
   }
 
   public async start(callback: Callback): Promise<Message> {
@@ -323,6 +324,8 @@ export class Watch {
     this.client.subscribe(spec["uid"], callback);
     this.uid = spec["uid"];
 
+    this.client.addListener(ClientReconnected, this.handler);
+
     return message;
   }
 
@@ -340,12 +343,19 @@ export class Watch {
       UnsubscribeSpec.fromPartial({
         uid: this.uid,
       }),
-    )
+    );
+
+    this.uid = null!;
+    this.client.removeListener(ClientReconnected, this.handler);
 
     return this.client.send(unsubscribe);
   }
 
   public async handleReconnect() {
+    if (this.uid == null) {
+      return;
+    }
+
     try {
       await this.start(this.callback);
     } catch(e) {

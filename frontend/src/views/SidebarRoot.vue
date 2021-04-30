@@ -13,6 +13,11 @@
         <server-icon class="w-6 h-6"/>
       </template>
     </shell-menu-item>
+    <shell-menu-item name="Settings">
+      <template v-slot:icon>
+        <cog-icon class="w-6 h-6"/>
+      </template>
+    </shell-menu-item>
   </div>
 </template>
 
@@ -21,7 +26,8 @@ import { Options, Vue } from 'vue-class-component';
 import ShellMenuItem from '../components/ShellMenuItem.vue';
 import {
   ViewGridIcon,
-  ServerIcon
+  ServerIcon,
+  CogIcon,
 } from '@heroicons/vue/outline';
 
 @Options({
@@ -29,6 +35,7 @@ import {
     ShellMenuItem,
     ViewGridIcon,
     ServerIcon,
+    CogIcon,
   },
 })
 export default class SidebarRoot extends Vue {}

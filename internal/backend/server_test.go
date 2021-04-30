@@ -333,6 +333,8 @@ func (s *ServerSuite) TestBadInputs() {
 	s.Require().Error(err)
 }
 
+// TODO: test subscribe and walk away
+
 func TestServerSuite(t *testing.T) {
 	suite.Run(t, &ServerSuite{})
 }

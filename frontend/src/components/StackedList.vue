@@ -8,11 +8,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <div v-if="loading" class="flex flex-row justify-center items-center w-full h-full">
       <t-spinner/>
     </div>
-    <div v-else class="flex flex-col w-full overflow-hidden bg-white border rounded-md border-talos-gray-300 dark:border-talos-gray-600 dark:bg-talos-gray-900 text-talos-gray-900 dark:text-talos-gray-100">
+    <div v-else class="stacked-list">
       <div v-if="err" class="m-4 justify-center">{{ err }}</div>
       <div v-else-if="items.length == 0" class="m-4 justify-center">No Records</div>
       <template v-else>
-        <ul class="divide-y divide-talos-gray-300 dark:divide-talos-gray-600">
+        <ul>
+          <li v-if="showCount && itemName">
+            <div class="px-4 py-4 sm:px-6">
+              {{ items.length }} {{ pluralize(itemName, items.length) }}
+            </div>
+          </li>
+          <li v-if="$slots.header" class="table-header">
+            <slot name="header"></slot>
+          </li>
           <li
             v-for="item in items"
             :key="getID(item)"
@@ -30,6 +38,7 @@ import { Options, Vue } from "vue-class-component";
 import { context } from "../context";
 import { Source, Kind, Message } from "../api/message";
 import TSpinner from './TSpinner.vue';
+import pluralize from 'pluralize';
 
 @Options({
   components: {
@@ -40,7 +49,9 @@ import TSpinner from './TSpinner.vue';
     provider: Source,
     resource: String,
     context: Object,
-    idField: String
+    idField: String,
+    showCount: Boolean,
+    itemName: String,
   },
 
   data() {
@@ -73,6 +84,10 @@ import TSpinner from './TSpinner.vue';
   methods: {
     findIndex(obj) {
       return this.items.findIndex(element => this.getID(element) == this.getID(obj));
+    },
+
+    pluralize(noun, count) {
+      return pluralize(noun, count);
     },
 
     async subscribe() {
@@ -167,3 +182,21 @@ import TSpinner from './TSpinner.vue';
 })
 export default class StackedList extends Vue {}
 </script>
+
+<style>
+.stacked-list {
+  @apply flex flex-col w-full overflow-hidden bg-white border rounded-md border-talos-gray-300 dark:border-talos-gray-600 dark:bg-talos-gray-900 text-talos-gray-900 dark:text-talos-gray-100;
+}
+
+.stacked-list > ul {
+  @apply divide-y divide-talos-gray-300 dark:divide-talos-gray-600;
+}
+
+li {
+  @apply text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100;
+}
+
+.stacked-list .table-header > * {
+  @apply flex items-center px-4 py-3 sm:px-6 min-w-0 md:grid md:gap-4 uppercase bg-talos-gray-100 dark:bg-talos-gray-700 text-talos-gray-500 dark:text-talos-gray-300;
+}
+</style>
