@@ -9,6 +9,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       <router-view name="sidebar"/>
     </template>
     <template v-slot:content>
+      <t-breadcrumbs/>
       <router-view class="w-full h-full"/>
     </template>
   </shell>
@@ -21,9 +22,9 @@ import ShellMenuItem from './components/ShellMenuItem.vue';
 import { context } from './context';
 import {
   ViewGridIcon,
-  BeakerIcon,
   ServerIcon
 } from '@heroicons/vue/outline';
+
 
 @Options({
   components: {
@@ -31,7 +32,6 @@ import {
     ShellMenuItem,
     ViewGridIcon,
     ServerIcon,
-    BeakerIcon,
   },
 
   data() {

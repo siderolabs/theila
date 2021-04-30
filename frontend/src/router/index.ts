@@ -6,6 +6,7 @@ import { createWebHistory, createRouter } from "vue-router";
 import Clusters from "../views/Clusters.vue";
 import Servers from "../views/Servers.vue";
 import Nodes from "../views/Nodes.vue";
+import Pods from "../views/Pods.vue";
 import SidebarRoot from "../views/SidebarRoot.vue";
 import SidebarCluster from "../views/SidebarCluster.vue";
 
@@ -40,6 +41,24 @@ const routes = [
         default: Nodes,
         sidebar: SidebarCluster,
       },
+      meta: {
+        breadcrumbs: [
+          { text: "Clusters", to: "/" },
+        ]
+      }
+    },
+    {
+      path: "/pods",
+      name: "Pods",
+      components: {
+        default: Pods,
+        sidebar: SidebarCluster,
+      },
+      meta: {
+        breadcrumbs: [
+          { text: "Clusters", to: "/" },
+        ]
+      }
     }
   ]),
 ];

@@ -13,6 +13,11 @@
         <server-icon class="w-6 h-6"/>
       </template>
     </shell-menu-item>
+    <shell-menu-item :link="{name: 'Pods', params: { cluster: $route.params.cluster, namespace: $route.params.namespace, uid: $route.params.uid }}" name="Pods">
+      <template v-slot:icon>
+        <cube-icon class="w-6 h-6"/>
+      </template>
+    </shell-menu-item>
   </div>
 </template>
 
@@ -21,7 +26,8 @@ import { Options, Vue } from 'vue-class-component';
 import ShellMenuItem from '../components/ShellMenuItem.vue';
 import {
   ServerIcon,
-  ArrowSmLeftIcon
+  ArrowSmLeftIcon,
+  CubeIcon,
 } from '@heroicons/vue/outline';
 
 @Options({
@@ -29,6 +35,7 @@ import {
     ShellMenuItem,
     ServerIcon,
     ArrowSmLeftIcon,
+    CubeIcon,
   },
 })
 export default class SidebarCluster extends Vue {}

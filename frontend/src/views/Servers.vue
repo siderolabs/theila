@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col">
     <div class="px-3 py-2 mb-2">
-      <h1 class="text-lg tracking-tight text-talos-gray-900 dark:text-white font-bold">Servers</h1>
+      <div class="text-lg tracking-tight text-talos-gray-900 dark:text-white font-bold">Servers</div>
     </div>
     <stacked-list class="flex-1" resource="servers.v1alpha1.metal.sidero.dev" idField="metadata.name" :provider="0">
       <template v-slot:default="slot">

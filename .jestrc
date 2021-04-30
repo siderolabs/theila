@@ -1,6 +1,6 @@
 // THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 //
-// Generated on 2021-04-23T15:17:02Z by kres 87cd05c-dirty.
+// Generated on 2021-04-28T16:49:54Z by kres 392fdcb.
 
 module.exports = {
   preset: '@vue/cli-plugin-unit-jest/presets/typescript-and-babel/',
