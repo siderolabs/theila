@@ -9,10 +9,44 @@ spec:
   specs:
     - source: api/socket/message.proto
       subdirectory: socket/message/
+    - source: api/common/theila.proto
+      subdirectory: common
+    - source: api/rpc/resource.proto
+      subdirectory: rpc
+      genGateway: true
+    - source: https://raw.githubusercontent.com/googleapis/googleapis/master/google/rpc/status.proto
+      subdirectory: google/rpc/
+      genGateway: true
+    - source: https://raw.githubusercontent.com/talos-systems/talos/master/api/common/common.proto
+      subdirectory: common/
+      genGateway: true
+    - source: https://raw.githubusercontent.com/talos-systems/talos/master/api/resource/resource.proto
+      subdirectory: talos/resource/
+      genGateway: true
 ---
 kind: js.Protobuf
 spec:
   specs:
+    - source: api/common/theila.proto
+      subdirectory: common
+      destinationRoot: src
+      genGateway: true
     - source: api/socket/message.proto
       subdirectory: api
       destinationRoot: src
+    - source: api/rpc/resource.proto
+      subdirectory: api
+      destinationRoot: src
+      genGateway: true
+    - source: https://raw.githubusercontent.com/googleapis/googleapis/master/google/rpc/status.proto
+      destinationRoot: src
+      subdirectory: google/rpc/
+      genGateway: true
+    - source: https://raw.githubusercontent.com/talos-systems/talos/master/api/resource/resource.proto
+      destinationRoot: src
+      subdirectory: talos/resource
+      genGateway: true
+    - source: https://raw.githubusercontent.com/talos-systems/talos/master/api/common/common.proto
+      destinationRoot: src
+      subdirectory: common/
+      genGateway: true

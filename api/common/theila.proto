@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package common;
+
+option go_package = "github.com/talos-systems/theila/api/common";
+
+// Data source.
+enum Source {
+  // Get the data from Kubernetes control planes.
+  Kubernetes = 0;
+  // Get the data from Talos apid.
+  Talos = 1;
+}
+// Cluster contains settings for fetching the config from cluster resource in Kubernetes.
+message Cluster {
+  // Name of the cluster.
+  string name = 1;
+  // Namespace of the cluster.
+  string namespace = 2;
+  // UID of the cluster.
+  string uid = 3;
+}
+
+// Context represents Kubernetes or Talos config source.
+message Context {
+  // Name fetches the config from the top level Kubeconfig or Talosconfig.
+  string name = 1;
+  // Cluster fetches the context from the cluster resource in Kubernetes.
+  Cluster cluster = 2;
+}

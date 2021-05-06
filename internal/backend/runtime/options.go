@@ -4,11 +4,14 @@
 
 package runtime
 
-import "github.com/talos-systems/theila/api/socket/message"
+import (
+	"github.com/talos-systems/theila/api/common"
+)
 
 // QueryOptions List and Get query options.
 type QueryOptions struct {
-	Cluster       *message.Cluster
+	Cluster       *common.Cluster
+	Type          interface{}
 	Namespace     string
 	Name          string
 	Context       string
@@ -66,8 +69,15 @@ func WithResource(resource string) QueryOption {
 }
 
 // WithCluster specifies the cluster to use to get the resource from.
-func WithCluster(cluster *message.Cluster) QueryOption {
+func WithCluster(cluster *common.Cluster) QueryOption {
 	return func(o *QueryOptions) {
 		o.Cluster = cluster
+	}
+}
+
+// WithType explicitly defines the Resource type struct.
+func WithType(t interface{}) QueryOption {
+	return func(o *QueryOptions) {
+		o.Type = t
 	}
 }

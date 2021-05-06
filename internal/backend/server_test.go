@@ -18,8 +18,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/suite"
+	"github.com/talos-systems/talos/pkg/machinery/api/resource"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/talos-systems/theila/api/common"
 	"github.com/talos-systems/theila/api/socket/message"
 	"github.com/talos-systems/theila/internal/backend"
 	"github.com/talos-systems/theila/internal/backend/runtime"
@@ -32,7 +34,7 @@ type testRuntime struct {
 }
 
 func (t *testRuntime) Watch(ctx context.Context, watch *message.WatchSpec, events chan runtime.Event) error {
-	if watch.Resource == "boom" {
+	if watch.Resource.Type == "boom" {
 		return fmt.Errorf("failed to watch this particular resource")
 	}
 
@@ -45,8 +47,12 @@ func (t *testRuntime) AddContext(id string, data []byte) error {
 	return nil
 }
 
-func (t *testRuntime) Get(ctx context.Context, dest interface{}, setters ...runtime.QueryOption) error {
-	return nil
+func (t *testRuntime) Get(ctx context.Context, setters ...runtime.QueryOption) (interface{}, error) {
+	return nil, nil
+}
+
+func (t *testRuntime) List(ctx context.Context, setters ...runtime.QueryOption) (interface{}, error) {
+	return nil, nil
 }
 
 type ServerSuite struct {
@@ -61,8 +67,12 @@ type ServerSuite struct {
 }
 
 func (s *ServerSuite) SetupTest() {
+	var err error
+
 	s.runtime = &testRuntime{}
-	s.server = backend.NewServer("", 3000)
+	s.server, err = backend.NewServer("", 3000)
+
+	s.Require().NoError(err)
 
 	s.server.RegisterRuntime(talos.Name, s.runtime)
 
@@ -76,7 +86,6 @@ func (s *ServerSuite) SetupTest() {
 
 	var (
 		c    *websocket.Conn
-		err  error
 		resp *http.Response
 	)
 
@@ -190,8 +199,10 @@ loop:
 
 func (s *ServerSuite) TestSubscription() {
 	response, err := s.sendMessage(message.Kind_Watch, message.WatchSpec{
-		Resource: "node",
-		Source:   message.Source_Talos,
+		Resource: &resource.WatchRequest{
+			Type: "node",
+		},
+		Source: common.Source_Talos,
 	})
 
 	s.Require().NoError(err)
@@ -290,8 +301,10 @@ func (s *ServerSuite) TestSubscription() {
 
 func (s *ServerSuite) TestSubscribeUnsubscribe() {
 	resp, err := s.sendMessage(message.Kind_Watch, &message.WatchSpec{
-		Resource: "nope",
-		Source:   message.Source_Talos,
+		Resource: &resource.WatchRequest{
+			Type: "nope",
+		},
+		Source: common.Source_Talos,
 	})
 
 	s.Require().NoError(err)
@@ -316,14 +329,18 @@ func (s *ServerSuite) TestBadInputs() {
 	s.Require().Error(err)
 
 	_, err = s.sendMessage(message.Kind_Watch, &message.WatchSpec{
-		Resource: "boom",
-		Source:   message.Source_Talos,
+		Resource: &resource.WatchRequest{
+			Type: "boom",
+		},
+		Source: common.Source_Talos,
 	})
 	s.Require().Error(err)
 
 	_, err = s.sendMessage(message.Kind_Watch, &message.WatchSpec{
-		Resource: "node",
-		Source:   100,
+		Resource: &resource.WatchRequest{
+			Type: "node",
+		},
+		Source: 100,
 	})
 	s.Require().Error(err)
 

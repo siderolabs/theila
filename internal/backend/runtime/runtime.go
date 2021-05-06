@@ -31,7 +31,8 @@ type EventUpdate struct {
 // Runtime is an abstraction for the data access.
 type Runtime interface {
 	Watch(context.Context, *message.WatchSpec, chan Event) error
-	Get(context.Context, interface{}, ...QueryOption) error
+	Get(context.Context, ...QueryOption) (interface{}, error)
+	List(context.Context, ...QueryOption) (interface{}, error)
 	AddContext(string, []byte) error
 }
 

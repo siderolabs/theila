@@ -8,10 +8,13 @@ package kubernetes
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"strings"
 	"sync"
 
+	"github.com/talos-systems/talos/pkg/machinery/api/resource"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -24,22 +27,30 @@ import (
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
+	"github.com/talos-systems/theila/api/common"
 	"github.com/talos-systems/theila/api/socket/message"
 	"github.com/talos-systems/theila/internal/backend/runtime"
 )
 
 // Name kubernetes runtime string id.
-var Name = message.Source_Kubernetes.String()
+var Name = common.Source_Kubernetes.String()
 
 // New creates new Runtime.
-func New() *Runtime {
+func New() (*Runtime, error) {
+	scheme, err := getScheme()
+	if err != nil {
+		return nil, err
+	}
+
 	return &Runtime{
 		configs: map[string]*rest.Config{},
-	}
+		scheme:  scheme,
+	}, nil
 }
 
 // Runtime implements runtime.Runtime.
 type Runtime struct {
+	scheme    *k8sruntime.Scheme
 	configs   map[string]*rest.Config
 	configsMu sync.RWMutex
 }
@@ -74,6 +85,7 @@ func (r *Runtime) Watch(ctx context.Context, request *message.WatchSpec, events 
 
 	w := &Watch{
 		resource: request.Resource,
+		selector: request.Selector,
 		events:   events,
 		config:   cfg,
 		ctx:      ctx,
@@ -90,30 +102,17 @@ func (r *Runtime) Watch(ctx context.Context, request *message.WatchSpec, events 
 }
 
 // Get implements runtime.Runtime.
-func (r *Runtime) Get(ctx context.Context, dest interface{}, setters ...runtime.QueryOption) error {
+func (r *Runtime) Get(ctx context.Context, setters ...runtime.QueryOption) (interface{}, error) {
 	opts := runtime.NewQueryOptions(setters...)
 
-	client, err := r.getClient(opts.Context)
+	client, err := r.getOrCreateClient(ctx, opts)
 	if err != nil {
-		// initialize the client if it's not initialized and we have Cluster information
-		if opts.Cluster != nil {
-			_, err = r.getKubeconfig(ctx, opts.Cluster)
-			if err != nil {
-				return err
-			}
-
-			client, err = r.getClient(opts.Context)
-			if err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
+		return nil, err
 	}
 
-	object, ok := dest.(k8sruntime.Object)
-	if !ok {
-		return fmt.Errorf("dest must be Kubernetes runtime.Object")
+	object, err := r.createObject(client, opts)
+	if err != nil {
+		return nil, err
 	}
 
 	if opts.Name != "" {
@@ -122,25 +121,47 @@ func (r *Runtime) Get(ctx context.Context, dest interface{}, setters ...runtime.
 			Name:      opts.Name,
 		}, object)
 	} else {
-		selector := labels.NewSelector()
-
-		if opts.LabelSelector != "" {
-			selector, err = labels.Parse(opts.LabelSelector)
-			if err != nil {
-				return err
-			}
-		}
-
-		err = client.List(ctx, object, runtimeclient.MatchingLabelsSelector{
-			Selector: selector,
-		})
+		return nil, fmt.Errorf("both resource type and resource name must be defined for Kubernetes Get")
 	}
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return object, nil
+}
+
+// List implements runtime.Runtime.
+func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) (interface{}, error) {
+	opts := runtime.NewQueryOptions(setters...)
+
+	client, err := r.getOrCreateClient(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	object, err := r.createObject(client, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	selector := labels.NewSelector()
+
+	if opts.LabelSelector != "" {
+		selector, err = labels.Parse(opts.LabelSelector)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = client.List(ctx, object, runtimeclient.MatchingLabelsSelector{
+		Selector: selector,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return object, nil
 }
 
 // AddContext implements runtime.Runtime.
@@ -157,7 +178,7 @@ func (r *Runtime) AddContext(id string, data []byte) error {
 	return nil
 }
 
-func (r *Runtime) getKubeconfig(ctx context.Context, cluster *message.Cluster) (*rest.Config, error) {
+func (r *Runtime) getKubeconfig(ctx context.Context, cluster *common.Cluster) (*rest.Config, error) {
 	id := cluster.Uid
 
 	res := func() *rest.Config {
@@ -173,25 +194,28 @@ func (r *Runtime) getKubeconfig(ctx context.Context, cluster *message.Cluster) (
 
 	var err error
 
-	secret := &v1.Secret{}
-
 	opts := []runtime.QueryOption{
 		runtime.WithName(
 			fmt.Sprintf("%s-kubeconfig", cluster.Name),
 		),
+		runtime.WithType(v1.Secret{}),
 	}
 
 	if cluster.Namespace != "" {
 		opts = append(opts, runtime.WithNamespace(cluster.Namespace))
 	}
 
-	err = r.Get(
+	s, err := r.Get(
 		ctx,
-		secret,
 		opts...,
 	)
 	if err != nil {
 		return nil, err
+	}
+
+	secret, ok := s.(*v1.Secret)
+	if !ok {
+		return nil, fmt.Errorf("failed to convert the response to v1.Secret")
 	}
 
 	raw, ok := secret.Data["value"]
@@ -209,10 +233,32 @@ func (r *Runtime) getKubeconfig(ctx context.Context, cluster *message.Cluster) (
 	return r.configs[id], nil
 }
 
-func (r *Runtime) getClient(id string) (runtimeclient.Client, error) {
+func (r *Runtime) getOrCreateClient(ctx context.Context, opts *runtime.QueryOptions) (*client, error) {
+	client, err := r.getClient(opts.Context)
+	if err != nil {
+		// initialize the client if it's not initialized and we have Cluster information
+		if opts.Cluster != nil {
+			_, err = r.getKubeconfig(ctx, opts.Cluster)
+			if err != nil {
+				return nil, err
+			}
+
+			client, err = r.getClient(opts.Context)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	}
+
+	return client, nil
+}
+
+func (r *Runtime) getClient(id string) (*client, error) {
 	// first try cached kubeconfigs for discovered clusters.
 	if r.configs[id] != nil {
-		return getClient(r.configs[id])
+		return newClient(r.configs[id], runtimeclient.Options{Scheme: r.scheme})
 	}
 
 	// then fall back to the local kubeconfig
@@ -221,7 +267,42 @@ func (r *Runtime) getClient(id string) (runtimeclient.Client, error) {
 		return nil, err
 	}
 
-	return getClient(cfg)
+	return newClient(cfg, runtimeclient.Options{Scheme: r.scheme})
+}
+
+func (r *Runtime) createObject(c *client, opts *runtime.QueryOptions) (k8sruntime.Object, error) {
+	var object k8sruntime.Object
+
+	switch {
+	case opts.Type != nil:
+		var ok bool
+
+		val := reflect.New(reflect.TypeOf(opts.Type))
+		object, ok = val.Interface().(k8sruntime.Object)
+
+		if !ok {
+			return nil, fmt.Errorf("defined type is no runtime.Object")
+		}
+	case opts.Resource != "":
+		gvr, err := parseResource(opts.Resource)
+		if err != nil {
+			return nil, err
+		}
+
+		gvk, err := c.kindFor(*gvr)
+		if err != nil {
+			return nil, err
+		}
+
+		object, err = r.scheme.New(gvk)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, fmt.Errorf("failed to determine resource type")
+	}
+
+	return object, nil
 }
 
 // Watch watches kubernetes resources.
@@ -230,7 +311,8 @@ type Watch struct {
 	ctx      context.Context
 	config   *rest.Config
 	events   chan runtime.Event
-	resource string
+	resource *resource.WatchRequest
+	selector string
 }
 
 func (w *Watch) run(ctx context.Context) error {
@@ -239,23 +321,23 @@ func (w *Watch) run(ctx context.Context) error {
 		return err
 	}
 
-	dynamicInformer := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dc, 0, v1.NamespaceAll, nil)
-
-	var gvr *schema.GroupVersionResource
-
-	parts := strings.Split(w.resource, ".")
-
-	if len(parts) == 2 {
-		gvr = &schema.GroupVersionResource{
-			Resource: parts[0],
-			Version:  parts[1],
-		}
-	} else {
-		gvr, _ = schema.ParseResourceArg(w.resource)
+	namespace := v1.NamespaceAll
+	if w.resource.Namespace != "" {
+		namespace = w.resource.Namespace
 	}
 
-	if gvr == nil {
-		return fmt.Errorf("couldn't parse resource name")
+	var filter dynamicinformer.TweakListOptionsFunc
+	if w.selector != "" {
+		filter = func(options *metav1.ListOptions) {
+			options.LabelSelector = w.selector
+		}
+	}
+
+	dynamicInformer := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dc, 0, namespace, filter)
+
+	gvr, err := parseResource(w.resource.Type)
+	if err != nil {
+		return err
 	}
 
 	informer := dynamicInformer.ForResource(*gvr)
@@ -300,4 +382,25 @@ func (w *Watch) run(ctx context.Context) error {
 	}()
 
 	return nil
+}
+
+func parseResource(resource string) (*schema.GroupVersionResource, error) {
+	var gvr *schema.GroupVersionResource
+
+	parts := strings.Split(resource, ".")
+
+	if len(parts) == 2 {
+		gvr = &schema.GroupVersionResource{
+			Resource: parts[0],
+			Version:  parts[1],
+		}
+	} else {
+		gvr, _ = schema.ParseResourceArg(resource)
+	}
+
+	if gvr == nil {
+		return nil, fmt.Errorf("couldn't parse resource name")
+	}
+
+	return gvr, nil
 }
