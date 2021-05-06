@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-04-12T15:00:29Z by kres 2e6fbed-dirty.
+# Generated on 2021-04-30T17:29:57Z by kres 392fdcb-dirty.
 
 # common variables
 
@@ -12,11 +12,13 @@ REGISTRY ?= ghcr.io
 USERNAME ?= talos-systems
 REGISTRY_AND_USERNAME ?= $(REGISTRY)/$(USERNAME)
 PROTOBUF_TS_VERSION ?= 1.79.2
+PROTOBUF_GRPC_GATEWAY_TS_VERSION ?= 1.1.0
 TESTPKGS ?= ./...
 GOFUMPT_VERSION ?= abc0db2c416aca0f60ea33c23c76665f6e7ba0b6
 GO_VERSION ?= 1.14
 PROTOBUF_GO_VERSION ?= 1.25.0
 GRPC_GO_VERSION ?= 1.1.0
+GRPC_GATEWAY_VERSION ?= 2.4.0
 TESTPKGS ?= ./...
 KRES_IMAGE ?= ghcr.io/talos-systems/kres:latest
 
@@ -37,10 +39,12 @@ COMMON_ARGS += --build-arg=TAG=$(TAG)
 COMMON_ARGS += --build-arg=USERNAME=$(USERNAME)
 COMMON_ARGS += --build-arg=JS_TOOLCHAIN=$(JS_TOOLCHAIN)
 COMMON_ARGS += --build-arg=PROTOBUF_TS_VERSION=$(PROTOBUF_TS_VERSION)
+COMMON_ARGS += --build-arg=PROTOBUF_GRPC_GATEWAY_TS_VERSION=$(PROTOBUF_GRPC_GATEWAY_TS_VERSION)
 COMMON_ARGS += --build-arg=TOOLCHAIN=$(TOOLCHAIN)
 COMMON_ARGS += --build-arg=GOFUMPT_VERSION=$(GOFUMPT_VERSION)
 COMMON_ARGS += --build-arg=PROTOBUF_GO_VERSION=$(PROTOBUF_GO_VERSION)
 COMMON_ARGS += --build-arg=GRPC_GO_VERSION=$(GRPC_GO_VERSION)
+COMMON_ARGS += --build-arg=GRPC_GATEWAY_VERSION=$(GRPC_GATEWAY_VERSION)
 COMMON_ARGS += --build-arg=TESTPKGS=$(TESTPKGS)
 JS_TOOLCHAIN ?= docker.io/node:15.14.0-alpine3.13
 TOOLCHAIN ?= docker.io/golang:1.16-alpine
@@ -106,7 +110,7 @@ lint-eslint:  ## Runs eslint linter.
 
 .PHONY: $(ARTIFACTS)/frontend-js
 $(ARTIFACTS)/frontend-js:
-	@$(MAKE) local-frontend DEST=$(ARTIFACTS)
+	@$(MAKE) target-frontend
 
 .PHONY: frontend
 frontend: $(ARTIFACTS)/frontend-js  ## Builds js release for frontend.

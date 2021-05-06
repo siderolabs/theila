@@ -2,7 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import { WatchSpec, UnsubscribeSpec, Message, Kind, Source, Context } from './message';
+import { Source, Context } from '../common/theila';
+import { WatchSpec, UnsubscribeSpec, Message, Kind } from './message';
 import { backOff, IBackOffOptions } from "exponential-backoff";
 import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
@@ -179,7 +180,7 @@ export class Client extends EventEmitter {
     return p
   }
 
-  public watch(source: Source, resource: string, context?: string): Watch {
+  public watch(source: Source, resource: Object, context?: string): Watch {
     return new Watch(this, source, resource, context);
   }
 
@@ -282,13 +283,13 @@ export class Client extends EventEmitter {
 export class Watch {
   private client: Client;
   private source: Source;
-  private resource: string;
+  private resource: Object;
   private uid!: string;
   private callback!: Callback;
   private context?: Object;
   private handler?: any;
 
-  constructor(client: Client, source: Source, resource: string, context?: string) {
+  constructor(client: Client, source: Source, resource: Object, context?: string) {
     this.client = client;
     this.source = source;
     this.resource = resource;

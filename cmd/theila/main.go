@@ -40,7 +40,10 @@ func main() {
 		log.Fatalf("failed to set up logging %s", err)
 	}
 
-	server := backend.NewServer(rootCmdArgs.address, rootCmdArgs.port)
+	server, err := backend.NewServer(rootCmdArgs.address, rootCmdArgs.port)
+	if err != nil {
+		logger.Fatal("failed to create server", zap.Error(err))
+	}
 
 	ctx, _ := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 

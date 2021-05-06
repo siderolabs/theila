@@ -1,0 +1,40 @@
+syntax = "proto3";
+package resource;
+
+option go_package = "github.com/talos-systems/theila/api/rpc";
+
+import "talos/resource/resource.proto";
+import "common/theila.proto";
+
+message GetFromClusterRequest {
+  resource.GetRequest resource = 1;
+  // Context to use to get the resource.
+  common.Context context = 2;
+  // Data source to use to get the resource.
+  common.Source source = 3;
+}
+
+message GetFromClusterResponse {
+  // Body should contain JSON encoded spec.
+  string body = 1;
+}
+
+message ListFromClusterRequest {
+  resource.ListRequest resource = 1;
+  // Context to use to get the resource.
+  common.Context context = 2;
+  // Data source to use to get the resource.
+  common.Source source = 3;
+  // Selectors allow filtering list results by labels.
+  repeated string selectors = 4;
+}
+
+message ListFromClusterResponse {
+  // Messages should contain JSON encoded list spec.
+  repeated string messages = 1;
+}
+
+service ClusterResourceService {
+  rpc Get(GetFromClusterRequest) returns (GetFromClusterResponse);
+  rpc List(ListFromClusterRequest) returns (ListFromClusterResponse);
+}

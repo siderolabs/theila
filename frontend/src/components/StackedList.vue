@@ -48,6 +48,7 @@ import pluralize from 'pluralize';
   props: {
     provider: Source,
     resource: String,
+    namespace: String,
     context: Object,
     idField: String,
     showCount: Boolean,
@@ -104,7 +105,7 @@ import pluralize from 'pluralize';
         if (this.resource) {
           this.err = null;
 
-          this.watch = context.api.watch(this.provider, this.resource, this.context);
+          this.watch = context.api.watch(this.provider, {type: this.resource, namespace: this.namespace}, this.context);
 
           await this.watch.start(this.updateList);
         }

@@ -7,17 +7,19 @@ package talos
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/talos-systems/talos/pkg/machinery/client"
 	clientconfig "github.com/talos-systems/talos/pkg/machinery/client/config"
 
+	"github.com/talos-systems/theila/api/common"
 	"github.com/talos-systems/theila/api/socket/message"
 	"github.com/talos-systems/theila/internal/backend/runtime"
 )
 
 // Name talos runtime string id.
-var Name = message.Source_Talos.String()
+var Name = common.Source_Talos.String()
 
 // Runtime implements runtime.Runtime for Talos resources.
 type Runtime struct {
@@ -36,14 +38,21 @@ func (r *Runtime) Watch(ctx context.Context, request *message.WatchSpec, events 
 }
 
 // Get implements runtime.Runtime.
-func (r *Runtime) Get(ctx context.Context, dest interface{}, setters ...runtime.QueryOption) error {
+func (r *Runtime) Get(ctx context.Context, setters ...runtime.QueryOption) (interface{}, error) {
 	opts := runtime.NewQueryOptions(setters...)
 
 	if opts.Resource == "kubeconfig" {
-		return r.kubeconfig(ctx, opts, dest)
+		return r.kubeconfig(ctx, opts)
 	}
 
-	return nil
+	return nil, fmt.Errorf("unknown resource kind %s", opts.Resource)
+}
+
+// List implements runtime.Runtime.
+func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) (interface{}, error) {
+	opts := runtime.NewQueryOptions(setters...)
+
+	return nil, fmt.Errorf("unknown resource kind %s", opts.Resource)
 }
 
 // AddContext implements runtime.Runtime.

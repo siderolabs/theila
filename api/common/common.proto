@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package common;
+
+option go_package = "github.com/talos-systems/talos/pkg/machinery/api/common";
+
+import "google/protobuf/any.proto";
+import "google/rpc/status.proto";
+
+enum Code {
+  FATAL = 0;
+  LOCKED = 1;
+}
+
+message Error {
+  Code code = 1;
+  string message = 2;
+  repeated google.protobuf.Any details = 3;
+}
+
+// Common metadata message nested in all reply message types
+message Metadata {
+  // hostname of the server response comes from (injected by proxy)
+  string hostname = 1;
+  // error is set if request failed to the upstream (rest of response is
+  // undefined)
+  string error = 2;
+  // error as gRPC Status
+  google.rpc.Status status = 3;
+}
+
+message Data {
+  Metadata metadata = 1;
+  bytes bytes = 2;
+}
+
+message DataResponse { repeated Data messages = 1; }
+
+message Empty { Metadata metadata = 1; }
+
+message EmptyResponse { repeated Empty messages = 1; }
+
+enum ContainerDriver {
+  CONTAINERD = 0;
+  CRI = 1;
+}

@@ -11,13 +11,15 @@ import (
 	metal "github.com/talos-systems/sidero/app/metal-controller-manager/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/cluster-api/api/v1alpha3"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 )
 
-func getClient(config *rest.Config) (runtimeclient.Client, error) {
+func getScheme() (*runtime.Scheme, error) {
 	scheme := runtime.NewScheme()
 
 	if err := clientgoscheme.AddToScheme(scheme); err != nil {
@@ -48,5 +50,34 @@ func getClient(config *rest.Config) (runtimeclient.Client, error) {
 		return nil, err
 	}
 
-	return runtimeclient.New(config, runtimeclient.Options{Scheme: scheme})
+	return scheme, nil
+}
+
+// client wraps controller-runtime client and provides access to mapper.
+type client struct {
+	runtimeclient.Client
+	opts runtimeclient.Options
+}
+
+func (c *client) kindFor(gvr schema.GroupVersionResource) (schema.GroupVersionKind, error) {
+	return c.opts.Mapper.KindFor(gvr)
+}
+
+func newClient(config *rest.Config, options runtimeclient.Options) (*client, error) {
+	// Init a Mapper if none provided
+	if options.Mapper == nil {
+		var err error
+		options.Mapper, err = apiutil.NewDynamicRESTMapper(config)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	c, err := runtimeclient.New(config, options)
+	if err != nil {
+		return nil, err
+	}
+
+	return &client{c, options}, nil
 }

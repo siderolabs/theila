@@ -1,6 +1,13 @@
 /* eslint-disable */
 import { util, configure, Writer, Reader } from "protobufjs/minimal";
 import * as Long from "long";
+import {
+  Source,
+  Context,
+  sourceFromJSON,
+  sourceToJSON,
+} from "../common/theila";
+import { WatchRequest } from "../talos/resource/resource";
 
 export const protobufPackage = "";
 
@@ -88,41 +95,6 @@ export function kindToJSON(object: Kind): string {
   }
 }
 
-/** Watch source. */
-export enum Source {
-  /** Kubernetes - Get the data from Kubernetes control planes. */
-  Kubernetes = 0,
-  /** Talos - Get the data from Talos apid. */
-  Talos = 1,
-  UNRECOGNIZED = -1,
-}
-
-export function sourceFromJSON(object: any): Source {
-  switch (object) {
-    case 0:
-    case "Kubernetes":
-      return Source.Kubernetes;
-    case 1:
-    case "Talos":
-      return Source.Talos;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return Source.UNRECOGNIZED;
-  }
-}
-
-export function sourceToJSON(object: Source): string {
-  switch (object) {
-    case Source.Kubernetes:
-      return "Kubernetes";
-    case Source.Talos:
-      return "Talos";
-    default:
-      return "UNKNOWN";
-  }
-}
-
 /** Message metadata which helps matching request vs response and routing to any specific subscription. */
 export interface Metadata {
   /** Uid match/route identifier. */
@@ -140,31 +112,15 @@ export interface Message {
   spec: string;
 }
 
-/** Cluster contains settings for fetching the config from cluster resource in Kubernetes. */
-export interface Cluster {
-  /** Name of the cluster. */
-  name: string;
-  /** Namespace of the cluster. */
-  namespace: string;
-  /** UID of the cluster. */
-  UID: string;
-}
-
-/** Context represents Kubernetes or Talos config source. */
-export interface Context {
-  /** Name fetches the config from the top level Kubeconfig or Talosconfig. */
-  name: string;
-  /** Cluster fetches the context from the cluster resource in Kubernetes. */
-  cluster: Cluster | undefined;
-}
-
 export interface WatchSpec {
   /** Resource name to watch. */
-  resource: string;
+  resource: WatchRequest | undefined;
   /** Source to get the watch data from. */
   source: Source;
   /** Context settings to fetch the data from. */
   context: Context | undefined;
+  /** Selector represents watch label selector. */
+  selector: string;
 }
 
 /** Watch response. */
@@ -335,182 +291,21 @@ export const Message = {
   },
 };
 
-const baseCluster: object = { name: "", namespace: "", UID: "" };
-
-export const Cluster = {
-  encode(message: Cluster, writer: Writer = Writer.create()): Writer {
-    if (message.name !== "") {
-      writer.uint32(10).string(message.name);
-    }
-    if (message.namespace !== "") {
-      writer.uint32(18).string(message.namespace);
-    }
-    if (message.UID !== "") {
-      writer.uint32(26).string(message.UID);
-    }
-    return writer;
-  },
-
-  decode(input: Reader | Uint8Array, length?: number): Cluster {
-    const reader = input instanceof Reader ? input : new Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseCluster } as Cluster;
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.name = reader.string();
-          break;
-        case 2:
-          message.namespace = reader.string();
-          break;
-        case 3:
-          message.UID = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Cluster {
-    const message = { ...baseCluster } as Cluster;
-    if (object.name !== undefined && object.name !== null) {
-      message.name = String(object.name);
-    } else {
-      message.name = "";
-    }
-    if (object.namespace !== undefined && object.namespace !== null) {
-      message.namespace = String(object.namespace);
-    } else {
-      message.namespace = "";
-    }
-    if (object.UID !== undefined && object.UID !== null) {
-      message.UID = String(object.UID);
-    } else {
-      message.UID = "";
-    }
-    return message;
-  },
-
-  toJSON(message: Cluster): unknown {
-    const obj: any = {};
-    message.name !== undefined && (obj.name = message.name);
-    message.namespace !== undefined && (obj.namespace = message.namespace);
-    message.UID !== undefined && (obj.UID = message.UID);
-    return obj;
-  },
-
-  fromPartial(object: DeepPartial<Cluster>): Cluster {
-    const message = { ...baseCluster } as Cluster;
-    if (object.name !== undefined && object.name !== null) {
-      message.name = object.name;
-    } else {
-      message.name = "";
-    }
-    if (object.namespace !== undefined && object.namespace !== null) {
-      message.namespace = object.namespace;
-    } else {
-      message.namespace = "";
-    }
-    if (object.UID !== undefined && object.UID !== null) {
-      message.UID = object.UID;
-    } else {
-      message.UID = "";
-    }
-    return message;
-  },
-};
-
-const baseContext: object = { name: "" };
-
-export const Context = {
-  encode(message: Context, writer: Writer = Writer.create()): Writer {
-    if (message.name !== "") {
-      writer.uint32(10).string(message.name);
-    }
-    if (message.cluster !== undefined) {
-      Cluster.encode(message.cluster, writer.uint32(18).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: Reader | Uint8Array, length?: number): Context {
-    const reader = input instanceof Reader ? input : new Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseContext } as Context;
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.name = reader.string();
-          break;
-        case 2:
-          message.cluster = Cluster.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Context {
-    const message = { ...baseContext } as Context;
-    if (object.name !== undefined && object.name !== null) {
-      message.name = String(object.name);
-    } else {
-      message.name = "";
-    }
-    if (object.cluster !== undefined && object.cluster !== null) {
-      message.cluster = Cluster.fromJSON(object.cluster);
-    } else {
-      message.cluster = undefined;
-    }
-    return message;
-  },
-
-  toJSON(message: Context): unknown {
-    const obj: any = {};
-    message.name !== undefined && (obj.name = message.name);
-    message.cluster !== undefined &&
-      (obj.cluster = message.cluster
-        ? Cluster.toJSON(message.cluster)
-        : undefined);
-    return obj;
-  },
-
-  fromPartial(object: DeepPartial<Context>): Context {
-    const message = { ...baseContext } as Context;
-    if (object.name !== undefined && object.name !== null) {
-      message.name = object.name;
-    } else {
-      message.name = "";
-    }
-    if (object.cluster !== undefined && object.cluster !== null) {
-      message.cluster = Cluster.fromPartial(object.cluster);
-    } else {
-      message.cluster = undefined;
-    }
-    return message;
-  },
-};
-
-const baseWatchSpec: object = { resource: "", source: 0 };
+const baseWatchSpec: object = { source: 0, selector: "" };
 
 export const WatchSpec = {
   encode(message: WatchSpec, writer: Writer = Writer.create()): Writer {
-    if (message.resource !== "") {
-      writer.uint32(10).string(message.resource);
+    if (message.resource !== undefined) {
+      WatchRequest.encode(message.resource, writer.uint32(10).fork()).ldelim();
     }
     if (message.source !== 0) {
       writer.uint32(16).int32(message.source);
     }
     if (message.context !== undefined) {
       Context.encode(message.context, writer.uint32(26).fork()).ldelim();
+    }
+    if (message.selector !== "") {
+      writer.uint32(34).string(message.selector);
     }
     return writer;
   },
@@ -523,13 +318,16 @@ export const WatchSpec = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.resource = reader.string();
+          message.resource = WatchRequest.decode(reader, reader.uint32());
           break;
         case 2:
           message.source = reader.int32() as any;
           break;
         case 3:
           message.context = Context.decode(reader, reader.uint32());
+          break;
+        case 4:
+          message.selector = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -542,9 +340,9 @@ export const WatchSpec = {
   fromJSON(object: any): WatchSpec {
     const message = { ...baseWatchSpec } as WatchSpec;
     if (object.resource !== undefined && object.resource !== null) {
-      message.resource = String(object.resource);
+      message.resource = WatchRequest.fromJSON(object.resource);
     } else {
-      message.resource = "";
+      message.resource = undefined;
     }
     if (object.source !== undefined && object.source !== null) {
       message.source = sourceFromJSON(object.source);
@@ -556,26 +354,35 @@ export const WatchSpec = {
     } else {
       message.context = undefined;
     }
+    if (object.selector !== undefined && object.selector !== null) {
+      message.selector = String(object.selector);
+    } else {
+      message.selector = "";
+    }
     return message;
   },
 
   toJSON(message: WatchSpec): unknown {
     const obj: any = {};
-    message.resource !== undefined && (obj.resource = message.resource);
+    message.resource !== undefined &&
+      (obj.resource = message.resource
+        ? WatchRequest.toJSON(message.resource)
+        : undefined);
     message.source !== undefined && (obj.source = sourceToJSON(message.source));
     message.context !== undefined &&
       (obj.context = message.context
         ? Context.toJSON(message.context)
         : undefined);
+    message.selector !== undefined && (obj.selector = message.selector);
     return obj;
   },
 
   fromPartial(object: DeepPartial<WatchSpec>): WatchSpec {
     const message = { ...baseWatchSpec } as WatchSpec;
     if (object.resource !== undefined && object.resource !== null) {
-      message.resource = object.resource;
+      message.resource = WatchRequest.fromPartial(object.resource);
     } else {
-      message.resource = "";
+      message.resource = undefined;
     }
     if (object.source !== undefined && object.source !== null) {
       message.source = object.source;
@@ -586,6 +393,11 @@ export const WatchSpec = {
       message.context = Context.fromPartial(object.context);
     } else {
       message.context = undefined;
+    }
+    if (object.selector !== undefined && object.selector !== null) {
+      message.selector = object.selector;
+    } else {
+      message.selector = "";
     }
     return message;
   },

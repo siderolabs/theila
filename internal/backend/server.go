@@ -7,7 +7,6 @@ package backend
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io/fs"
 	"log"
@@ -16,6 +15,7 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/talos-systems/theila/internal/backend/grpc"
 	"github.com/talos-systems/theila/internal/backend/logging"
 	"github.com/talos-systems/theila/internal/backend/runtime"
 	"github.com/talos-systems/theila/internal/backend/runtime/kubernetes"
@@ -29,12 +29,13 @@ type Server struct {
 	ctx     context.Context
 	logger  *zap.Logger
 	ws      *ws.Server
+	grpc    *grpc.Server
 	address string
 	port    int
 }
 
 // NewServer creates new HTTP server.
-func NewServer(address string, port int) *Server {
+func NewServer(address string, port int) (*Server, error) {
 	s := &Server{
 		address: address,
 		port:    port,
@@ -43,10 +44,15 @@ func NewServer(address string, port int) *Server {
 		),
 	}
 
-	runtime.Install(kubernetes.Name, kubernetes.New())
+	k8sruntime, err := kubernetes.New()
+	if err != nil {
+		return nil, err
+	}
+
+	runtime.Install(kubernetes.Name, k8sruntime)
 	runtime.Install(talos.Name, talos.New())
 
-	return s
+	return s, nil
 }
 
 // RegisterRuntime adds a runtime.
@@ -58,12 +64,25 @@ func (s *Server) RegisterRuntime(name string, r runtime.Runtime) {
 func (s *Server) Run(ctx context.Context) error {
 	s.ctx = ctx
 
-	mux, err := s.registerRoutes()
+	mux := http.NewServeMux()
+
+	sub, err := fs.Sub(frontend.Dist, "dist")
+	if err != nil {
+		return fmt.Errorf("failed to get dist/frontend directory")
+	}
+
+	s.grpc, err = grpc.New(s.ctx, mux)
 	if err != nil {
 		return err
 	}
 
-	s.logger.Sugar().Infof("Serving on port %d", s.port)
+	defer s.grpc.Shutdown()
+
+	mux.Handle("/", http.FileServer(&singlePage{http.FS(sub)}))
+
+	s.ws = ws.New(s.ctx, mux)
+
+	s.logger.Sugar().Infof("serving on port %d", s.port)
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", s.address, s.port),
@@ -77,37 +96,16 @@ func (s *Server) Run(ctx context.Context) error {
 		// close server when ctx is canceled
 		case <-ctx.Done():
 			if err := server.Close(); err != nil {
-				log.Printf("Failed to stop server %s", err)
+				log.Printf("failed to stop server %s", err)
 			}
 		// exit goroutine if the the server is already stopped
 		case <-stopped:
 		}
 	}()
 
-	if err := server.ListenAndServe(); errors.Is(err, http.ErrServerClosed) {
-		return err
-	}
+	defer close(stopped)
 
-	close(stopped)
-
-	return nil
-}
-
-func (s *Server) registerRoutes() (*http.ServeMux, error) {
-	s.logger.Debug("Registering routes")
-
-	mux := http.NewServeMux()
-
-	sub, err := fs.Sub(frontend.Dist, "dist")
-	if err != nil {
-		return nil, fmt.Errorf("failed to get dist/frontend directory")
-	}
-
-	mux.Handle("/", http.FileServer(&singlePage{http.FS(sub)}))
-
-	s.ws = ws.New(s.ctx, mux)
-
-	return mux, nil
+	return server.ListenAndServe()
 }
 
 type singlePage struct {

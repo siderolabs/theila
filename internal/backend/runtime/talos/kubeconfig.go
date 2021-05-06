@@ -12,16 +12,21 @@ import (
 	"github.com/talos-systems/theila/internal/backend/runtime"
 )
 
-func (r *Runtime) kubeconfig(ctx context.Context, opts *runtime.QueryOptions, dest interface{}) error {
+func (r *Runtime) kubeconfig(ctx context.Context, opts *runtime.QueryOptions) (interface{}, error) {
 	client, err := r.getClient(ctx, opts.Context)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	data, err := client.Kubeconfig(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return yaml.Unmarshal(data, dest)
+	var config interface{}
+	if err = yaml.Unmarshal(data, &config); err != nil {
+		return nil, err
+	}
+
+	return config, nil
 }
