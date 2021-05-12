@@ -74,8 +74,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 <script type="ts">
 import { Options, Vue } from 'vue-class-component';
-import StackedList from '../components/StackedList.vue';
-import TBreadcrumbs from '../components/TBreadcrumbs.vue';
+import StackedList from '../../components/StackedList.vue';
+import TBreadcrumbs from '../../components/TBreadcrumbs.vue';
 
 @Options({
   components: {

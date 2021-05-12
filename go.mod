@@ -2,8 +2,16 @@ module github.com/talos-systems/theila
 
 go 1.16
 
+replace (
+	// forked go-yaml that introduces RawYAML interface, which can be used to populate YAML fields using bytes
+	// which are then encoded as a valid YAML blocks with proper indentiation
+	gopkg.in/yaml.v3 => github.com/unix4ever/yaml v0.0.0-20210315173758-8fb30b8e5a5b
+	sigs.k8s.io/cluster-api v0.3.12 => sigs.k8s.io/cluster-api v0.3.9
+)
+
 require (
 	github.com/containernetworking/cni v0.8.1 // indirect
+	github.com/cosi-project/runtime v0.0.0-20210423184025-225827c8b0d8
 	github.com/go-logr/logr v0.2.1 // indirect
 	github.com/golang/protobuf v1.5.2
 	github.com/google/gofuzz v1.2.0 // indirect
@@ -18,9 +26,8 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/talos-systems/cluster-api-bootstrap-provider-talos v0.2.0-alpha.11
 	github.com/talos-systems/cluster-api-control-plane-provider-talos v0.1.0-alpha.11
-	github.com/talos-systems/os-runtime v0.0.0-20210315190223-7b3d14457439 // indirect
 	github.com/talos-systems/sidero v0.2.0
-	github.com/talos-systems/talos/pkg/machinery v0.0.0-20210401163915-1d8e9674a91b
+	github.com/talos-systems/talos/pkg/machinery v0.0.0-20210511182023-1cf011a809b9
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
@@ -36,5 +43,3 @@ require (
 	sigs.k8s.io/cluster-api v0.3.12
 	sigs.k8s.io/controller-runtime v0.6.3
 )
-
-replace sigs.k8s.io/cluster-api v0.3.12 => sigs.k8s.io/cluster-api v0.3.9

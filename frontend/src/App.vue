@@ -9,7 +9,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       <router-view name="sidebar"/>
     </template>
     <template v-slot:content>
-      <t-breadcrumbs/>
       <router-view class="w-full h-full"/>
     </template>
   </shell>

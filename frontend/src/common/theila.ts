@@ -55,6 +55,8 @@ export interface Context {
   name: string;
   /** Cluster fetches the context from the cluster resource in Kubernetes. */
   cluster: Cluster | undefined;
+  /** Nodes nodes to fetch the data from using Talos client. */
+  nodes: string[];
 }
 
 const baseCluster: object = { name: "", namespace: "", uid: "" };
@@ -146,7 +148,7 @@ export const Cluster = {
   },
 };
 
-const baseContext: object = { name: "" };
+const baseContext: object = { name: "", nodes: "" };
 
 export const Context = {
   encode(message: Context, writer: Writer = Writer.create()): Writer {
@@ -156,6 +158,9 @@ export const Context = {
     if (message.cluster !== undefined) {
       Cluster.encode(message.cluster, writer.uint32(18).fork()).ldelim();
     }
+    for (const v of message.nodes) {
+      writer.uint32(26).string(v!);
+    }
     return writer;
   },
 
@@ -163,6 +168,7 @@ export const Context = {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = { ...baseContext } as Context;
+    message.nodes = [];
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -171,6 +177,9 @@ export const Context = {
           break;
         case 2:
           message.cluster = Cluster.decode(reader, reader.uint32());
+          break;
+        case 3:
+          message.nodes.push(reader.string());
           break;
         default:
           reader.skipType(tag & 7);
@@ -182,6 +191,7 @@ export const Context = {
 
   fromJSON(object: any): Context {
     const message = { ...baseContext } as Context;
+    message.nodes = [];
     if (object.name !== undefined && object.name !== null) {
       message.name = String(object.name);
     } else {
@@ -191,6 +201,11 @@ export const Context = {
       message.cluster = Cluster.fromJSON(object.cluster);
     } else {
       message.cluster = undefined;
+    }
+    if (object.nodes !== undefined && object.nodes !== null) {
+      for (const e of object.nodes) {
+        message.nodes.push(String(e));
+      }
     }
     return message;
   },
@@ -202,11 +217,17 @@ export const Context = {
       (obj.cluster = message.cluster
         ? Cluster.toJSON(message.cluster)
         : undefined);
+    if (message.nodes) {
+      obj.nodes = message.nodes.map((e) => e);
+    } else {
+      obj.nodes = [];
+    }
     return obj;
   },
 
   fromPartial(object: DeepPartial<Context>): Context {
     const message = { ...baseContext } as Context;
+    message.nodes = [];
     if (object.name !== undefined && object.name !== null) {
       message.name = object.name;
     } else {
@@ -216,6 +237,11 @@ export const Context = {
       message.cluster = Cluster.fromPartial(object.cluster);
     } else {
       message.cluster = undefined;
+    }
+    if (object.nodes !== undefined && object.nodes !== null) {
+      for (const e of object.nodes) {
+        message.nodes.push(e);
+      }
     }
     return message;
   },

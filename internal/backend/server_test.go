@@ -70,6 +70,7 @@ func (s *ServerSuite) SetupTest() {
 	var err error
 
 	s.runtime = &testRuntime{}
+
 	s.server, err = backend.NewServer("", 3000)
 
 	s.Require().NoError(err)
