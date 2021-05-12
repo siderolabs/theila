@@ -30,7 +30,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         </div>
       </template>
       <template v-slot:default="slot">
-        <a
+        <router-link
+          :to="{name: 'Services', params: { cluster: $route.params.cluster, namespace: $route.params.namespace, uid: $route.params.uid, node: getIP(slot.item) }}"
           class="block hover:bg-talos-gray-50 dark:hover:bg-talos-gray-800"
           >
           <div class="flex items-center px-4 py-4 sm:px-6 min-w-0 md:grid md:grid-cols-5 md:gap-4">
@@ -56,7 +57,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
               </p>
             </div>
           </div>
-        </a>
+        </router-link>
       </template>
     </stacked-list>
   </div>
@@ -64,8 +65,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 <script type="ts">
 import { Options, Vue } from 'vue-class-component';
-import StackedList from '../components/StackedList.vue';
-import TBreadcrumbs from '../components/TBreadcrumbs.vue';
+import StackedList from '../../components/StackedList.vue';
+import TBreadcrumbs from '../../components/TBreadcrumbs.vue';
 
 @Options({
   components: {

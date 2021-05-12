@@ -16,4 +16,5 @@ export type Cluster = {
 export type Context = {
   name?: string
   cluster?: Cluster
+  nodes?: string[]
 }

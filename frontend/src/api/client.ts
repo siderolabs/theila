@@ -89,7 +89,7 @@ export class Client extends EventEmitter {
   private ws: any = null;
   private connected: boolean = false;
   private subcriptions = new Map<string, Subscription>();
-  private timeout: number = 5000;
+  private timeout: number = 30000;
   private address: string;
   private lastReconnect?: DateTime;
 

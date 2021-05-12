@@ -5,10 +5,12 @@
 import { createWebHistory, createRouter } from "vue-router";
 import Clusters from "../views/Clusters.vue";
 import Servers from "../views/Servers.vue";
-import Nodes from "../views/Nodes.vue";
-import Pods from "../views/Pods.vue";
+import Nodes from "../views/cluster/Nodes.vue";
+import Pods from "../views/cluster/Pods.vue";
+import Services from "../views/node/Services.vue";
 import SidebarRoot from "../views/SidebarRoot.vue";
 import SidebarCluster from "../views/SidebarCluster.vue";
+import SidebarNode from "../views/SidebarNode.vue";
 
 const withPrefix = (prefix, routes) => 
     routes.map( (route) => {
@@ -57,6 +59,22 @@ const routes = [
       meta: {
         breadcrumbs: [
           { text: "Clusters", to: "/" },
+        ]
+      }
+    }
+  ]),
+  ...withPrefix("/:namespace/:cluster/:uid/node/:node", [
+    {
+      path: "/services",
+      name: "Services",
+      components: {
+        default: Services,
+        sidebar: SidebarNode,
+      },
+      meta: {
+        breadcrumbs: [
+          { text: "Clusters", to: "/" },
+          { text: "{cluster} Nodes", to: "/{namespace}/{cluster}/{uid}/nodes" },
         ]
       }
     }

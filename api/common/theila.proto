@@ -27,4 +27,6 @@ message Context {
   string name = 1;
   // Cluster fetches the context from the cluster resource in Kubernetes.
   Cluster cluster = 2;
+  // Nodes to fetch the data from using Talos client.
+  repeated string nodes = 3;
 }

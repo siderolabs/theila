@@ -17,6 +17,7 @@ type QueryOptions struct {
 	Context       string
 	Resource      string
 	LabelSelector string
+	Nodes         []string
 }
 
 // NewQueryOptions creates new QueryOptions.
@@ -75,9 +76,16 @@ func WithCluster(cluster *common.Cluster) QueryOption {
 	}
 }
 
-// WithType explicitly defines the Resource type struct.
+// WithType explicitly defines the Resource type struct (k8s only).
 func WithType(t interface{}) QueryOption {
 	return func(o *QueryOptions) {
 		o.Type = t
+	}
+}
+
+// WithNodes explicitly defines nodes list to use for the request (Talos only).
+func WithNodes(nodes ...string) QueryOption {
+	return func(o *QueryOptions) {
+		o.Nodes = nodes
 	}
 }

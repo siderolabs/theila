@@ -31,5 +31,5 @@ func (x *Message) UnmarshalSpec(dest interface{}) error {
 		}
 	}
 
-	return json.Unmarshal([]byte(x.Spec), &dest)
+	return json.Unmarshal([]byte(x.Spec), dest)
 }

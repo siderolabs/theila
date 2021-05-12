@@ -109,6 +109,10 @@ func withContext(ctx *common.Context) []runtime.QueryOption {
 		opts = append(opts, runtime.WithCluster(ctx.Cluster))
 	}
 
+	if len(ctx.Nodes) > 0 {
+		opts = append(opts, runtime.WithNodes(ctx.Nodes...))
+	}
+
 	return opts
 }
 

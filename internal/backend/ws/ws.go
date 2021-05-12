@@ -58,7 +58,7 @@ func (ws *Server) createSession(rw http.ResponseWriter, r *http.Request) {
 		})
 
 		if err != nil {
-			ws.logger.Error("faield to encode error response", zap.Error(err))
+			ws.logger.Error("failed to encode error response", zap.Error(err))
 
 			return
 		}
@@ -90,7 +90,7 @@ func (ws *Server) createSession(rw http.ResponseWriter, r *http.Request) {
 			func() {
 				defer func() {
 					if r := recover(); r != nil {
-						ws.logger.Error("panic in message loop %s", zap.Reflect("recover", r))
+						ws.logger.Error("panic in message loop", zap.Reflect("recover", r))
 					}
 				}()
 
@@ -104,6 +104,8 @@ func (ws *Server) createSession(rw http.ResponseWriter, r *http.Request) {
 				response, err := session.handleMessage(request)
 				if err != nil {
 					var errResponse *message.Message
+
+					ws.logger.Error("failed to handle message", zap.Error(err))
 
 					errResponse, err = proto.NewErrorResponse(request, err)
 					if err != nil {

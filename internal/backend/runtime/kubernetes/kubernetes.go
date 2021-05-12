@@ -44,6 +44,7 @@ func New() (*Runtime, error) {
 
 	return &Runtime{
 		configs: map[string]*rest.Config{},
+		clients: map[string]*client{},
 		scheme:  scheme,
 	}, nil
 }
@@ -52,7 +53,9 @@ func New() (*Runtime, error) {
 type Runtime struct {
 	scheme    *k8sruntime.Scheme
 	configs   map[string]*rest.Config
+	clients   map[string]*client
 	configsMu sync.RWMutex
+	clientsMu sync.RWMutex
 }
 
 // Watch creates new kubernetes watch.
@@ -256,9 +259,38 @@ func (r *Runtime) getOrCreateClient(ctx context.Context, opts *runtime.QueryOpti
 }
 
 func (r *Runtime) getClient(id string) (*client, error) {
+	client := func() *client {
+		r.clientsMu.Lock()
+		defer r.clientsMu.Unlock()
+
+		return r.clients[id]
+	}()
+
+	if client != nil {
+		return client, nil
+	}
+
+	r.configsMu.RLock()
+	defer r.configsMu.RUnlock()
+
+	var err error
+
+	defer func() {
+		if err == nil {
+			r.clientsMu.Lock()
+			r.clients[id] = client
+			r.clientsMu.Unlock()
+		}
+	}()
+
 	// first try cached kubeconfigs for discovered clusters.
 	if r.configs[id] != nil {
-		return newClient(r.configs[id], runtimeclient.Options{Scheme: r.scheme})
+		client, err = newClient(r.configs[id], runtimeclient.Options{Scheme: r.scheme})
+		if err != nil {
+			return nil, err
+		}
+
+		return client, nil
 	}
 
 	// then fall back to the local kubeconfig
@@ -267,7 +299,12 @@ func (r *Runtime) getClient(id string) (*client, error) {
 		return nil, err
 	}
 
-	return newClient(cfg, runtimeclient.Options{Scheme: r.scheme})
+	client, err = newClient(cfg, runtimeclient.Options{Scheme: r.scheme})
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 func (r *Runtime) createObject(c *client, opts *runtime.QueryOptions) (k8sruntime.Object, error) {
@@ -275,13 +312,20 @@ func (r *Runtime) createObject(c *client, opts *runtime.QueryOptions) (k8sruntim
 
 	switch {
 	case opts.Type != nil:
-		var ok bool
+		if gvk, ok := opts.Type.(schema.GroupVersionKind); ok {
+			var err error
 
-		val := reflect.New(reflect.TypeOf(opts.Type))
-		object, ok = val.Interface().(k8sruntime.Object)
+			object, err = r.scheme.New(gvk)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			val := reflect.New(reflect.TypeOf(opts.Type))
+			object, ok = val.Interface().(k8sruntime.Object)
 
-		if !ok {
-			return nil, fmt.Errorf("defined type is no runtime.Object")
+			if !ok {
+				return nil, fmt.Errorf("defined type is not runtime.Object")
+			}
 		}
 	case opts.Resource != "":
 		gvr, err := parseResource(opts.Resource)
