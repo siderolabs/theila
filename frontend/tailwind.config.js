@@ -5,7 +5,7 @@ module.exports = {
   purge: {
     content: ['./public/**/*.html', './src/**/*.vue']
   },
-  darkMode: 'media',
+  darkMode: 'class',
   theme: {
     fontFamily: {
       sans: ['Inter var', ...defaultTheme.fontFamily.sans],

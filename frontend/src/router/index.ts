@@ -11,6 +11,7 @@ import Services from "../views/node/Services.vue";
 import SidebarRoot from "../views/SidebarRoot.vue";
 import SidebarCluster from "../views/SidebarCluster.vue";
 import SidebarNode from "../views/SidebarNode.vue";
+import Settings from "../views/Settings.vue";
 
 const withPrefix = (prefix, routes) => 
     routes.map( (route) => {
@@ -86,4 +87,12 @@ const router = createRouter({
   routes,
 });
 
+const modals = {
+  settings: {
+    title: "Settings",
+    component: Settings,
+  }
+};
+
+export { modals };
 export default router;

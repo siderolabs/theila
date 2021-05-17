@@ -18,7 +18,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         <server-icon class="w-6 h-6"/>
       </template>
     </shell-menu-item>
-    <shell-menu-item name="Settings">
+    <shell-menu-item @click="openSettings" name="Settings">
       <template v-slot:icon>
         <cog-icon class="w-6 h-6"/>
       </template>
@@ -42,6 +42,12 @@ import {
     ServerIcon,
     CogIcon,
   },
+
+  methods: {
+    openSettings() {
+      this.$router.replace({query: {modal: "settings"}});
+    }
+  }
 })
 export default class SidebarRoot extends Vue {}
 </script>
