@@ -2,12 +2,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import { Source, Context } from '../common/theila';
-import { WatchSpec, UnsubscribeSpec, Message, Kind } from './message';
+import { Source } from '../common/theila';
+import { Message, Kind } from './message';
 import { backOff, IBackOffOptions } from "exponential-backoff";
 import { EventEmitter } from 'events';
-import { v4 as uuidv4 } from 'uuid';
 import { DateTime, Duration } from 'luxon';
+import { v4 as uuidv4 } from 'uuid';
 
 declare const client: Client;
 
@@ -22,13 +22,6 @@ export class AwaitError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "AwaitError";
-  }
-}
-
-export class SubscriptionError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "SubscriptionError";
   }
 }
 
@@ -48,7 +41,7 @@ export class RequestError extends Error {
   }
 }
 
-interface Callback {
+export interface Callback {
   (Message): void
 }
 
@@ -70,8 +63,8 @@ class AwaitCallback {
 
 const SubscriptionEvent = "subscriptionEvent";
 
-const ClientReconnected = "clientReconnected";
-const ClientDisconnected = "clientDisconnected";
+export const ClientReconnected = "clientReconnected";
+export const ClientDisconnected = "clientDisconnected";
 
 class CallbackList extends EventEmitter {
   constructor() {
@@ -180,10 +173,6 @@ export class Client extends EventEmitter {
     return p
   }
 
-  public watch(source: Source, resource: Object, context?: string): Watch {
-    return new Watch(this, source, resource, context);
-  }
-
   public subscribe(uid: string, func: Callback): void {
     if (this.subcriptions[uid] == null) {
       this.subcriptions[uid] = new CallbackList();
@@ -278,101 +267,6 @@ export class Client extends EventEmitter {
 
     return;
   }
-}
-
-export class Watch {
-  private client: Client;
-  private source: Source;
-  private resource: Object;
-  private uid!: string;
-  private callback!: Callback;
-  private context?: Object;
-  private handler?: any;
-
-  constructor(client: Client, source: Source, resource: Object, context?: string) {
-    this.client = client;
-    this.source = source;
-    this.resource = resource;
-    this.context = context;
-    this.handler = this.handleReconnect.bind(this);
-  }
-
-  public async start(callback: Callback): Promise<Message> {
-    this.callback = callback;
-
-    const params = {
-      resource: this.resource,
-      source: this.source,
-    }
-
-    if (this.context) {
-      params["context"] = Context.fromPartial(this.context);
-    }
-
-    const watchRequest = newMessage(
-      Kind.Watch,
-      WatchSpec.fromPartial(params),
-    )
-
-    const message = await this.client.send(watchRequest);
-
-    if (!message.spec) {
-      throw new Error("empty spec in the response");
-    }
-
-    const spec = JSON.parse(message.spec);
-
-    this.client.subscribe(spec["uid"], callback);
-    this.uid = spec["uid"];
-
-    this.client.addListener(ClientReconnected, this.handler);
-
-    return message;
-  }
-
-  public stop(): Promise<Message> {
-    if (!this.uid) {
-      return Promise.reject(new SubscriptionError("failed to stop: not subscribed"));
-    }
-
-    if (!this.client.unsubscribe(this.uid, this.callback)) {
-      return Promise.reject(new SubscriptionError("failed to stop: not subscribed"))
-    }
-
-    const unsubscribe = newMessage(
-      Kind.Unsubscribe,
-      UnsubscribeSpec.fromPartial({
-        uid: this.uid,
-      }),
-    );
-
-    this.uid = null!;
-    this.client.removeListener(ClientReconnected, this.handler);
-
-    return this.client.send(unsubscribe);
-  }
-
-  public async handleReconnect() {
-    if (this.uid == null) {
-      return;
-    }
-
-    try {
-      await this.start(this.callback);
-    } catch(e) {
-      console.log("failed to restart watch", e)
-    }
-  }
-}
-
-function newMessage(kind: Kind, spec: any): Message {
-  return Message.fromPartial({
-    kind: kind,
-    metadata: {
-      uid: uuidv4(),
-    },
-    spec: JSON.stringify(spec),
-  });
 }
 
 function delay(ms: number): Promise<void> {

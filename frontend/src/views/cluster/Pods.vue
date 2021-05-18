@@ -10,9 +10,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     </div>
     <stacked-list 
       class="flex-1"
-      resource="pods.v1"
-      idField="metadata.name"
-      :provider="0"
+      :resource="{type: 'pods.v1'}"
+      kubernetes
       showCount
       itemName="Pod"
       :context="{cluster: {name: $route.params.cluster, namespace: $route.params.namespace, uid: $route.params.uid}}">

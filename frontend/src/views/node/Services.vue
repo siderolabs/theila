@@ -10,11 +10,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     </div>
     <stacked-list 
         class="flex-1"
-        resource="services"
-        idField="metadata.id"
+        :resource="{type: 'services'}"
         showCount
         itemName="Service"
-        :provider="1"
+        talos
         :context="{cluster: {name: $route.params.cluster, namespace: $route.params.namespace, uid: $route.params.uid, nodes: [$route.params.node]}}">
       <template v-slot:header>
         <div class="flex items-center md:grid md:grid-cols-8">

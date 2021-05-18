@@ -8,7 +8,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <div class="px-3 py-2 mb-2">
       <div class="text-lg tracking-tight text-talos-gray-900 dark:text-white font-bold">Servers</div>
     </div>
-    <stacked-list class="flex-1" resource="servers.v1alpha1.metal.sidero.dev" idField="metadata.name" :provider="0">
+    <stacked-list class="flex-1" :resource="{type: 'servers.v1alpha1.metal.sidero.dev'}" kubernetes>
       <template v-slot:default="slot">
         <a
           class="block hover:bg-talos-gray-50 dark:hover:bg-talos-gray-800"
@@ -32,7 +32,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 </div>
                 <div class="block">
                   <div class="flex items-center text-sm text-talos-gray-500 dark:text-talos-gray-400">
-                    <div v-if="slot.item.status.ready">
+                    <div v-if="slot.item.status && slot.item.status.ready">
                       <check-circle-icon
                         class="flex-shrink mr-1.5 h-5 w-5 text-green-400"
                         aria-hidden="true"
