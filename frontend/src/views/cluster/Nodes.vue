@@ -10,11 +10,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     </div>
     <stacked-list 
         class="flex-1"
-        resource="nodes.v1"
-        idField="metadata.name"
+        :resource="{type: 'nodes.v1'}"
         showCount
         itemName="Node"
-        :provider="0"
+        kubernetes
         :context="{cluster: {name: $route.params.cluster, namespace: $route.params.namespace, uid: $route.params.uid}}">
       <template v-slot:header>
         <div class="flex items-center md:grid md:grid-cols-5">

@@ -12,6 +12,7 @@ replace (
 require (
 	github.com/containernetworking/cni v0.8.1 // indirect
 	github.com/cosi-project/runtime v0.0.0-20210423184025-225827c8b0d8
+	github.com/gertd/go-pluralize v0.1.7
 	github.com/go-logr/logr v0.2.1 // indirect
 	github.com/golang/protobuf v1.5.2
 	github.com/google/gofuzz v1.2.0 // indirect

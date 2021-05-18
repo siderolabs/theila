@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/gertd/go-pluralize"
 	"github.com/talos-systems/talos/pkg/machinery/api/resource"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -43,15 +44,17 @@ func New() (*Runtime, error) {
 	}
 
 	return &Runtime{
-		configs: map[string]*rest.Config{},
-		clients: map[string]*client{},
-		scheme:  scheme,
+		configs:   map[string]*rest.Config{},
+		clients:   map[string]*client{},
+		scheme:    scheme,
+		pluralize: pluralize.NewClient(),
 	}, nil
 }
 
 // Runtime implements runtime.Runtime.
 type Runtime struct {
 	scheme    *k8sruntime.Scheme
+	pluralize *pluralize.Client
 	configs   map[string]*rest.Config
 	clients   map[string]*client
 	configsMu sync.RWMutex
@@ -143,23 +146,35 @@ func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) (int
 		return nil, err
 	}
 
+	// unsafe guess list type
+	parts := strings.Split(opts.Resource, ".")
+	if !strings.HasSuffix(strings.ToLower(parts[0]), "list") {
+		parts[0] = r.pluralize.Singular(parts[0])
+		parts[0] += "list"
+		opts.Resource = strings.Join(parts, ".")
+	}
+
 	object, err := r.createObject(client, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	selector := labels.NewSelector()
+	options := []runtimeclient.ListOption{}
 
 	if opts.LabelSelector != "" {
+		var selector labels.Selector
+
 		selector, err = labels.Parse(opts.LabelSelector)
 		if err != nil {
 			return nil, err
 		}
+
+		options = append(options, runtimeclient.MatchingLabelsSelector{
+			Selector: selector,
+		})
 	}
 
-	err = client.List(ctx, object, runtimeclient.MatchingLabelsSelector{
-		Selector: selector,
-	})
+	err = client.List(ctx, object, options...)
 	if err != nil {
 		return nil, err
 	}

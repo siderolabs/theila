@@ -23,7 +23,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           </li>
           <li
             v-for="item in items"
-            :key="getID(item)"
+            :key="watch.id(item)"
             >
             <slot :item="item"></slot>
           </li>
@@ -34,154 +34,128 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 </template>
 
 <script lang="ts">
-import { Options, Vue } from "vue-class-component";
+import { onMounted, onUnmounted, toRef, watch } from "vue";
 import { context } from "../context";
-import { Source, Kind, Message } from "../api/message";
+import Watch from "../api/watch";
+import { ClientReconnected } from "../api/client";
+import { Source } from "../common/theila";
 import TSpinner from './TSpinner.vue';
 import pluralize from 'pluralize';
 
-@Options({
+function defaultCompareFunc(w: Watch) {
+  return (a, b) => {
+    if(w.id(a) === w.id(b)) {
+      return 0;
+    } else if(w.id(a) > w.id(b)) {
+      return 1;
+    }
+
+    return -1;
+  };
+}
+
+export default {
   components: {
     TSpinner,
   },
 
   props: {
-    provider: Source,
-    resource: String,
-    namespace: String,
+    resource: Object,
     context: Object,
-    idField: String,
     showCount: Boolean,
     itemName: String,
+    compareFn: Function,
+    kubernetes: Boolean,
+    talos: Boolean,
   },
 
-  data() {
+  setup(props) {
+    const kubernetes = toRef(props, "kubernetes");
+    const talos = toRef(props, "talos");
+    const resource = toRef(props, "resource");
+    const ctx = toRef(props, "context");
+    const compare = toRef(props, "compareFn");
+
+    const resourceWatch = new Watch(
+      context.api,
+    );
+
+    const startWatch = async () => {
+      stopWatch();
+
+      if(!resource.value) {
+        return;
+      }
+
+      let source:Source;
+
+      if(kubernetes.value) {
+        source = Source.Kubernetes;
+      } else if(talos.value) {
+        source = Source.Talos;
+      } else {
+        throw new Error("unknown source specified")
+      }
+
+      const compareFn = compare.value ? compare.value : defaultCompareFunc(resourceWatch);
+
+      resourceWatch.start(
+        source,
+        resource.value,
+        ctx.value,
+        compareFn,
+      )
+    };
+
+    const stopWatch = async () => {
+      if(resourceWatch.running.value) {
+        await resourceWatch.stop();
+      }
+    };
+
+    const handleReconnect = async () => {
+      await startWatch();
+    }
+
+    onMounted(async () => {
+      context.api.addListener(ClientReconnected, handleReconnect);
+
+      await startWatch();
+    });
+
+    onUnmounted(async () => {
+      context.api.removeListener(ClientReconnected, handleReconnect);
+
+      await stopWatch();
+    });
+
+    watch([
+      resource,
+      ctx,
+      kubernetes,
+      talos,
+      compare,
+    ], (val, oldVal) => {
+      if(val.value != oldVal.value) {
+        startWatch();
+      }
+    });
+
     return {
-      items: [],
-      loading: false,
-      err: null,
-      watch: null,
+      items: resourceWatch.items,
+      err: resourceWatch.err,
+      loading: resourceWatch.loading,
+      running: resourceWatch.running,
+      watch: resourceWatch,
     };
   },
 
-  async unmounted() {
-    await this.unsubscribe();
-  },
-
-  async mounted() {
-    this.loading = false;
-    this.err = null;
-
-    await this.subscribe();
-  },
-
-  watch: { 
-    async resource(newVal: string, oldVal: string) {
-      if (newVal != oldVal)
-        await this.subscribe();
-    }
-  },
-
   methods: {
-    findIndex(obj) {
-      return this.items.findIndex(element => this.getID(element) == this.getID(obj));
-    },
-
     pluralize(noun, count) {
       return pluralize(noun, count);
-    },
-
-    async subscribe() {
-      if (this.loading) {
-        return;
-      }
-
-      if (this.resource) {
-        this.loading = true;
-      }
-
-      try {
-        await this.unsubscribe();
-        if (this.resource) {
-          this.err = null;
-
-          this.watch = context.api.watch(this.provider, {type: this.resource, namespace: this.namespace}, this.context);
-
-          await this.watch.start(this.updateList);
-        }
-      } catch (err) {
-        this.err = err;
-        this.watch = null;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    async unsubscribe() {
-      // stop watch
-      if (this.watch) {
-        await this.watch.stop();
-        this.watch = null;
-      }
-
-      this.items = [];
-    },
-
-    getID(obj: any) {
-      const parts = this.idField.split(".");
-
-      let res = obj;
-      for(let i = 0; i < parts.length - 1; i++) {
-        res = obj[parts[i]];
-        if(!res) {
-          return null;
-        }
-      }
-
-      return res[parts[parts.length-1]];
-    },
-
-    updateList(message: Message) {
-      let index;
-      if (!message.spec) {
-        console.error("got a message with empty spec", message);
-
-        return;
-      }
-
-      const spec = JSON.parse(message.spec);
-
-      switch(message.kind) {
-        case Kind.EventItemAdd:
-          if(this.findIndex(spec) != -1) {
-            return;
-          }
-
-          this.items.push(spec);
-          break;
-        case Kind.EventItemDelete:
-          index = this.findIndex(spec);
-          if(index == -1) {
-            return;
-          }
-          this.items.splice(index, 1);
-          break;
-        case Kind.EventItemUpdate:
-          index = this.findIndex(spec["old"]);
-          if(index == -1) {
-            return;
-          }
-          this.items[index] = spec["new"];
-          break;
-        case Kind.EventError:
-          this.items = [];
-          this.unsubscribe();
-          this.err = spec;
-      }
     }
   }
-})
-export default class StackedList extends Vue {}
+}
 </script>
 
 <style>

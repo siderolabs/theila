@@ -17,7 +17,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
               >
               {{ item.metadata.name }}
             </p>
-            <div class="flex items-center mt-2 text-sm text-talos-gray-500 dark:text-talos-gray-400">
+            <div class="flex items-center mt-2 text-sm text-talos-gray-500 dark:text-talos-gray-400" v-if="item.status">
               <div v-if="item.status.phase === 'Provisioned'">
                 <check-circle-icon
                   class="flex-shrink-0 mr-1.5 h-5 w-5 text-green-400"
@@ -33,7 +33,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
               <span class="truncate">{{ item.status.phase }}</span>
             </div>
           </div>
-          <div class="block">
+          <div class="block" v-if="item.status">
             <div>
               <p
                 v-if="nodesCount >= 0"
