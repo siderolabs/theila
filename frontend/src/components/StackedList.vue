@@ -8,27 +8,27 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <div v-if="loading" class="flex flex-row justify-center items-center w-full h-full">
       <t-spinner/>
     </div>
+    <t-alert v-else-if="err" title="Failed to Fetch Data" type="error">
+      {{ err }}.
+    </t-alert>
+    <t-alert v-else-if="items.length == 0" type="info" title="No Records">No entries of the requested resource type are found on the server.</t-alert>
     <div v-else class="stacked-list">
-      <div v-if="err" class="m-4 justify-center">{{ err }}</div>
-      <div v-else-if="items.length == 0" class="m-4 justify-center">No Records</div>
-      <template v-else>
-        <ul>
-          <li v-if="showCount && itemName">
-            <div class="px-4 py-4 sm:px-6">
-              {{ items.length }} {{ pluralize(itemName, items.length) }}
-            </div>
-          </li>
-          <li v-if="$slots.header" class="table-header">
-            <slot name="header"></slot>
-          </li>
-          <li
-            v-for="item in items"
-            :key="watch.id(item)"
-            >
-            <slot :item="item"></slot>
-          </li>
-        </ul>
-      </template>
+      <ul>
+        <li v-if="showCount && itemName">
+          <div class="px-4 py-4 sm:px-6">
+            {{ items.length }} {{ pluralize(itemName, items.length) }}
+          </div>
+        </li>
+        <li v-if="$slots.header" class="table-header">
+          <slot name="header"></slot>
+        </li>
+        <li
+          v-for="item in items"
+          :key="watch.id(item)"
+          >
+          <slot :item="item"></slot>
+        </li>
+      </ul>
     </div>
   </div>
 </template>
@@ -40,6 +40,7 @@ import Watch from "../api/watch";
 import { ClientReconnected } from "../api/client";
 import { Source } from "../common/theila";
 import TSpinner from './TSpinner.vue';
+import TAlert from './TAlert.vue';
 import pluralize from 'pluralize';
 
 function defaultCompareFunc(w: Watch) {
@@ -57,6 +58,7 @@ function defaultCompareFunc(w: Watch) {
 export default {
   components: {
     TSpinner,
+    TAlert,
   },
 
   props: {
