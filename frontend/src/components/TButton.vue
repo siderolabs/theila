@@ -6,7 +6,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 <template>
   <button type="button" 
           class="focus:outline-none focus:shadow-outline"
-          :class="{primary: primary, secondary: !primary, small: small}">
+          :class="{primary: primary, secondary: !primary, small: small, xs: xs}">
     <div class="container space-x-1">
       <slot></slot>
     </div>
@@ -20,6 +20,7 @@ import { Options, Vue } from 'vue-class-component';
   props: {
     primary: Boolean,
     small: Boolean,
+    xs: Boolean,
   },
 
   data() {
@@ -46,6 +47,10 @@ button {
 
 .small {
   @apply py-1;
+}
+
+.xs {
+  @apply p-1;
 }
 
 button > div.container {

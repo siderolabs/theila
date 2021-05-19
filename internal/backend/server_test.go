@@ -47,6 +47,10 @@ func (t *testRuntime) AddContext(id string, data []byte) error {
 	return nil
 }
 
+func (t *testRuntime) GetContext(ctx context.Context, cluster *common.Cluster) ([]byte, error) {
+	return nil, nil
+}
+
 func (t *testRuntime) Get(ctx context.Context, setters ...runtime.QueryOption) (interface{}, error) {
 	return nil, nil
 }

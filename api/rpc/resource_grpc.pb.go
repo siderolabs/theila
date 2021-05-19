@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type ClusterResourceServiceClient interface {
 	Get(ctx context.Context, in *GetFromClusterRequest, opts ...grpc.CallOption) (*GetFromClusterResponse, error)
 	List(ctx context.Context, in *ListFromClusterRequest, opts ...grpc.CallOption) (*ListFromClusterResponse, error)
+	GetConfig(ctx context.Context, in *ConfigRequest, opts ...grpc.CallOption) (*ConfigResponse, error)
 }
 
 type clusterResourceServiceClient struct {
@@ -48,12 +49,22 @@ func (c *clusterResourceServiceClient) List(ctx context.Context, in *ListFromClu
 	return out, nil
 }
 
+func (c *clusterResourceServiceClient) GetConfig(ctx context.Context, in *ConfigRequest, opts ...grpc.CallOption) (*ConfigResponse, error) {
+	out := new(ConfigResponse)
+	err := c.cc.Invoke(ctx, "/resource.ClusterResourceService/GetConfig", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClusterResourceServiceServer is the server API for ClusterResourceService service.
 // All implementations must embed UnimplementedClusterResourceServiceServer
 // for forward compatibility
 type ClusterResourceServiceServer interface {
 	Get(context.Context, *GetFromClusterRequest) (*GetFromClusterResponse, error)
 	List(context.Context, *ListFromClusterRequest) (*ListFromClusterResponse, error)
+	GetConfig(context.Context, *ConfigRequest) (*ConfigResponse, error)
 	mustEmbedUnimplementedClusterResourceServiceServer()
 }
 
@@ -66,6 +77,9 @@ func (UnimplementedClusterResourceServiceServer) Get(context.Context, *GetFromCl
 }
 func (UnimplementedClusterResourceServiceServer) List(context.Context, *ListFromClusterRequest) (*ListFromClusterResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+}
+func (UnimplementedClusterResourceServiceServer) GetConfig(context.Context, *ConfigRequest) (*ConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConfig not implemented")
 }
 func (UnimplementedClusterResourceServiceServer) mustEmbedUnimplementedClusterResourceServiceServer() {
 }
@@ -117,6 +131,24 @@ func _ClusterResourceService_List_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClusterResourceService_GetConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClusterResourceServiceServer).GetConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/resource.ClusterResourceService/GetConfig",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClusterResourceServiceServer).GetConfig(ctx, req.(*ConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClusterResourceService_ServiceDesc is the grpc.ServiceDesc for ClusterResourceService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -131,6 +163,10 @@ var ClusterResourceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "List",
 			Handler:    _ClusterResourceService_List_Handler,
+		},
+		{
+			MethodName: "GetConfig",
+			Handler:    _ClusterResourceService_GetConfig_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

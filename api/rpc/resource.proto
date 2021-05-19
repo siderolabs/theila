@@ -34,7 +34,20 @@ message ListFromClusterResponse {
   repeated string messages = 1;
 }
 
+message ConfigRequest {
+  // Cluster to get the configuration for.
+  common.Cluster cluster = 1;
+  // Data source to use to get the resource.
+  common.Source source = 2;
+}
+
+message ConfigResponse {
+  // Data raw config data.
+  string data = 1;
+}
+
 service ClusterResourceService {
   rpc Get(GetFromClusterRequest) returns (GetFromClusterResponse);
   rpc List(ListFromClusterRequest) returns (ListFromClusterResponse);
+  rpc GetConfig(ConfigRequest) returns (ConfigResponse);
 }

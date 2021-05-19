@@ -250,6 +250,33 @@ func (r *Runtime) AddContext(id string, data []byte) error {
 	return nil
 }
 
+// GetContext implements runtime.Runtime.
+func (r *Runtime) GetContext(ctx context.Context, cluster *common.Cluster) ([]byte, error) {
+	err := r.fetchTalosconfig(ctx, runtime.DefaultClient, cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	config, err := r.getConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	contextName := cluster.Uid
+
+	// extract only specified context into a separate config.
+	context := config.Contexts[contextName]
+
+	config = &clientconfig.Config{
+		Context: contextName,
+		Contexts: map[string]*clientconfig.Context{
+			contextName: context,
+		},
+	}
+
+	return config.Bytes()
+}
+
 func (r *Runtime) getClient(ctx context.Context, name string, cluster *common.Cluster) (*client.Client, error) {
 	contextName := runtime.DefaultClient
 

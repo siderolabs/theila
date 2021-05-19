@@ -55,7 +55,7 @@ export interface Context {
   name: string;
   /** Cluster fetches the context from the cluster resource in Kubernetes. */
   cluster: Cluster | undefined;
-  /** Nodes nodes to fetch the data from using Talos client. */
+  /** Nodes to fetch the data from using Talos client. */
   nodes: string[];
 }
 

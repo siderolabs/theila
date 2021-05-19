@@ -7,6 +7,7 @@ package grpc
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	gateway "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
@@ -90,6 +91,28 @@ func (s *clusterResourceServer) List(ctx context.Context, in *rpc.ListFromCluste
 	}
 
 	return res, nil
+}
+
+// GetConfig returns kubeconfig or talos config.
+// It's a bit more than just getting a resource that's why it has this custom getter.
+func (s *clusterResourceServer) GetConfig(ctx context.Context, in *rpc.ConfigRequest) (*rpc.ConfigResponse, error) {
+	r, err := runtime.Get(in.Source.String())
+	if err != nil {
+		return nil, err
+	}
+
+	if in.Cluster == nil {
+		return nil, fmt.Errorf("cluster is not set")
+	}
+
+	res, err := r.GetContext(ctx, in.Cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	return &rpc.ConfigResponse{
+		Data: string(res),
+	}, nil
 }
 
 type resource interface {

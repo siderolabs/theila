@@ -162,15 +162,23 @@ export default {
 
 <style>
 .stacked-list {
-  @apply flex flex-col w-full overflow-hidden bg-white border rounded-md border-talos-gray-300 dark:border-talos-gray-600 dark:bg-talos-gray-900 text-talos-gray-900 dark:text-talos-gray-100;
+  @apply flex flex-col w-full bg-white border rounded-md border-talos-gray-300 dark:border-talos-gray-600 dark:bg-talos-gray-900 text-talos-gray-900 dark:text-talos-gray-100 overflow-visible;
 }
 
 .stacked-list > ul {
-  @apply divide-y divide-talos-gray-300 dark:divide-talos-gray-600;
+  @apply divide-y divide-talos-gray-300 dark:divide-talos-gray-600 overflow-visible;
 }
 
-li {
-  @apply text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100;
+.stacked-list li {
+  @apply text-sm font-medium text-talos-gray-900 dark:text-talos-gray-100 overflow-visible;
+}
+
+.stacked-list *:first-child {
+  @apply rounded-tl-md rounded-tr-md;
+}
+
+.stacked-list *:last-child {
+  @apply rounded-bl-md rounded-br-md;
 }
 
 .stacked-list .table-header > * {
