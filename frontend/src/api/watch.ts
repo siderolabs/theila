@@ -135,7 +135,7 @@ export default class Watch {
 
   public stop(): Promise<Message> {
     this.items.value.splice(0, this.items.value.length);
-    this.running = false;
+    this.running.value = false;
 
     if (!this.uid) {
       return Promise.reject(new SubscriptionError("failed to stop: not subscribed"));
