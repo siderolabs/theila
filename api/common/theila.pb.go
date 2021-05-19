@@ -151,7 +151,7 @@ type Context struct {
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// Cluster fetches the context from the cluster resource in Kubernetes.
 	Cluster *Cluster `protobuf:"bytes,2,opt,name=cluster,proto3" json:"cluster,omitempty"`
-	// Nodes nodes to fetch the data from using Talos client.
+	// Nodes to fetch the data from using Talos client.
 	Nodes []string `protobuf:"bytes,3,rep,name=nodes,proto3" json:"nodes,omitempty"`
 }
 

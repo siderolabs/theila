@@ -4,6 +4,7 @@ import * as Long from "long";
 import {
   Source,
   Context,
+  Cluster,
   sourceFromJSON,
   sourceToJSON,
 } from "../common/theila";
@@ -37,6 +38,18 @@ export interface ListFromClusterRequest {
 export interface ListFromClusterResponse {
   /** Messages should contain JSON encoded list spec. */
   messages: string[];
+}
+
+export interface ConfigRequest {
+  /** Cluster to get the configuration for. */
+  cluster: Cluster | undefined;
+  /** Data source to use to get the resource. */
+  source: Source;
+}
+
+export interface ConfigResponse {
+  /** Data raw config data. */
+  data: string;
 }
 
 const baseGetFromClusterRequest: object = { source: 0 };
@@ -396,9 +409,140 @@ export const ListFromClusterResponse = {
   },
 };
 
+const baseConfigRequest: object = { source: 0 };
+
+export const ConfigRequest = {
+  encode(message: ConfigRequest, writer: Writer = Writer.create()): Writer {
+    if (message.cluster !== undefined) {
+      Cluster.encode(message.cluster, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.source !== 0) {
+      writer.uint32(16).int32(message.source);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): ConfigRequest {
+    const reader = input instanceof Reader ? input : new Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseConfigRequest } as ConfigRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.cluster = Cluster.decode(reader, reader.uint32());
+          break;
+        case 2:
+          message.source = reader.int32() as any;
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ConfigRequest {
+    const message = { ...baseConfigRequest } as ConfigRequest;
+    if (object.cluster !== undefined && object.cluster !== null) {
+      message.cluster = Cluster.fromJSON(object.cluster);
+    } else {
+      message.cluster = undefined;
+    }
+    if (object.source !== undefined && object.source !== null) {
+      message.source = sourceFromJSON(object.source);
+    } else {
+      message.source = 0;
+    }
+    return message;
+  },
+
+  toJSON(message: ConfigRequest): unknown {
+    const obj: any = {};
+    message.cluster !== undefined &&
+      (obj.cluster = message.cluster
+        ? Cluster.toJSON(message.cluster)
+        : undefined);
+    message.source !== undefined && (obj.source = sourceToJSON(message.source));
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<ConfigRequest>): ConfigRequest {
+    const message = { ...baseConfigRequest } as ConfigRequest;
+    if (object.cluster !== undefined && object.cluster !== null) {
+      message.cluster = Cluster.fromPartial(object.cluster);
+    } else {
+      message.cluster = undefined;
+    }
+    if (object.source !== undefined && object.source !== null) {
+      message.source = object.source;
+    } else {
+      message.source = 0;
+    }
+    return message;
+  },
+};
+
+const baseConfigResponse: object = { data: "" };
+
+export const ConfigResponse = {
+  encode(message: ConfigResponse, writer: Writer = Writer.create()): Writer {
+    if (message.data !== "") {
+      writer.uint32(10).string(message.data);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): ConfigResponse {
+    const reader = input instanceof Reader ? input : new Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseConfigResponse } as ConfigResponse;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.data = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ConfigResponse {
+    const message = { ...baseConfigResponse } as ConfigResponse;
+    if (object.data !== undefined && object.data !== null) {
+      message.data = String(object.data);
+    } else {
+      message.data = "";
+    }
+    return message;
+  },
+
+  toJSON(message: ConfigResponse): unknown {
+    const obj: any = {};
+    message.data !== undefined && (obj.data = message.data);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<ConfigResponse>): ConfigResponse {
+    const message = { ...baseConfigResponse } as ConfigResponse;
+    if (object.data !== undefined && object.data !== null) {
+      message.data = object.data;
+    } else {
+      message.data = "";
+    }
+    return message;
+  },
+};
+
 export interface ClusterResourceService {
   Get(request: GetFromClusterRequest): Promise<GetFromClusterResponse>;
   List(request: ListFromClusterRequest): Promise<ListFromClusterResponse>;
+  GetConfig(request: ConfigRequest): Promise<ConfigResponse>;
 }
 
 type Builtin =

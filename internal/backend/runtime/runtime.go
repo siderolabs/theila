@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/talos-systems/theila/api/common"
 	"github.com/talos-systems/theila/api/socket/message"
 )
 
@@ -34,6 +35,7 @@ type Runtime interface {
 	Get(context.Context, ...QueryOption) (interface{}, error)
 	List(context.Context, ...QueryOption) (interface{}, error)
 	AddContext(string, []byte) error
+	GetContext(context.Context, *common.Cluster) ([]byte, error)
 }
 
 var (

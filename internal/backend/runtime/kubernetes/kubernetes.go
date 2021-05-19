@@ -196,20 +196,8 @@ func (r *Runtime) AddContext(id string, data []byte) error {
 	return nil
 }
 
-func (r *Runtime) getKubeconfig(ctx context.Context, cluster *common.Cluster) (*rest.Config, error) {
-	id := cluster.Uid
-
-	res := func() *rest.Config {
-		r.configsMu.RLock()
-		defer r.configsMu.RUnlock()
-
-		return r.configs[id]
-	}()
-
-	if res != nil {
-		return res, nil
-	}
-
+// GetContext implements runtime.Runtime.
+func (r *Runtime) GetContext(ctx context.Context, cluster *common.Cluster) ([]byte, error) {
 	var err error
 
 	opts := []runtime.QueryOption{
@@ -239,6 +227,28 @@ func (r *Runtime) getKubeconfig(ctx context.Context, cluster *common.Cluster) (*
 	raw, ok := secret.Data["value"]
 	if !ok {
 		return nil, fmt.Errorf("expected kubeconfig to be placed under 'value' in secret, but nothing was found")
+	}
+
+	return raw, nil
+}
+
+func (r *Runtime) getKubeconfig(ctx context.Context, cluster *common.Cluster) (*rest.Config, error) {
+	id := cluster.Uid
+
+	res := func() *rest.Config {
+		r.configsMu.RLock()
+		defer r.configsMu.RUnlock()
+
+		return r.configs[id]
+	}()
+
+	if res != nil {
+		return res, nil
+	}
+
+	raw, err := r.GetContext(ctx, cluster)
+	if err != nil {
+		return nil, err
 	}
 
 	if err = r.AddContext(id, raw); err != nil {
@@ -439,6 +449,8 @@ func (w *Watch) run(ctx context.Context) error {
 
 		<-ctx.Done()
 	}()
+
+	dynamicInformer.WaitForCacheSync(ctx.Done())
 
 	return nil
 }

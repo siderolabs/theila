@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import { ClusterResourceService, GetFromClusterRequest, ListFromClusterRequest} from './resource.pb';
+import { ClusterResourceService, GetFromClusterRequest, ListFromClusterRequest, ConfigRequest} from './resource.pb';
 
 const prefix = {pathPrefix: "api"};
 
@@ -30,5 +30,15 @@ export class ResourceService {
     }
 
     return results;
+  }
+  
+  static async GetConfig(request: ConfigRequest): Promise<string> {
+    const res = await ClusterResourceService.GetConfig(request, prefix);
+
+    if(!res.data) {
+      return "";
+    }
+
+    return res.data;
   }
 }
