@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-04-30T17:29:57Z by kres 392fdcb-dirty.
+# Generated on 2021-05-21T14:44:23Z by kres c09e0bc-dirty.
 
 # common variables
 
@@ -15,7 +15,7 @@ PROTOBUF_TS_VERSION ?= 1.79.2
 PROTOBUF_GRPC_GATEWAY_TS_VERSION ?= 1.1.0
 TESTPKGS ?= ./...
 GOFUMPT_VERSION ?= abc0db2c416aca0f60ea33c23c76665f6e7ba0b6
-GO_VERSION ?= 1.14
+GO_VERSION ?= 1.16
 PROTOBUF_GO_VERSION ?= 1.25.0
 GRPC_GO_VERSION ?= 1.1.0
 GRPC_GATEWAY_VERSION ?= 2.4.0
@@ -147,12 +147,50 @@ unit-tests-race:  ## Performs unit tests with race detection enabled.
 coverage:  ## Upload coverage data to codecov.io.
 	bash -c "bash <(curl -s https://codecov.io/bash) -f $(ARTIFACTS)/coverage.txt -X fix"
 
-.PHONY: $(ARTIFACTS)/theila
-$(ARTIFACTS)/theila:
-	@$(MAKE) local-theila DEST=$(ARTIFACTS)
+.PHONY: $(ARTIFACTS)/theila-darwin-amd64
+$(ARTIFACTS)/theila-darwin-amd64:
+	@$(MAKE) local-theila-darwin-amd64 DEST=$(ARTIFACTS)
+
+.PHONY: theila-darwin-amd64
+theila-darwin-amd64: $(ARTIFACTS)/theila-darwin-amd64  ## Builds executable for theila-darwin-amd64.
+
+.PHONY: $(ARTIFACTS)/theila-darwin-arm64
+$(ARTIFACTS)/theila-darwin-arm64:
+	@$(MAKE) local-theila-darwin-arm64 DEST=$(ARTIFACTS)
+
+.PHONY: theila-darwin-arm64
+theila-darwin-arm64: $(ARTIFACTS)/theila-darwin-arm64  ## Builds executable for theila-darwin-arm64.
+
+.PHONY: $(ARTIFACTS)/theila-linux-amd64
+$(ARTIFACTS)/theila-linux-amd64:
+	@$(MAKE) local-theila-linux-amd64 DEST=$(ARTIFACTS)
+
+.PHONY: theila-linux-amd64
+theila-linux-amd64: $(ARTIFACTS)/theila-linux-amd64  ## Builds executable for theila-linux-amd64.
+
+.PHONY: $(ARTIFACTS)/theila-linux-arm64
+$(ARTIFACTS)/theila-linux-arm64:
+	@$(MAKE) local-theila-linux-arm64 DEST=$(ARTIFACTS)
+
+.PHONY: theila-linux-arm64
+theila-linux-arm64: $(ARTIFACTS)/theila-linux-arm64  ## Builds executable for theila-linux-arm64.
+
+.PHONY: $(ARTIFACTS)/theila-linux-armv7
+$(ARTIFACTS)/theila-linux-armv7:
+	@$(MAKE) local-theila-linux-armv7 DEST=$(ARTIFACTS)
+
+.PHONY: theila-linux-armv7
+theila-linux-armv7: $(ARTIFACTS)/theila-linux-armv7  ## Builds executable for theila-linux-armv7.
+
+.PHONY: $(ARTIFACTS)/theila-windows-amd64.exe
+$(ARTIFACTS)/theila-windows-amd64.exe:
+	@$(MAKE) local-theila-windows-amd64.exe DEST=$(ARTIFACTS)
+
+.PHONY: theila-windows-amd64.exe
+theila-windows-amd64.exe: $(ARTIFACTS)/theila-windows-amd64.exe  ## Builds executable for theila-windows-amd64.exe.
 
 .PHONY: theila
-theila: $(ARTIFACTS)/theila  ## Builds executable for theila.
+theila: theila-darwin-amd64 theila-darwin-arm64 theila-linux-amd64 theila-linux-arm64 theila-linux-armv7 theila-windows-amd64.exe
 
 .PHONY: lint-markdown
 lint-markdown:  ## Runs markdownlint.
@@ -174,4 +212,9 @@ rekres:
 help:  ## This help menu.
 	@echo "$$HELP_MENU_HEADER"
 	@grep -E '^[a-zA-Z%_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+.PHONY: release-notes
+release-notes:
+	mkdir -p $(ARTIFACTS)
+	@ARTIFACTS=$(ARTIFACTS) ./hack/release.sh $@ $(ARTIFACTS)/RELEASE_NOTES.md $(TAG)
 
