@@ -4,6 +4,29 @@ name: build
 spec:
   disableImage: true
 ---
+kind: golang.Build
+spec:
+  outputs:
+    theila-linux-amd64:
+      GOOS: linux
+      GOARCH: amd64
+    theila-linux-arm64:
+      GOOS: linux
+      GOARCH: arm64
+    theila-linux-armv7:
+      GOOS: linux
+      GOARCH: arm
+      GOARM: 7
+    theila-darwin-amd64:
+      GOOS: darwin
+      GOARCH: amd64
+    theila-darwin-arm64:
+      GOOS: darwin
+      GOARCH: arm64
+    theila-windows-amd64.exe:
+      GOOS: windows
+      GOARCH: amd64
+---
 kind: golang.Protobuf
 spec:
   specs:

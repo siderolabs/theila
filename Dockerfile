@@ -2,7 +2,7 @@
 
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-05-20T11:44:59Z by kres 2cb907a-dirty.
+# Generated on 2021-05-21T14:46:38Z by kres c09e0bc-dirty.
 
 ARG JS_TOOLCHAIN
 ARG TOOLCHAIN
@@ -24,8 +24,9 @@ RUN npm i -g markdownlint-cli@0.23.2
 RUN npm i sentences-per-line@0.2.1
 WORKDIR /src
 COPY .markdownlint.json .
+COPY ./CHANGELOG.md ./CHANGELOG.md
 COPY ./README.md ./README.md
-RUN markdownlint --ignore "**/node_modules/**" --ignore '**/hack/chglog/**' --rules /node_modules/sentences-per-line/index.js .
+RUN markdownlint --ignore "CHANGELOG.md" --ignore "**/node_modules/**" --ignore '**/hack/chglog/**' --rules /node_modules/sentences-per-line/index.js .
 
 # collects proto specs
 FROM scratch AS proto-specs
@@ -175,20 +176,68 @@ FROM base AS unit-tests-run
 ARG TESTPKGS
 RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg --mount=type=cache,target=/tmp go test -v -covermode=atomic -coverprofile=coverage.txt -coverpkg=${TESTPKGS} -count 1 ${TESTPKGS}
 
-# builds theila
-FROM base AS theila-build
+# builds theila-darwin-amd64
+FROM base AS theila-darwin-amd64-build
 COPY --from=generate / /
 WORKDIR /src/cmd/theila
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg go build -ldflags "-s -w" -o /theila
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w" -o /theila-darwin-amd64
+
+# builds theila-darwin-arm64
+FROM base AS theila-darwin-arm64-build
+COPY --from=generate / /
+WORKDIR /src/cmd/theila
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOARCH=arm64 GOOS=darwin go build -ldflags "-s -w" -o /theila-darwin-arm64
+
+# builds theila-linux-amd64
+FROM base AS theila-linux-amd64-build
+COPY --from=generate / /
+WORKDIR /src/cmd/theila
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o /theila-linux-amd64
+
+# builds theila-linux-arm64
+FROM base AS theila-linux-arm64-build
+COPY --from=generate / /
+WORKDIR /src/cmd/theila
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOOS=linux GOARCH=arm64 go build -ldflags "-s -w" -o /theila-linux-arm64
+
+# builds theila-linux-armv7
+FROM base AS theila-linux-armv7-build
+COPY --from=generate / /
+WORKDIR /src/cmd/theila
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOOS=linux GOARCH=arm GOARM=7 go build -ldflags "-s -w" -o /theila-linux-armv7
+
+# builds theila-windows-amd64.exe
+FROM base AS theila-windows-amd64.exe-build
+COPY --from=generate / /
+WORKDIR /src/cmd/theila
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -o /theila-windows-amd64.exe
 
 FROM scratch AS unit-tests
 COPY --from=unit-tests-run /src/coverage.txt /coverage.txt
 
-FROM scratch AS theila
-COPY --from=theila-build /theila /theila
+FROM scratch AS theila-darwin-amd64
+COPY --from=theila-darwin-amd64-build /theila-darwin-amd64 /theila-darwin-amd64
+
+FROM scratch AS theila-darwin-arm64
+COPY --from=theila-darwin-arm64-build /theila-darwin-arm64 /theila-darwin-arm64
+
+FROM scratch AS theila-linux-amd64
+COPY --from=theila-linux-amd64-build /theila-linux-amd64 /theila-linux-amd64
+
+FROM scratch AS theila-linux-arm64
+COPY --from=theila-linux-arm64-build /theila-linux-arm64 /theila-linux-arm64
+
+FROM scratch AS theila-linux-armv7
+COPY --from=theila-linux-armv7-build /theila-linux-armv7 /theila-linux-armv7
+
+FROM scratch AS theila-windows-amd64.exe
+COPY --from=theila-windows-amd64.exe-build /theila-windows-amd64.exe /theila-windows-amd64.exe
+
+FROM theila-linux-${TARGETARCH} AS theila
 
 FROM scratch AS image-theila
-COPY --from=theila / /
+ARG TARGETARCH
+COPY --from=theila theila-linux-${TARGETARCH} /theila
 COPY --from=image-fhs / /
 COPY --from=image-ca-certificates / /
 LABEL org.opencontainers.image.source https://github.com/talos-systems/theila

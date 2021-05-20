@@ -1,0 +1,28 @@
+# commit to be tagged for the new release
+commit = "HEAD"
+
+project_name = "theila"
+github_repo = "talos-systems/theila"
+match_deps = "^github.com/(talos-systems/[a-zA-Z0-9-]+)$"
+
+pre_release = true
+
+[notes]
+
+  [notes.intro]
+
+    title = "The First Release"
+    description = """\
+This is the very first release of the UI for Talos and Sidero.
+
+The first iteration is only able to run against the management cluster with Sidero installed.
+Theila gets credentials from `~/.kube/config` or from the file defined in `KUBECONFIG`
+environment variable. The current context is always used.
+
+For each Sidero Kubernetes cluster it is possible to:
+- get the kubeconfig and talosconfig.
+- get the list of nodes and pods.
+
+For each node in the cluster it is possible to:
+- get the list of services and their health.
+"""

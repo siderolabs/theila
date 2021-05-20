@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-05-20T11:44:59Z by kres 2cb907a-dirty.
+# Generated on 2021-05-20T19:53:49Z by kres 3ad58bf-dirty.
 
 **
 !frontend/src
@@ -19,5 +19,6 @@
 !go.mod
 !go.sum
 !.golangci.yml
+!CHANGELOG.md
 !README.md
 !.markdownlint.json
