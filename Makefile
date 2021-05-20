@@ -103,7 +103,7 @@ js:  ## Prepare js base toolchain.
 
 .PHONY: unit-tests-frontend
 unit-tests-frontend:  ## Performs unit tests
-	@$(MAKE) local-$@ DEST=$(ARTIFACTS)
+	@$(MAKE) target-$@
 
 lint-eslint:  ## Runs eslint linter.
 	@$(MAKE) target-$@

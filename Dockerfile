@@ -2,7 +2,7 @@
 
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-05-07T20:00:58Z by kres a7a00ec-dirty.
+# Generated on 2021-05-20T11:44:59Z by kres 2cb907a-dirty.
 
 ARG JS_TOOLCHAIN
 ARG TOOLCHAIN

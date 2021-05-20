@@ -5,7 +5,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <template>
   <div>
-    <Menu as="div">
+    <Menu as="div" class="relative">
       <menu-button as="template">
         <t-button :xs="xs" :small="small">
           {{ title }}
@@ -21,13 +21,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         leave-from-class="transform scale-100 opacity-100"
         leave-to-class="transform scale-95 opacity-0"
         >
-        <div class="relative">
         <menu-items class="absolute right-0 w-56 mt-2 origin-top-right bg-white border border-transparent rounded-md shadow-lg dark:bg-talos-gray-800 dark:border-talos-gray-600 dark:border-opacity-50 ring-1 ring-black ring-opacity-5 focus:outline-none" style="z-index: 100">
           <div class="px-1 py-1">
             <slot></slot>
           </div>
         </menu-items>
-        </div>
       </transition>
     </Menu>
   </div>
