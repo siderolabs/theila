@@ -9,6 +9,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
 	"os/signal"
 	"syscall"
 
@@ -24,6 +25,26 @@ var rootCmd = &cobra.Command{
 	Use:   "theila",
 	Short: "Talos and Sidero frontend",
 	Long:  ``,
+	Run: func(cmd *cobra.Command, args []string) {
+		config := zap.NewDevelopmentConfig()
+		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+
+		logger, err := config.Build()
+		if err != nil {
+			log.Fatalf("failed to set up logging %s", err)
+		}
+
+		server, err := backend.NewServer(rootCmdArgs.address, rootCmdArgs.port)
+		if err != nil {
+			logger.Fatal("failed to create server", zap.Error(err))
+		}
+
+		ctx, _ := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+
+		if err := server.Run(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Fatal("failed to run server", zap.Error(err))
+		}
+	},
 }
 
 var rootCmdArgs struct {
@@ -32,23 +53,9 @@ var rootCmdArgs struct {
 }
 
 func main() {
-	config := zap.NewDevelopmentConfig()
-	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-
-	logger, err := config.Build()
-	if err != nil {
-		log.Fatalf("failed to set up logging %s", err)
-	}
-
-	server, err := backend.NewServer(rootCmdArgs.address, rootCmdArgs.port)
-	if err != nil {
-		logger.Fatal("failed to create server", zap.Error(err))
-	}
-
-	ctx, _ := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-
-	if err := server.Run(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		logger.Fatal("failed to run server", zap.Error(err))
+	if err := rootCmd.Execute(); err != nil {
+		log.Printf("execute error %s", err)
+		os.Exit(1)
 	}
 }
 
