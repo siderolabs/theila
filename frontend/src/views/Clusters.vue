@@ -8,24 +8,22 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <div class="px-3 py-2 mb-2">
       <h1 class="text-lg tracking-tight text-talos-gray-900 dark:text-white font-bold">Clusters</h1>
     </div>
-    <stacked-list class="flex-1" :resource="{type: 'clusters.v1alpha3.cluster.x-k8s.io'}" kubernetes>
+    <watch class="flex-1" :resource="{type: 'clusters.v1alpha3.cluster.x-k8s.io'}" kubernetes>
       <template v-slot:default="slot">
         <cluster-list-item :item="slot.item"/>
       </template>
-    </stacked-list>
+    </watch>
   </div>
 </template>
 
 <script type="ts">
-import { Options, Vue } from 'vue-class-component';
-import StackedList from '../components/StackedList.vue';
+import Watch from '../components/Watch.vue';
 import ClusterListItem from '../components/ClusterListItem.vue';
 
-@Options({
+export default {
   components: {
-    StackedList,
+    Watch,
     ClusterListItem,
   },
-})
-export default class Clusters extends Vue{}
+}
 </script>
