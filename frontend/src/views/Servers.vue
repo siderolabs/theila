@@ -8,7 +8,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <div class="px-3 py-2 mb-2">
       <div class="text-lg tracking-tight text-talos-gray-900 dark:text-white font-bold">Servers</div>
     </div>
-    <stacked-list class="flex-1" :resource="{type: 'servers.v1alpha1.metal.sidero.dev'}" kubernetes>
+    <watch class="flex-1" :resource="{type: 'servers.v1alpha1.metal.sidero.dev'}" kubernetes>
       <template v-slot:default="slot">
         <a
           class="block hover:bg-talos-gray-50 dark:hover:bg-talos-gray-800"
@@ -88,13 +88,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           </div>
         </a>
       </template>
-    </stacked-list>
+    </watch>
   </div>
 </template>
 
 <script type="ts">
 import { Options, Vue } from 'vue-class-component';
-import StackedList from '../components/StackedList.vue';
+import Watch from '../components/Watch.vue';
 import {
   CheckCircleIcon,
   DotsHorizontalIcon,
@@ -104,7 +104,7 @@ import {
 
 @Options({
   components: {
-    StackedList,
+    Watch,
     CheckCircleIcon,
     DotsHorizontalIcon,
     XCircleIcon,

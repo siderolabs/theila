@@ -8,7 +8,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <div class="px-3 py-2 mb-2">
       <t-breadcrumbs active="{node} Services"/>
     </div>
-    <stacked-list 
+    <watch
         class="flex-1"
         :resource="{type: 'services'}"
         showCount
@@ -59,13 +59,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           </div>
         </a>
       </template>
-    </stacked-list>
+    </watch>
   </div>
 </template>
 
 <script type="ts">
 import { Options, Vue } from 'vue-class-component';
-import StackedList from '../../components/StackedList.vue';
+import Watch from '../../components/Watch.vue';
 import TBreadcrumbs from '../../components/TBreadcrumbs.vue';
 import {
   CheckCircleIcon,
@@ -76,7 +76,7 @@ import {
 @Options({
   components: {
     TBreadcrumbs,
-    StackedList,
+    Watch,
     CheckCircleIcon,
     XCircleIcon,
     ExclamationCircleIcon,
