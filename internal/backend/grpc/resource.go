@@ -105,7 +105,7 @@ func (s *clusterResourceServer) GetConfig(ctx context.Context, in *rpc.ConfigReq
 		return nil, fmt.Errorf("cluster is not set")
 	}
 
-	res, err := r.GetContext(ctx, in.Cluster)
+	res, err := r.GetContext(ctx, in.Context, in.Cluster)
 	if err != nil {
 		return nil, err
 	}

@@ -35,10 +35,12 @@ message ListFromClusterResponse {
 }
 
 message ConfigRequest {
+  // Context to get the configuration from.
+  common.Context context = 1;
   // Cluster to get the configuration for.
-  common.Cluster cluster = 1;
+  common.Cluster cluster = 2;
   // Data source to use to get the resource.
-  common.Source source = 2;
+  common.Source source = 3;
 }
 
 message ConfigResponse {

@@ -3,12 +3,32 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import { ClusterResourceService, GetFromClusterRequest, ListFromClusterRequest, ConfigRequest} from './resource.pb';
+import { ContextService as WrappedContextService, ListContextsRequest, ListContextsResponse } from './context.pb';
+import { Context } from '../common/theila.pb';
+import { context } from '../context';
 
-const prefix = {pathPrefix: "api"};
+const prefix = {pathPrefix: "/api"};
+
+function populateCurrentContext(ctx?: Context) {
+  let res = ctx;
+  if (context.current.value) {
+    if (!res) {
+      res = {};
+    }
+
+    if (res && !res.name) {
+      res.name = context.current.value;
+    }
+  }
+
+  return res;
+}
 
 // define a wrapper for grpc resource service.
 export class ResourceService {
   static async Get(request: GetFromClusterRequest): Promise<Object> {
+    request.context = populateCurrentContext(request.context);
+
     const res = await ClusterResourceService.Get(request, prefix);
     if (res.body == null) {
       throw new Error("empty body in the response");
@@ -18,6 +38,8 @@ export class ResourceService {
   }
 
   static async List(request: ListFromClusterRequest): Promise<Object[]> {
+    request.context = populateCurrentContext(request.context);
+
     const res = await ClusterResourceService.List(request, prefix);
     if (res.messages == null) {
       throw new Error("empty body in the response");
@@ -33,6 +55,8 @@ export class ResourceService {
   }
   
   static async GetConfig(request: ConfigRequest): Promise<string> {
+    request.context = populateCurrentContext(request.context);
+
     const res = await ClusterResourceService.GetConfig(request, prefix);
 
     if(!res.data) {
@@ -40,5 +64,12 @@ export class ResourceService {
     }
 
     return res.data;
+  }
+}
+
+// define a wrapper for grpc clusters service.
+export class ContextService {
+  static List(): Promise<ListContextsResponse> {
+    return WrappedContextService.List({}, prefix);
   }
 }

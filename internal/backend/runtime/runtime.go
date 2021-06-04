@@ -35,7 +35,7 @@ type Runtime interface {
 	Get(context.Context, ...QueryOption) (interface{}, error)
 	List(context.Context, ...QueryOption) (interface{}, error)
 	AddContext(string, []byte) error
-	GetContext(context.Context, *common.Cluster) ([]byte, error)
+	GetContext(context.Context, *common.Context, *common.Cluster) ([]byte, error)
 }
 
 var (

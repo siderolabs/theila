@@ -37,6 +37,9 @@ spec:
     - source: api/rpc/resource.proto
       subdirectory: rpc
       genGateway: true
+    - source: api/rpc/context.proto
+      subdirectory: rpc
+      genGateway: true
     - source: https://raw.githubusercontent.com/googleapis/googleapis/master/google/rpc/status.proto
       subdirectory: google/rpc/
       genGateway: true
@@ -58,6 +61,10 @@ spec:
       subdirectory: api
       destinationRoot: src
     - source: api/rpc/resource.proto
+      subdirectory: api
+      destinationRoot: src
+      genGateway: true
+    - source: api/rpc/context.proto
       subdirectory: api
       destinationRoot: src
       genGateway: true

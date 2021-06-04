@@ -2,7 +2,7 @@
 
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-05-21T14:46:38Z by kres c09e0bc-dirty.
+# Generated on 2021-06-02T21:37:46Z by kres c09e0bc-dirty.
 
 ARG JS_TOOLCHAIN
 ARG TOOLCHAIN
@@ -33,6 +33,7 @@ FROM scratch AS proto-specs
 ADD api/socket/message.proto /api/socket/message/
 ADD api/common/theila.proto /api/common/
 ADD api/rpc/resource.proto /api/rpc/
+ADD api/rpc/context.proto /api/rpc/
 ADD https://raw.githubusercontent.com/googleapis/googleapis/master/google/rpc/status.proto /api/google/rpc/
 ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/common/common.proto /api/common/
 ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/resource/resource.proto /api/talos/resource/
@@ -42,6 +43,7 @@ FROM scratch AS proto-specs-frontend
 ADD api/common/theila.proto /frontend/src/common/
 ADD api/socket/message.proto /frontend/src/api/
 ADD api/rpc/resource.proto /frontend/src/api/
+ADD api/rpc/context.proto /frontend/src/api/
 ADD https://raw.githubusercontent.com/googleapis/googleapis/master/google/rpc/status.proto /frontend/src/google/rpc/
 ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/resource/resource.proto /frontend/src/talos/resource/
 ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/common/common.proto /frontend/src/common/
@@ -109,12 +111,14 @@ COPY --from=proto-specs-frontend / /
 RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false /frontend/src/common/theila.proto
 RUN protoc -I/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false /frontend/src/api/message.proto
 RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false /frontend/src/api/resource.proto
+RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false /frontend/src/api/context.proto
 RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false /frontend/src/google/rpc/status.proto
 RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false /frontend/src/talos/resource/resource.proto
 RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false /frontend/src/common/common.proto
 RUN rm /frontend/src/common/theila.proto
 RUN rm /frontend/src/api/message.proto
 RUN rm /frontend/src/api/resource.proto
+RUN rm /frontend/src/api/context.proto
 
 # runs js unit-tests
 FROM js AS unit-tests-frontend
@@ -126,12 +130,14 @@ COPY --from=proto-specs / /
 RUN protoc -I/api --go_out=paths=source_relative:/api --go-grpc_out=paths=source_relative:/api /api/socket/message/message.proto
 RUN protoc -I/api --go_out=paths=source_relative:/api --go-grpc_out=paths=source_relative:/api /api/common/theila.proto
 RUN protoc -I/api --grpc-gateway_out=paths=source_relative:/api --grpc-gateway_opt=generate_unbound_methods=true --go_out=paths=source_relative:/api --go-grpc_out=paths=source_relative:/api /api/rpc/resource.proto
+RUN protoc -I/api --grpc-gateway_out=paths=source_relative:/api --grpc-gateway_opt=generate_unbound_methods=true --go_out=paths=source_relative:/api --go-grpc_out=paths=source_relative:/api /api/rpc/context.proto
 RUN protoc -I/api --grpc-gateway_out=paths=source_relative:/api --grpc-gateway_opt=generate_unbound_methods=true --grpc-gateway_opt=standalone=true /api/google/rpc/status.proto
 RUN protoc -I/api --grpc-gateway_out=paths=source_relative:/api --grpc-gateway_opt=generate_unbound_methods=true --grpc-gateway_opt=standalone=true /api/common/common.proto
 RUN protoc -I/api --grpc-gateway_out=paths=source_relative:/api --grpc-gateway_opt=generate_unbound_methods=true --grpc-gateway_opt=standalone=true /api/talos/resource/resource.proto
 RUN rm /api/socket/message/message.proto
 RUN rm /api/common/theila.proto
 RUN rm /api/rpc/resource.proto
+RUN rm /api/rpc/context.proto
 
 # tools and sources
 FROM tools AS base
@@ -186,7 +192,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/g
 FROM base AS theila-darwin-arm64-build
 COPY --from=generate / /
 WORKDIR /src/cmd/theila
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOARCH=arm64 GOOS=darwin go build -ldflags "-s -w" -o /theila-darwin-arm64
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w" -o /theila-darwin-arm64
 
 # builds theila-linux-amd64
 FROM base AS theila-linux-amd64-build
@@ -204,7 +210,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/g
 FROM base AS theila-linux-armv7-build
 COPY --from=generate / /
 WORKDIR /src/cmd/theila
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOOS=linux GOARCH=arm GOARM=7 go build -ldflags "-s -w" -o /theila-linux-armv7
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOARCH=arm GOARM=7 GOOS=linux go build -ldflags "-s -w" -o /theila-linux-armv7
 
 # builds theila-windows-amd64.exe
 FROM base AS theila-windows-amd64.exe-build

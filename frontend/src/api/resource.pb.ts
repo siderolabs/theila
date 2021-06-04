@@ -27,6 +27,7 @@ export type ListFromClusterResponse = {
 }
 
 export type ConfigRequest = {
+  context?: CommonTheila.Context
   cluster?: CommonTheila.Cluster
   source?: CommonTheila.Source
 }
