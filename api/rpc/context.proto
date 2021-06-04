@@ -1,0 +1,23 @@
+syntax = "proto3";
+package cluster;
+
+option go_package = "github.com/talos-systems/theila/api/rpc";
+
+message Context {
+  // Name is the name of the Context.
+  string name = 1;
+}
+
+message ListContextsRequest {}
+
+message ListContextsResponse {
+  // Current is the default context.
+  string current = 1;
+  // Contexts is the list of available local contexts.
+  repeated Context contexts = 2;
+}
+
+// ContextService implements methods for querying locally discovered cluster information.
+service ContextService {
+  rpc List(ListContextsRequest) returns (ListContextsResponse);
+}

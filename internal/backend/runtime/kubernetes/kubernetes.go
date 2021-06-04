@@ -81,7 +81,7 @@ func (r *Runtime) Watch(ctx context.Context, request *message.WatchSpec, events 
 	ctx, cancel := context.WithCancel(ctx)
 
 	if request.Context != nil && request.Context.Cluster != nil {
-		cfg, err = r.getKubeconfig(ctx, request.Context.Cluster)
+		cfg, err = r.getKubeconfig(ctx, request.Context)
 		if err != nil {
 			cancel()
 
@@ -197,7 +197,7 @@ func (r *Runtime) AddContext(id string, data []byte) error {
 }
 
 // GetContext implements runtime.Runtime.
-func (r *Runtime) GetContext(ctx context.Context, cluster *common.Cluster) ([]byte, error) {
+func (r *Runtime) GetContext(ctx context.Context, context *common.Context, cluster *common.Cluster) ([]byte, error) {
 	var err error
 
 	opts := []runtime.QueryOption{
@@ -205,6 +205,10 @@ func (r *Runtime) GetContext(ctx context.Context, cluster *common.Cluster) ([]by
 			fmt.Sprintf("%s-kubeconfig", cluster.Name),
 		),
 		runtime.WithType(v1.Secret{}),
+	}
+
+	if context != nil {
+		opts = append(opts, runtime.WithContext(context.Name))
 	}
 
 	if cluster.Namespace != "" {
@@ -232,7 +236,13 @@ func (r *Runtime) GetContext(ctx context.Context, cluster *common.Cluster) ([]by
 	return raw, nil
 }
 
-func (r *Runtime) getKubeconfig(ctx context.Context, cluster *common.Cluster) (*rest.Config, error) {
+func (r *Runtime) getKubeconfig(ctx context.Context, context *common.Context) (*rest.Config, error) {
+	if context == nil || context.Cluster == nil {
+		return nil, fmt.Errorf("kubeconfig cluster must specified")
+	}
+
+	cluster := context.Cluster
+
 	id := cluster.Uid
 
 	res := func() *rest.Config {
@@ -246,7 +256,7 @@ func (r *Runtime) getKubeconfig(ctx context.Context, cluster *common.Cluster) (*
 		return res, nil
 	}
 
-	raw, err := r.GetContext(ctx, cluster)
+	raw, err := r.GetContext(ctx, context, cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +276,10 @@ func (r *Runtime) getOrCreateClient(ctx context.Context, opts *runtime.QueryOpti
 	if err != nil {
 		// initialize the client if it's not initialized and we have Cluster information
 		if opts.Cluster != nil {
-			_, err = r.getKubeconfig(ctx, opts.Cluster)
+			_, err = r.getKubeconfig(ctx, &common.Context{
+				Name:    opts.Context,
+				Cluster: opts.Cluster,
+			})
 			if err != nil {
 				return nil, err
 			}

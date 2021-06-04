@@ -47,7 +47,7 @@ func (t *testRuntime) AddContext(id string, data []byte) error {
 	return nil
 }
 
-func (t *testRuntime) GetContext(ctx context.Context, cluster *common.Cluster) ([]byte, error) {
+func (t *testRuntime) GetContext(ctx context.Context, context *common.Context, cluster *common.Cluster) ([]byte, error) {
 	return nil, nil
 }
 

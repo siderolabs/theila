@@ -104,6 +104,7 @@ export interface WatchRequest {
   namespace: string;
   type: string;
   id: string;
+  tailEvents: number;
 }
 
 export interface WatchResponse {
@@ -840,7 +841,12 @@ export const ListResponse = {
   },
 };
 
-const baseWatchRequest: object = { namespace: "", type: "", id: "" };
+const baseWatchRequest: object = {
+  namespace: "",
+  type: "",
+  id: "",
+  tailEvents: 0,
+};
 
 export const WatchRequest = {
   encode(message: WatchRequest, writer: Writer = Writer.create()): Writer {
@@ -852,6 +858,9 @@ export const WatchRequest = {
     }
     if (message.id !== "") {
       writer.uint32(26).string(message.id);
+    }
+    if (message.tailEvents !== 0) {
+      writer.uint32(32).uint32(message.tailEvents);
     }
     return writer;
   },
@@ -871,6 +880,9 @@ export const WatchRequest = {
           break;
         case 3:
           message.id = reader.string();
+          break;
+        case 4:
+          message.tailEvents = reader.uint32();
           break;
         default:
           reader.skipType(tag & 7);
@@ -897,6 +909,11 @@ export const WatchRequest = {
     } else {
       message.id = "";
     }
+    if (object.tailEvents !== undefined && object.tailEvents !== null) {
+      message.tailEvents = Number(object.tailEvents);
+    } else {
+      message.tailEvents = 0;
+    }
     return message;
   },
 
@@ -905,6 +922,7 @@ export const WatchRequest = {
     message.namespace !== undefined && (obj.namespace = message.namespace);
     message.type !== undefined && (obj.type = message.type);
     message.id !== undefined && (obj.id = message.id);
+    message.tailEvents !== undefined && (obj.tailEvents = message.tailEvents);
     return obj;
   },
 
@@ -924,6 +942,11 @@ export const WatchRequest = {
       message.id = object.id;
     } else {
       message.id = "";
+    }
+    if (object.tailEvents !== undefined && object.tailEvents !== null) {
+      message.tailEvents = object.tailEvents;
+    } else {
+      message.tailEvents = 0;
     }
     return message;
   },

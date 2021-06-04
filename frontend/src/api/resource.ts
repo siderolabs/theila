@@ -41,6 +41,8 @@ export interface ListFromClusterResponse {
 }
 
 export interface ConfigRequest {
+  /** Context to get the configuration from. */
+  context: Context | undefined;
   /** Cluster to get the configuration for. */
   cluster: Cluster | undefined;
   /** Data source to use to get the resource. */
@@ -413,11 +415,14 @@ const baseConfigRequest: object = { source: 0 };
 
 export const ConfigRequest = {
   encode(message: ConfigRequest, writer: Writer = Writer.create()): Writer {
+    if (message.context !== undefined) {
+      Context.encode(message.context, writer.uint32(10).fork()).ldelim();
+    }
     if (message.cluster !== undefined) {
-      Cluster.encode(message.cluster, writer.uint32(10).fork()).ldelim();
+      Cluster.encode(message.cluster, writer.uint32(18).fork()).ldelim();
     }
     if (message.source !== 0) {
-      writer.uint32(16).int32(message.source);
+      writer.uint32(24).int32(message.source);
     }
     return writer;
   },
@@ -430,9 +435,12 @@ export const ConfigRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.cluster = Cluster.decode(reader, reader.uint32());
+          message.context = Context.decode(reader, reader.uint32());
           break;
         case 2:
+          message.cluster = Cluster.decode(reader, reader.uint32());
+          break;
+        case 3:
           message.source = reader.int32() as any;
           break;
         default:
@@ -445,6 +453,11 @@ export const ConfigRequest = {
 
   fromJSON(object: any): ConfigRequest {
     const message = { ...baseConfigRequest } as ConfigRequest;
+    if (object.context !== undefined && object.context !== null) {
+      message.context = Context.fromJSON(object.context);
+    } else {
+      message.context = undefined;
+    }
     if (object.cluster !== undefined && object.cluster !== null) {
       message.cluster = Cluster.fromJSON(object.cluster);
     } else {
@@ -460,6 +473,10 @@ export const ConfigRequest = {
 
   toJSON(message: ConfigRequest): unknown {
     const obj: any = {};
+    message.context !== undefined &&
+      (obj.context = message.context
+        ? Context.toJSON(message.context)
+        : undefined);
     message.cluster !== undefined &&
       (obj.cluster = message.cluster
         ? Cluster.toJSON(message.cluster)
@@ -470,6 +487,11 @@ export const ConfigRequest = {
 
   fromPartial(object: DeepPartial<ConfigRequest>): ConfigRequest {
     const message = { ...baseConfigRequest } as ConfigRequest;
+    if (object.context !== undefined && object.context !== null) {
+      message.context = Context.fromPartial(object.context);
+    } else {
+      message.context = undefined;
+    }
     if (object.cluster !== undefined && object.cluster !== null) {
       message.cluster = Cluster.fromPartial(object.cluster);
     } else {

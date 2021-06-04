@@ -61,6 +61,7 @@ export type WatchRequest = {
   namespace?: string
   type?: string
   id?: string
+  tailEvents?: number
 }
 
 export type WatchResponse = {

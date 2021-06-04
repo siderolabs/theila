@@ -22,7 +22,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         leave-to-class="transform scale-95 opacity-0"
         >
         <menu-items class="absolute right-0 w-56 mt-2 origin-top-right bg-white border border-transparent rounded-md shadow-lg dark:bg-talos-gray-800 dark:border-talos-gray-600 dark:border-opacity-50 ring-1 ring-black ring-opacity-5 focus:outline-none" style="z-index: 100">
-          <div class="px-1 py-1">
+          <div class="px-1 py-1 dropdown-items">
             <slot></slot>
           </div>
         </menu-items>
@@ -55,3 +55,13 @@ export default {
   }
 };
 </script>
+
+<style>
+.dropdown-items a {
+  @apply block px-4 py-2 text-sm text-talos-gray-700 dark:text-talos-gray-50;
+}
+
+.dropdown-items a.active {
+  @apply bg-talos-gray-100 dark:bg-talos-gray-900 text-talos-gray-700 dark:text-talos-gray-50;
+}
+</style>

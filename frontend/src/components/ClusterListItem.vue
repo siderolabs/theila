@@ -39,7 +39,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 v-if="nodesCount >= 0"
                 class="text-sm text-talos-gray-900 dark:text-talos-gray-100"
                 >
-                {{ nodesCount }} Nodes
+                {{ nodesCount }} {{ pluralize('Node', nodesCount) }}
               </p>
               <p v-else>
                 <t-spinner/>
@@ -65,24 +65,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             <menu-item v-slot="{ active }">
               <a
                 v-on:click="downloadKubeconfig"
-                :class="[
-                        active
-                        ? 'bg-talos-gray-100 dark:bg-talos-gray-900 text-talos-gray-700 dark:text-talos-gray-50'
-                        : 'text-talos-gray-700 dark:text-talos-gray-50',
-                        'block px-4 py-2 text-sm'
-                        ]"
+                :class="{ active }"
                 >Download Kubeconfig</a
               >
             </menu-item>
             <menu-item v-slot="{ active }">
               <a
                 v-on:click="downloadTalosConfig"
-                :class="[
-                        active
-                        ? 'bg-talos-gray-100 dark:bg-talos-gray-900 text-talos-gray-700 dark:text-talos-gray-50'
-                        : 'text-talos-gray-700 dark:text-talos-gray-50',
-                        'block px-4 py-2 text-sm'
-                        ]"
+                :class="{ active }"
                 >Download Talos Config</a
               >
             </menu-item>
@@ -106,6 +96,7 @@ import {
 import { DateTime } from 'luxon';
 import TDropdown from '../components/TDropdown.vue';
 import { MenuItem } from '@headlessui/vue';
+import pluralize from 'pluralize';
 
 @Options({
   components: {
@@ -193,6 +184,10 @@ import { MenuItem } from '@headlessui/vue';
 
       return DateTime.fromISO(condition["lastTransitionTime"]).toRelative();
     },
+
+    pluralize(name, count) {
+      return pluralize(name, count);
+    }
   }
 })
 export default class ClusterListItem extends Vue{}

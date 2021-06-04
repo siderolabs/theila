@@ -66,6 +66,8 @@ export default {
     const ctx = toRef(props, "context");
     const compare = toRef(props, "compareFn");
 
+    const contextName = ctx.value ? ctx.value.name : null;
+
     const resourceWatch = new Watch(
       context.api,
     );
@@ -84,17 +86,27 @@ export default {
       } else if(talos.value) {
         source = Source.Talos;
       } else {
-        throw new Error("unknown source specified")
+        throw new Error("unknown source specified");
       }
 
       const compareFn = compare.value ? compare.value : defaultCompareFunc(resourceWatch);
+
+      // override the context name by the current default one unless it's explicitly defined
+      if(context.current.value) {
+        if(!ctx.value) {
+          ctx.value = {};
+        }
+
+        if(!contextName)
+          ctx.value.name = context.current.value;
+      }
 
       resourceWatch.start(
         source,
         resource.value,
         ctx.value,
         compareFn,
-      )
+      );
     };
 
     const stopWatch = async () => {
@@ -125,8 +137,9 @@ export default {
       kubernetes,
       talos,
       compare,
+      context.current,
     ], (val, oldVal) => {
-      if(val.value != oldVal.value) {
+      if(JSON.stringify(val) != JSON.stringify(oldVal)) {
         startWatch();
       }
     });

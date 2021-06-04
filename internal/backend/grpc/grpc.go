@@ -49,6 +49,7 @@ func New(ctx context.Context, mux *http.ServeMux) (*Server, error) {
 		cancel:  cancel,
 		stopped: make(chan struct{}),
 		servers: []grpcServer{
+			&contextService{},
 			&clusterResourceServer{},
 		},
 	}
