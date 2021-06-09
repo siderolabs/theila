@@ -15,34 +15,52 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         <cube-icon class="w-6 h-6"/>
       </template>
     </shell-menu-item>
-    <template v-if="capi">
-      <div class="text-talos-gray-500 dark:text-talos-gray-100 text-sm px-4 text-bold my-2">CAPI</div>
-      <shell-menu-item :link="{name: 'Clusters'}" name="Clusters">
-        <template v-slot:icon>
-          <view-grid-icon class="w-6 h-6"/>
-        </template>
-      </shell-menu-item>
-    </template>
-    <template v-if="sidero">
-      <div class="text-talos-gray-500 dark:text-talos-gray-100 text-sm px-4 text-bold my-2">SIDERO</div>
-      <shell-menu-item :link="{name: 'Servers'}" name="Servers">
-        <template v-slot:icon>
-          <chip-icon class="w-6 h-6"/>
-        </template>
-      </shell-menu-item>
-    </template>
-    <div class="text-talos-gray-500 dark:text-talos-gray-100 text-sm px-4 text-bold my-2">ACCOUNT</div>
-    <shell-menu-item @click="openSettings" name="Settings">
-      <template v-slot:icon>
-        <cog-icon class="w-6 h-6"/>
-      </template>
-    </shell-menu-item>
+    <disclosure as="template" defaultOpen v-if="capi" v-slot="{ open }">
+      <disclosure-button as="div" class="disclosure-button">
+        CAPI
+        <chevron-up-icon :class="{ chevron: true, open: open }"/>
+      </disclosure-button>
+      <disclosure-panel as="template" class="overflow-hidden">
+        <shell-menu-item :link="{name: 'Clusters'}" name="Clusters">
+          <template v-slot:icon>
+            <view-grid-icon class="w-6 h-6"/>
+          </template>
+        </shell-menu-item>
+      </disclosure-panel>
+    </disclosure>
+    <disclosure as="template" defaultOpen v-if="sidero" v-slot="{ open }">
+      <disclosure-button as="div" class="disclosure-button">
+        SIDERO
+        <chevron-up-icon :class="{ chevron: true, open: open }"/>
+      </disclosure-button>
+      <disclosure-panel as="template">
+        <shell-menu-item :link="{name: 'Servers'}" name="Servers">
+          <template v-slot:icon>
+            <chip-icon class="w-6 h-6"/>
+          </template>
+        </shell-menu-item>
+      </disclosure-panel>
+    </disclosure>
+    <disclosure as="template" defaultOpen v-slot="{ open }">
+      <disclosure-button as="div" class="disclosure-button">
+        ACCOUNT
+        <chevron-up-icon :class="{ chevron: true, open: open }"/>
+      </disclosure-button>
+      <disclosure-panel as="template">
+        <shell-menu-item @click="openSettings" name="Settings">
+          <template v-slot:icon>
+            <cog-icon class="w-6 h-6"/>
+          </template>
+        </shell-menu-item>
+      </disclosure-panel>
+    </disclosure>
   </div>
 </template>
 
 <script lang="ts">
 import { context } from '../context';
 import ShellMenuItem from '../components/ShellMenuItem.vue';
+import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 import {
   ViewGridIcon,
   CubeIcon,
@@ -50,6 +68,9 @@ import {
   CogIcon,
   ChipIcon,
 } from '@heroicons/vue/outline';
+import {
+  ChevronUpIcon,
+} from '@heroicons/vue/solid';
 import { useRouter } from 'vue-router';
 
 export default {
@@ -60,6 +81,10 @@ export default {
     CogIcon,
     CubeIcon,
     ChipIcon,
+    Disclosure,
+    DisclosureButton,
+    DisclosurePanel,
+    ChevronUpIcon,
   },
 
   setup() {
@@ -77,3 +102,21 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.disclosure-button {
+  @apply text-talos-gray-500 px-4 my-2 text-sm font-medium flex justify-between w-full;
+}
+
+.disclosure-button:hover {
+  @apply text-talos-gray-400;
+}
+
+.chevron {
+  @apply w-5 h-5;
+}
+
+.open {
+  @apply transform rotate-180;
+}
+</style>

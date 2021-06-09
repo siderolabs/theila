@@ -7,9 +7,13 @@ import { ref, watch } from "vue";
 const systemTheme = ref(window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light");
 const theme = ref(localStorage.theme || "system");
 
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-  systemTheme.value = e.matches ? "dark" : "light";
-});
+const match = window.matchMedia('(prefers-color-scheme: dark)');
+
+if (match.addEventListener) {
+  match.addEventListener('change', e => {
+    systemTheme.value = e.matches ? "dark" : "light";
+  });
+}
 
 watch(
   theme,
