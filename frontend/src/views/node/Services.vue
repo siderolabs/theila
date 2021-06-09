@@ -6,7 +6,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 <template>
   <div class="flex flex-col">
     <div class="px-3 py-2 mb-2">
-      <t-breadcrumbs active="{node} Services"/>
+      <t-breadcrumbs>{{ $route.params.node }} Services</t-breadcrumbs>
     </div>
     <watch
         class="flex-1"
@@ -14,7 +14,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         showCount
         itemName="Service"
         talos
-        :context="{cluster: {name: $route.params.cluster, namespace: $route.params.namespace, uid: $route.params.uid, nodes: [$route.params.node]}}">
+        :context="getContext()">
       <template v-slot:header>
         <div class="flex items-center md:grid md:grid-cols-8">
           <div class="col-span-6 block">
@@ -64,7 +64,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 </template>
 
 <script type="ts">
-import { Options, Vue } from 'vue-class-component';
 import Watch from '../../components/Watch.vue';
 import TBreadcrumbs from '../../components/TBreadcrumbs.vue';
 import {
@@ -72,8 +71,10 @@ import {
   XCircleIcon,
   ExclamationCircleIcon
 } from '@heroicons/vue/outline';
+import { getContext } from '../../router';
+import { useRoute } from 'vue-router';
 
-@Options({
+export default {
   components: {
     TBreadcrumbs,
     Watch,
@@ -81,8 +82,23 @@ import {
     XCircleIcon,
     ExclamationCircleIcon,
   },
-})
-export default class Services extends Vue{}
+
+  setup() {
+    const route = useRoute();
+
+    return {
+      getContext() {
+        const ctx = getContext() || {};
+
+        ctx.nodes = [
+          route.params.node
+        ];
+
+        return ctx;
+      },
+    }
+  }
+}
 </script>
 
 <style scoped>

@@ -12,6 +12,8 @@ import SidebarRoot from "../views/SidebarRoot.vue";
 import SidebarCluster from "../views/SidebarCluster.vue";
 import SidebarNode from "../views/SidebarNode.vue";
 import Settings from "../views/Settings.vue";
+import { useRoute } from 'vue-router';
+import { context } from '../context';
 
 const withPrefix = (prefix, routes) => 
     routes.map( (route) => {
@@ -19,13 +21,77 @@ const withPrefix = (prefix, routes) =>
         return route;
     });
 
+
+export function getBreadcrumbs(route) {
+  const crumbs:Object[] = [];
+
+  if(route.query.cluster && route.query.uid && route.query.namespace) {
+    crumbs.push(
+      {
+        text: "Clusters",
+        to: "/clusters",
+      }
+    );
+  }
+
+  if(route.params.node) {
+    crumbs.push(
+      { text: `${route.query.cluster || context.current.value.cluster || "Current Cluster"} Nodes`, to: {name: "Nodes", query: route.query } },
+    );
+  }
+
+  return crumbs;
+}
+
+export function getSidebar(route) {
+  if(route.params.node) {
+    return SidebarNode;
+  }
+
+  if(route.query.cluster && route.query.uid && route.query.namespace) {
+    return SidebarCluster;
+  }
+
+
+  return SidebarRoot;
+}
+
+export function getContext() {
+  const route = useRoute();
+
+  if(route.query.namespace && route.query.cluster && route.query.uid) {
+    return {
+      cluster: {
+        name: route.query.cluster,
+        namespace: route.query.namespace || "default",
+        uid: route.query.uid
+      }
+    };
+  }
+
+  return null;
+}
+
 const routes = [
   {
     path: "/",
+    name: "Nodes",
+    components: {
+      default: Nodes,
+    },
+  },
+  {
+    path: "/pods",
+    name: "Pods",
+    components: {
+      default: Pods,
+    },
+  },
+  {
+    path: "/clusters",
     name: "Clusters",
     components: {
       default: Clusters,
-      sidebar: SidebarRoot,
     },
   },
   {
@@ -33,51 +99,15 @@ const routes = [
     name: "Servers",
     components: {
       default: Servers,
-      sidebar: SidebarRoot,
     },
   },
-  ...withPrefix("/:namespace/:cluster/:uid", [
-    {
-      path: "/nodes",
-      name: "Nodes",
-      components: {
-        default: Nodes,
-        sidebar: SidebarCluster,
-      },
-      meta: {
-        breadcrumbs: [
-          { text: "Clusters", to: "/" },
-        ]
-      }
-    },
-    {
-      path: "/pods",
-      name: "Pods",
-      components: {
-        default: Pods,
-        sidebar: SidebarCluster,
-      },
-      meta: {
-        breadcrumbs: [
-          { text: "Clusters", to: "/" },
-        ]
-      }
-    }
-  ]),
-  ...withPrefix("/:namespace/:cluster/:uid/node/:node", [
+  ...withPrefix("/node/:node", [
     {
       path: "/services",
       name: "Services",
       components: {
         default: Services,
-        sidebar: SidebarNode,
       },
-      meta: {
-        breadcrumbs: [
-          { text: "Clusters", to: "/" },
-          { text: "{cluster} Nodes", to: "/{namespace}/{cluster}/{uid}/nodes" },
-        ]
-      }
     }
   ]),
 ];

@@ -38,13 +38,7 @@ func (s *contextService) List(ctx context.Context, in *rpc.ListContextsRequest) 
 
 	response := &rpc.ListContextsResponse{
 		Current:  current,
-		Contexts: make([]*rpc.Context, len(contexts)),
-	}
-
-	for i, name := range contexts {
-		response.Contexts[i] = &rpc.Context{
-			Name: name,
-		}
+		Contexts: contexts,
 	}
 
 	return response, nil

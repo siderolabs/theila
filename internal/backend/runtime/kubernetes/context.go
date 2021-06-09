@@ -11,6 +11,8 @@ import (
 
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+
+	"github.com/talos-systems/theila/api/rpc"
 )
 
 // CurrentContext returns current local context.
@@ -24,19 +26,24 @@ func CurrentContext() (string, error) {
 }
 
 // GetContexts returns all locally defined context names.
-func GetContexts() ([]string, error) {
+func GetContexts() ([]*rpc.Context, error) {
 	config, err := loadConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	contexts := make([]string, 0, len(config.Contexts))
+	contexts := make([]*rpc.Context, 0, len(config.Contexts))
 
-	for name := range config.Contexts {
-		contexts = append(contexts, name)
+	for name, c := range config.Contexts {
+		contexts = append(contexts, &rpc.Context{
+			Name:    name,
+			Cluster: c.Cluster,
+		})
 	}
 
-	sort.Strings(contexts)
+	sort.Slice(contexts, func(i, j int) bool {
+		return contexts[i].Name < contexts[j].Name
+	})
 
 	return contexts, nil
 }

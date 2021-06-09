@@ -39,6 +39,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	honnef.co/go/tools v0.1.2 // indirect
 	k8s.io/api v0.20.5
+	k8s.io/apiextensions-apiserver v0.19.1 // indirect
 	k8s.io/apimachinery v0.20.5
 	k8s.io/client-go v0.20.5
 	sigs.k8s.io/cluster-api v0.3.12

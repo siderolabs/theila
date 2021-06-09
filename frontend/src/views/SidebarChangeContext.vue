@@ -15,7 +15,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     </shell-menu-item>
     <t-input v-model="filter" placeholder="Search" style="margin-left: 3px; margin-right: 3px"/>
     <div class="overflow-y-auto flex-1 gap-2 flex-col flex m-2">
-      <shell-menu-item :name="context.name" v-for="context in shownContexts" :active="active == context.name" :key="context.name" @click="() => changed(context.name)"/>
+      <shell-menu-item :name="context.name" v-for="context in shownContexts" :active="active == context.name" :key="context.name" @click="() => changed(context)"/>
     </div>
   </div>
 </template>
@@ -53,7 +53,7 @@ export default {
     const shownContexts = ref(contexts.value);
     const filter = ref("");
 
-    watch(filter, () => {
+    watch([filter, contexts], () => {
       if(filter.value != "") {
         shownContexts.value = contexts.value.filter(item => item.name.includes(filter.value));
       } else {

@@ -6,6 +6,8 @@ option go_package = "github.com/talos-systems/theila/api/rpc";
 message Context {
   // Name is the name of the Context.
   string name = 1;
+  // Cluster is the name of the cluster.
+  string cluster = 2;
 }
 
 message ListContextsRequest {}

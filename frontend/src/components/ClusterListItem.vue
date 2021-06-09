@@ -5,7 +5,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <template>
   <router-link
-    :to="{name: 'Nodes', params: { cluster: item.metadata.name, namespace: item.metadata.namespace, uid: item.metadata.uid }}"
+    :to="{name: 'Nodes', query: { cluster: item.metadata.name, namespace: item.metadata.namespace, uid: item.metadata.uid }}"
     class="block hover:bg-talos-gray-50 dark:hover:bg-talos-gray-800 overflow-visible"
     >
     <div class="flex items-center px-4 py-4 sm:px-6">

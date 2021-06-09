@@ -8,12 +8,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <t-modal/>
     <shell v-if="connected" class="h-screen">
       <template v-slot:menu>
-        <sidebar-change-context v-if="selectContext" :contexts="contexts" :active="explicitContext || currentContext" :changed="switchContext" :cancel="() => selectContext = false" class="overflow-y-hidden h-screen"/>
-        <router-view v-else name="sidebar" />
+        <sidebar-change-context v-if="selectContext" :contexts="contexts" :active="explicitContext ? explicitContext['name'] : currentContext" :changed="switchContext" :cancel="() => selectContext = false" class="overflow-y-hidden h-screen"/>
+        <sidebar v-else/>
         <t-button @click="toggleContextChange" :disabled="!contexts">
           <t-spinner v-if="!currentContext && !explicitContext"/>
           <template>
-            {{ explicitContext || currentContext }}
+            {{ explicitContext ? explicitContext['name'] : currentContext }}
           </template>
         </t-button>
       </template>
@@ -28,10 +28,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import { ref, onMounted, watch } from 'vue';
 import Shell from './components/Shell.vue';
 import SidebarChangeContext from './views/SidebarChangeContext.vue';
+import Sidebar from './views/Sidebar.vue';
 import TModal from './components/TModal.vue';
 import TButton from './components/TButton.vue';
 import TSpinner from './components/TSpinner.vue';
-import { context, changeContext } from './context';
+import { context, changeContext, detectCapabilities } from './context';
 import { theme, systemTheme } from './theme';
 import { ContextService } from './api/grpc';
 import { Context } from './api/context.pb';
@@ -40,6 +41,7 @@ export default {
   components: {
     Shell,
     SidebarChangeContext,
+    Sidebar,
     TModal,
     TButton,
     TSpinner,
@@ -80,6 +82,8 @@ export default {
 
       if(response.current)
         currentContext.value = response.current;
+
+      await detectCapabilities();
     });
 
     updateTheme(theme.value);
@@ -88,6 +92,14 @@ export default {
       theme,
       (val) => {
         updateTheme(val);
+      }
+    );
+
+    watch(
+      context.current,
+      (val, old) => {
+        if(val != old)
+          detectCapabilities();
       }
     );
 
@@ -103,8 +115,8 @@ export default {
       selectContext.value = !selectContext.value;
     };
 
-    const switchContext = (name) => {
-      changeContext(name);
+    const switchContext = (c) => {
+      changeContext(c);
 
       selectContext.value = false;
     };

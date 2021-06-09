@@ -5,8 +5,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <template>
   <div class="flex flex-col">
-    <div class="px-3 py-2 mb-2">
-      <t-breadcrumbs :active="$route.params.cluster + ' Nodes'"/>
+    <div class="px-3 py-2 mb-2" v-if="$route.query.cluster">
+      <t-breadcrumbs>{{ $route.query.cluster }} Nodes</t-breadcrumbs>
+    </div>
+    <div class="px-3 py-2" v-else>
+      <h1 class="text-lg tracking-tight text-talos-gray-900 dark:text-white font-bold">Nodes</h1>
     </div>
     <watch
         class="flex-1"
@@ -14,7 +17,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         showCount
         itemName="Node"
         kubernetes
-        :context="{cluster: {name: $route.params.cluster, namespace: $route.params.namespace, uid: $route.params.uid}}">
+        :context="getContext()">
       <template v-slot:header>
         <div class="flex items-center md:grid md:grid-cols-5">
           <div class="col-span-2 block">
@@ -30,7 +33,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       </template>
       <template v-slot:default="slot">
         <router-link
-          :to="{name: 'Services', params: { cluster: $route.params.cluster, namespace: $route.params.namespace, uid: $route.params.uid, node: getIP(slot.item) }}"
+          :to="{name: 'Services', params: { node: getIP(slot.item) }, query: getQuery() }"
           class="block hover:bg-talos-gray-50 dark:hover:bg-talos-gray-800"
           >
           <div class="flex items-center px-4 py-4 sm:px-6 min-w-0 md:grid md:grid-cols-5 md:gap-4">
@@ -63,18 +66,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 </template>
 
 <script type="ts">
-import { Options, Vue } from 'vue-class-component';
+import { useRoute } from 'vue-router';
+import { getContext } from '../../router';
 import Watch from '../../components/Watch.vue';
 import TBreadcrumbs from '../../components/TBreadcrumbs.vue';
 
-@Options({
+export default {
   components: {
     Watch,
     TBreadcrumbs,
   },
 
-  methods: {
-    getIP(item) {
+  setup() {
+    const route = useRoute();
+
+    const getIP = (item) => {
       const status = item.status;
       let addr = "unknown";
 
@@ -94,9 +100,9 @@ import TBreadcrumbs from '../../components/TBreadcrumbs.vue';
       }
 
       return addr;
-    },
+    };
 
-    getRoles(item) {
+    const getRoles = (item) => {
       const roles = [];
 
       for (const label in item.metadata.labels) {
@@ -106,8 +112,26 @@ import TBreadcrumbs from '../../components/TBreadcrumbs.vue';
       }
 
       return roles;
-    }
+    };
+
+    const getQuery = () => {
+      const query = {};
+
+      if(route.query.cluster && route.query.namespace && route.query.uid) {
+        query.cluster = route.query.cluster;
+        query.namespace = route.query.namespace || "default";
+        query.uid = route.query.uid;
+      }
+
+      return query;
+    };
+
+    return {
+      getIP,
+      getRoles,
+      getContext,
+      getQuery,
+    };
   },
-})
-export default class Nodes extends Vue{}
+};
 </script>

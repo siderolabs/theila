@@ -90,21 +90,22 @@ export default {
       }
 
       const compareFn = compare.value ? compare.value : defaultCompareFunc(resourceWatch);
+      const c = {};
+
+      if(ctx.value) {
+        Object.assign(c, ctx.value)
+      }
 
       // override the context name by the current default one unless it's explicitly defined
       if(context.current.value) {
-        if(!ctx.value) {
-          ctx.value = {};
-        }
-
         if(!contextName)
-          ctx.value.name = context.current.value;
+          c.name = source == Source.Kubernetes ? context.current.value.name : context.current.value.cluster;
       }
 
       resourceWatch.start(
         source,
         resource.value,
-        ctx.value,
+        c,
         compareFn,
       );
     };
