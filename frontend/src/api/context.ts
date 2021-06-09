@@ -7,6 +7,8 @@ export const protobufPackage = "cluster";
 export interface Context {
   /** Name is the name of the Context. */
   name: string;
+  /** Cluster is the name of the cluster. */
+  cluster: string;
 }
 
 export interface ListContextsRequest {}
@@ -18,12 +20,15 @@ export interface ListContextsResponse {
   contexts: Context[];
 }
 
-const baseContext: object = { name: "" };
+const baseContext: object = { name: "", cluster: "" };
 
 export const Context = {
   encode(message: Context, writer: Writer = Writer.create()): Writer {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
+    }
+    if (message.cluster !== "") {
+      writer.uint32(18).string(message.cluster);
     }
     return writer;
   },
@@ -37,6 +42,9 @@ export const Context = {
       switch (tag >>> 3) {
         case 1:
           message.name = reader.string();
+          break;
+        case 2:
+          message.cluster = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -53,12 +61,18 @@ export const Context = {
     } else {
       message.name = "";
     }
+    if (object.cluster !== undefined && object.cluster !== null) {
+      message.cluster = String(object.cluster);
+    } else {
+      message.cluster = "";
+    }
     return message;
   },
 
   toJSON(message: Context): unknown {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
+    message.cluster !== undefined && (obj.cluster = message.cluster);
     return obj;
   },
 
@@ -68,6 +82,11 @@ export const Context = {
       message.name = object.name;
     } else {
       message.name = "";
+    }
+    if (object.cluster !== undefined && object.cluster !== null) {
+      message.cluster = object.cluster;
+    } else {
+      message.cluster = "";
     }
     return message;
   },

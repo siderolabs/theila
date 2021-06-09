@@ -4,12 +4,12 @@
 
 import { ClusterResourceService, GetFromClusterRequest, ListFromClusterRequest, ConfigRequest} from './resource.pb';
 import { ContextService as WrappedContextService, ListContextsRequest, ListContextsResponse } from './context.pb';
-import { Context } from '../common/theila.pb';
+import { Source, Context } from '../common/theila.pb';
 import { context } from '../context';
 
 const prefix = {pathPrefix: "/api"};
 
-function populateCurrentContext(ctx?: Context) {
+function populateCurrentContext(source?: Source, ctx?: Context) {
   let res = ctx;
   if (context.current.value) {
     if (!res) {
@@ -17,7 +17,7 @@ function populateCurrentContext(ctx?: Context) {
     }
 
     if (res && !res.name) {
-      res.name = context.current.value;
+      res.name = source == Source.Talos ? context.current.value.cluster : context.current.value.name;
     }
   }
 
@@ -27,7 +27,7 @@ function populateCurrentContext(ctx?: Context) {
 // define a wrapper for grpc resource service.
 export class ResourceService {
   static async Get(request: GetFromClusterRequest): Promise<Object> {
-    request.context = populateCurrentContext(request.context);
+    request.context = populateCurrentContext(request.source, request.context);
 
     const res = await ClusterResourceService.Get(request, prefix);
     if (res.body == null) {
@@ -38,7 +38,7 @@ export class ResourceService {
   }
 
   static async List(request: ListFromClusterRequest): Promise<Object[]> {
-    request.context = populateCurrentContext(request.context);
+    request.context = populateCurrentContext(request.source, request.context);
 
     const res = await ClusterResourceService.List(request, prefix);
     if (res.messages == null) {
@@ -55,7 +55,7 @@ export class ResourceService {
   }
   
   static async GetConfig(request: ConfigRequest): Promise<string> {
-    request.context = populateCurrentContext(request.context);
+    request.context = populateCurrentContext(request.source, request.context);
 
     const res = await ClusterResourceService.GetConfig(request, prefix);
 

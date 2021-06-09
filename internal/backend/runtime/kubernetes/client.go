@@ -10,6 +10,7 @@ import (
 	sidero "github.com/talos-systems/sidero/app/cluster-api-provider-sidero/api/v1alpha3"
 	metal "github.com/talos-systems/sidero/app/metal-controller-manager/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
+	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -47,6 +48,10 @@ func getScheme() (*runtime.Scheme, error) {
 	}
 
 	if err := v1.AddToScheme(scheme); err != nil {
+		return nil, err
+	}
+
+	if err := apiextensions.AddToScheme(scheme); err != nil {
 		return nil, err
 	}
 

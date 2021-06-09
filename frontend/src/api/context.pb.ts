@@ -5,6 +5,7 @@
 import * as fm from "../fetch.pb"
 export type Context = {
   name?: string
+  cluster?: string
 }
 
 export type ListContextsRequest = {

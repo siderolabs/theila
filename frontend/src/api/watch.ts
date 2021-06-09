@@ -48,6 +48,10 @@ export default class Watch {
       let index = 0;
       let foundIndex = -1;
 
+      if(!message.metadata || message.metadata.uid != this.uid) {
+        return;
+      }
+
       switch(message.kind) {
         case Kind.EventItemAdd:
           foundIndex = this.findIndex(spec);

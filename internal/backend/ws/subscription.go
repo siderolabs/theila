@@ -72,7 +72,6 @@ func (s *Subscription) run() error {
 			select {
 			case <-s.ctx.Done():
 				s.logger.Debug("unsubscribed")
-				close(s.events)
 
 				return
 			case event := <-s.events:

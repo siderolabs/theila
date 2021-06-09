@@ -5,8 +5,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <template>
   <div class="flex flex-col">
-    <div class="px-3 py-2 mb-2">
-      <t-breadcrumbs :active="$route.params.cluster + ' Pods'"/>
+    <div class="px-3 py-2 mb-2" v-if="$route.query.cluster">
+      <t-breadcrumbs>{{ $route.query.cluster }} Pods</t-breadcrumbs>
+    </div>
+    <div class="px-3 py-2" v-else>
+      <h1 class="text-lg tracking-tight text-talos-gray-900 dark:text-white font-bold">Pods</h1>
     </div>
     <watch
       class="flex-1"
@@ -14,7 +17,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       kubernetes
       showCount
       itemName="Pod"
-      :context="{cluster: {name: $route.params.cluster, namespace: $route.params.namespace, uid: $route.params.uid}}">
+      :context="getContext()">
       <template v-slot:header>
         <div class="flex items-center md:grid md:grid-cols-6">
           <div class="block">
@@ -72,15 +75,20 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 </template>
 
 <script type="ts">
-import { Options, Vue } from 'vue-class-component';
+import { getContext } from '../../router';
 import Watch from '../../components/Watch.vue';
 import TBreadcrumbs from '../../components/TBreadcrumbs.vue';
 
-@Options({
+export default {
   components: {
     Watch,
     TBreadcrumbs,
   },
-})
-export default class Pods extends Vue{}
+
+  setup() {
+    return {
+      getContext,
+    };
+  }
+};
 </script>

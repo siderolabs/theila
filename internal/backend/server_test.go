@@ -31,6 +31,7 @@ import (
 
 type testRuntime struct {
 	events chan runtime.Event
+	ctx    context.Context
 }
 
 func (t *testRuntime) Watch(ctx context.Context, watch *message.WatchSpec, events chan runtime.Event) error {
@@ -39,6 +40,7 @@ func (t *testRuntime) Watch(ctx context.Context, watch *message.WatchSpec, event
 	}
 
 	t.events = events
+	t.ctx = ctx
 
 	return nil
 }
@@ -289,12 +291,12 @@ func (s *ServerSuite) TestSubscription() {
 	s.Require().Equal(len(visited), len(events))
 
 	// at this point we got the error, no more events should be able to pass through
-	// check that events channel was closed
+	// check that the context was canceled
 	select {
-	case res := <-s.runtime.events:
+	case res := <-s.runtime.ctx.Done():
 		s.Require().Empty(res)
 	case <-time.After(time.Second * 5):
-		s.FailNow("timeout waiting for events chan to close")
+		s.FailNow("timeout waiting for context to be canceled")
 	}
 
 	// and now unsubscribe
