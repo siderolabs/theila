@@ -33,7 +33,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       </template>
       <template v-slot:default="slot">
         <router-link
-          :to="{name: 'Services', params: { node: getIP(slot.item) }, query: getQuery() }"
+          :to="{name: 'Overview', params: { node: getIP(slot.item) }, query: getQuery() }"
           class="block hover:bg-talos-gray-50 dark:hover:bg-talos-gray-800"
           >
           <div class="flex items-center px-4 py-4 sm:px-6 min-w-0 md:grid md:grid-cols-5 md:gap-4">

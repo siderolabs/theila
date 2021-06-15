@@ -12,7 +12,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       {{ err }}.
     </t-alert>
     <t-alert v-else-if="items.length == 0" type="info" title="No Records">No entries of the requested resource type are found on the server.</t-alert>
-    <stacked-list v-else :items="items" :idFn="watch.id">
+    <stacked-list v-else :items="items" :idFn="watch.id" :showCount="showCount" :itemName="itemName">
+      <template v-slot:header v-if="$slots.header">
+        <slot name="header"></slot>
+      </template>
       <template v-slot:default="slot">
         <slot :item="slot.item"></slot>
       </template>
@@ -21,26 +24,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 </template>
 
 <script lang="ts">
-import { onMounted, onUnmounted, toRef, watch } from "vue";
-import { context } from "../context";
+import { ref } from "vue";
+import { context as ctx } from "../context";
 import Watch from "../api/watch";
-import { ClientReconnected } from "../api/client";
-import { Source } from "../common/theila";
 import TSpinner from './TSpinner.vue';
 import TAlert from './TAlert.vue';
 import StackedList from './StackedList.vue';
-
-function defaultCompareFunc(w: Watch) {
-  return (a, b) => {
-    if(w.id(a) === w.id(b)) {
-      return 0;
-    } else if(w.id(a) > w.id(b)) {
-      return 1;
-    }
-
-    return -1;
-  };
-}
 
 export default {
   components: {
@@ -59,94 +48,17 @@ export default {
     talos: Boolean,
   },
 
-  setup(props) {
-    const kubernetes = toRef(props, "kubernetes");
-    const talos = toRef(props, "talos");
-    const resource = toRef(props, "resource");
-    const ctx = toRef(props, "context");
-    const compare = toRef(props, "compareFn");
-
-    const contextName = ctx.value ? ctx.value.name : null;
-
+  setup(props, context) {
+    const items = ref([]);
     const resourceWatch = new Watch(
-      context.api,
+      ctx.api,
+      items,
     );
 
-    const startWatch = async () => {
-      stopWatch();
-
-      if(!resource.value) {
-        return;
-      }
-
-      let source:Source;
-
-      if(kubernetes.value) {
-        source = Source.Kubernetes;
-      } else if(talos.value) {
-        source = Source.Talos;
-      } else {
-        throw new Error("unknown source specified");
-      }
-
-      const compareFn = compare.value ? compare.value : defaultCompareFunc(resourceWatch);
-      const c = {};
-
-      if(ctx.value) {
-        Object.assign(c, ctx.value)
-      }
-
-      // override the context name by the current default one unless it's explicitly defined
-      if(context.current.value) {
-        if(!contextName)
-          c.name = source == Source.Kubernetes ? context.current.value.name : context.current.value.cluster;
-      }
-
-      resourceWatch.start(
-        source,
-        resource.value,
-        c,
-        compareFn,
-      );
-    };
-
-    const stopWatch = async () => {
-      if(resourceWatch.running.value) {
-        await resourceWatch.stop();
-      }
-    };
-
-    const handleReconnect = async () => {
-      await startWatch();
-    }
-
-    onMounted(async () => {
-      context.api.addListener(ClientReconnected, handleReconnect);
-
-      await startWatch();
-    });
-
-    onUnmounted(async () => {
-      context.api.removeListener(ClientReconnected, handleReconnect);
-
-      await stopWatch();
-    });
-
-    watch([
-      resource,
-      ctx,
-      kubernetes,
-      talos,
-      compare,
-      context.current,
-    ], (val, oldVal) => {
-      if(JSON.stringify(val) != JSON.stringify(oldVal)) {
-        startWatch();
-      }
-    });
+    resourceWatch.setup(props, context);
 
     return {
-      items: resourceWatch.items,
+      items: items,
       err: resourceWatch.err,
       loading: resourceWatch.loading,
       running: resourceWatch.running,

@@ -7,6 +7,7 @@ import Clusters from "../views/Clusters.vue";
 import Servers from "../views/Servers.vue";
 import Nodes from "../views/cluster/Nodes.vue";
 import Pods from "../views/cluster/Pods.vue";
+import Overview from "../views/node/Overview.vue";
 import Services from "../views/node/Services.vue";
 import SidebarRoot from "../views/SidebarRoot.vue";
 import SidebarCluster from "../views/SidebarCluster.vue";
@@ -36,7 +37,7 @@ export function getBreadcrumbs(route) {
 
   if(route.params.node) {
     crumbs.push(
-      { text: `${route.query.cluster || context.current.value.cluster || "Current Cluster"} Nodes`, to: {name: "Nodes", query: route.query } },
+      { text: `${route.query.cluster || context.current.value ? context.current.value.cluster : "Current Cluster"} Nodes`, to: {name: "Nodes", query: route.query } },
     );
   }
 
@@ -108,7 +109,14 @@ const routes = [
       components: {
         default: Services,
       },
-    }
+    },
+    {
+      path: "/overview",
+      name: "Overview",
+      components: {
+        default: Overview,
+      },
+    },
   ]),
 ];
 

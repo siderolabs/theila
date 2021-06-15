@@ -2,7 +2,7 @@
 
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-06-02T21:37:46Z by kres c09e0bc-dirty.
+# Generated on 2021-06-11T11:16:20Z by kres a97e980-dirty.
 
 ARG JS_TOOLCHAIN
 ARG TOOLCHAIN
@@ -108,13 +108,13 @@ RUN --mount=type=cache,target=/src/node_modules npm run lint
 # runs protobuf compiler
 FROM js AS proto-compile-frontend
 COPY --from=proto-specs-frontend / /
-RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false /frontend/src/common/theila.proto
-RUN protoc -I/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false /frontend/src/api/message.proto
-RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false /frontend/src/api/resource.proto
-RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false /frontend/src/api/context.proto
-RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false /frontend/src/google/rpc/status.proto
-RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false /frontend/src/talos/resource/resource.proto
-RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false /frontend/src/common/common.proto
+RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/common/theila.proto
+RUN protoc -I/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/api/message.proto
+RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/api/resource.proto
+RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/api/context.proto
+RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/google/rpc/status.proto
+RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/talos/resource/resource.proto
+RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/common/common.proto
 RUN rm /frontend/src/common/theila.proto
 RUN rm /frontend/src/api/message.proto
 RUN rm /frontend/src/api/resource.proto
@@ -210,7 +210,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/g
 FROM base AS theila-linux-armv7-build
 COPY --from=generate / /
 WORKDIR /src/cmd/theila
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOARCH=arm GOARM=7 GOOS=linux go build -ldflags "-s -w" -o /theila-linux-armv7
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOOS=linux GOARCH=arm GOARM=7 go build -ldflags "-s -w" -o /theila-linux-armv7
 
 # builds theila-windows-amd64.exe
 FROM base AS theila-windows-amd64.exe-build

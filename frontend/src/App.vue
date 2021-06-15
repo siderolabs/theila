@@ -33,7 +33,7 @@ import TModal from './components/TModal.vue';
 import TButton from './components/TButton.vue';
 import TSpinner from './components/TSpinner.vue';
 import { context, changeContext, detectCapabilities } from './context';
-import { theme, systemTheme } from './theme';
+import { theme, systemTheme, isDark } from './theme';
 import { ContextService } from './api/grpc';
 import { Context } from './api/context.pb';
 
@@ -55,19 +55,7 @@ export default {
     const selectContext = ref(false);
 
     const updateTheme = (mode) => {
-      for(let i = 0; i < 2; i++) {
-        switch(mode) {
-          case "system":
-            mode = systemTheme.value;
-            break;
-          case "dark":
-            dark.value = true;
-            return;
-          case "light":
-            dark.value = false;
-            return;
-        }
-      }
+      dark.value = isDark(mode);
     };
 
     onMounted(async () => {

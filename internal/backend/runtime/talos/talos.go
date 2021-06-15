@@ -580,7 +580,7 @@ type Watch struct {
 
 //nolint:gocognit
 func (w *Watch) run(ctx context.Context) error {
-	watchClient, err := w.client.Resources.Watch(ctx, w.resource.Namespace, w.resource.Type, w.resource.Id)
+	watchClient, err := w.client.Resources.WatchRequest(ctx, w.resource)
 	if err != nil {
 		return err
 	}
@@ -621,20 +621,30 @@ func (w *Watch) run(ctx context.Context) error {
 				continue
 			}
 
-			switch msg.EventType {
-			case state.Created:
+			created := func() {
 				w.items = append(w.items, r)
 				w.events <- runtime.Event{
 					Kind: message.Kind_EventItemAdd,
 					Spec: r,
 				}
+			}
+
+			switch msg.EventType {
+			case state.Created:
+				created()
 			case state.Updated:
 				index := sort.Search(len(w.items), func(i int) bool {
 					return w.items[i].ID == r.ID
 				})
 
 				if index == len(w.items) {
-					w.logger.Error("failed to find an old item in the items cache")
+					// when tail events is specified we should never get Created event
+					// so the first update should be treated as updated
+					if w.resource.TailEvents == 0 {
+						w.logger.Error("failed to find an old item in the items cache")
+					} else {
+						created()
+					}
 
 					continue
 				}

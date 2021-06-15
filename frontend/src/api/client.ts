@@ -156,8 +156,6 @@ export class Client extends EventEmitter {
         }
       })
 
-      console.log("api socket >>", message)
-
       const data = Message.encode(message).finish();
       this.ws.send(data);
 
@@ -203,8 +201,6 @@ export class Client extends EventEmitter {
 
   private onmessage(event: MessageEvent): void {
     const message = Message.decode(new Uint8Array(event.data)); 
-
-    console.log("api socket <<", message);
 
     if (!message.metadata) {
       console.error("api socket no metadata in the message", message);
