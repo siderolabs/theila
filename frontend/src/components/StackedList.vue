@@ -33,6 +33,8 @@ export default {
   props: {
     items: Array,
     idFn: Function,
+    itemName: String,
+    showCount: Boolean,
   },
 
   methods: {
@@ -56,11 +58,11 @@ export default {
   @apply text-sm font-medium text-talos-gray-900 dark:text-talos-gray-100 overflow-visible;
 }
 
-.stacked-list *:first-child {
+.stacked-list > ul > li:first-child > * {
   @apply rounded-tl-md rounded-tr-md;
 }
 
-.stacked-list *:last-child {
+.stacked-list > ul > li:last-child > * {
   @apply rounded-bl-md rounded-br-md;
 }
 

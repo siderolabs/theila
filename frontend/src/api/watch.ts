@@ -2,11 +2,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import { reactive, ref } from 'vue';
+import { reactive, ref, watch, Ref, onMounted, onUnmounted, toRefs } from 'vue';
 import { Client, Callback, ClientReconnected } from './client';
 import { Source, Context } from '../common/theila';
 import { Message, WatchSpec, UnsubscribeSpec, Kind } from './message';
 import { v4 as uuidv4 } from 'uuid';
+import { context as ctx } from '../context';
 
 export class SubscriptionError extends Error {
   constructor(message: string) {
@@ -29,19 +30,21 @@ export default class Watch {
   private handler?: any;
   private compare?: CompareFunc;
 
-  public items: any;
+  public items?: any;
   public loading: any;
   public err: any;
   public running: any;
 
-  constructor(client: Client) {
+  constructor(client: Client, items?: any, callback?: any) {
     this.client = client;
     this.handler = this.handleReconnect.bind(this);
 
-    this.items = ref([]);
     this.loading = ref(false);
     this.err = ref("");
     this.running = ref(false);
+
+    if(items)
+      this.items = items;
 
     this.callback = (message: Message) => {
       const spec = JSON.parse(message.spec);
@@ -51,6 +54,18 @@ export default class Watch {
       if(!message.metadata || message.metadata.uid != this.uid) {
         return;
       }
+
+      if(message.kind == Kind.EventError) {
+        this.stop();
+        this.err.value = spec;
+        return;
+      }
+
+      if(callback)
+        callback(message, spec);
+
+      if(!this.items)
+        return;
 
       switch(message.kind) {
         case Kind.EventItemAdd:
@@ -76,18 +91,101 @@ export default class Watch {
             this.items.value[foundIndex] = spec["new"];
           }
           break;
-        case Kind.EventError:
-          this.stop();
-          this.err.value = spec;
-          break;
       }
     };
+  }
+
+  // setup is meant to be called from the component setup method
+  // and provides seamless integration with the reactive properties of the component.
+  public setup(props: any, componentContext: any) {
+    const {
+      resource,
+      context,
+      kubernetes,
+      talos,
+      compareFn,
+    } = toRefs(props);
+
+    watch([
+      resource,
+      context,
+      kubernetes,
+      talos,
+      compareFn,
+      ctx.current,
+    ], (val, oldVal) => {
+      if(JSON.stringify(val) != JSON.stringify(oldVal)) {
+        startWatch();
+      }
+    });
+
+    const startWatch = async () => {
+      stopWatch();
+
+      if(!resource.value) {
+        return;
+      }
+
+      let source:Source;
+
+      if(kubernetes.value) {
+        source = Source.Kubernetes;
+      } else if(talos.value) {
+        source = Source.Talos;
+      } else {
+        throw new Error("unknown source specified");
+      }
+
+      const compare = compareFn && compareFn.value ? compareFn.value : defaultCompareFunc(this);
+      const c = {};
+
+      if(context && context.value) {
+        Object.assign(c, context.value)
+      }
+
+      // override the context name by the current default one unless it's explicitly defined
+      if(ctx.current.value) {
+        if(!componentContext.context || !componentContext.context.name)
+          c["name"] = source == Source.Kubernetes ? ctx.current.value.name : ctx.current.value.cluster;
+      }
+
+      this.start(
+        source,
+        resource.value,
+        c,
+        compare,
+      );
+    };
+
+    const stopWatch = async () => {
+      if(this.running.value) {
+        await this.stop();
+      }
+    };
+
+    const handleReconnect = async () => {
+      await startWatch();
+    }
+
+    onMounted(async () => {
+      ctx.api.addListener(ClientReconnected, handleReconnect);
+
+      await startWatch();
+    });
+
+    onUnmounted(async () => {
+      ctx.api.removeListener(ClientReconnected, handleReconnect);
+
+      await stopWatch();
+    });
   }
 
   public async start(source: Source, resource: Object, context?: Object, compare?: CompareFunc): Promise<Message> {
     this.loading.value = true;
     this.err.value = "";
-    this.items.value.splice(0, this.items.value.length);
+
+    if (this.items)
+      this.items.value.splice(0, this.items.value.length);
 
     this.source = source;
     this.resource = resource;
@@ -138,7 +236,9 @@ export default class Watch {
   }
 
   public stop(): Promise<Message> {
-    this.items.value.splice(0, this.items.value.length);
+    if(this.items)
+      this.items.value.splice(0, this.items.value.length);
+
     this.running.value = false;
 
     if (!this.uid) {
@@ -175,7 +275,7 @@ export default class Watch {
   }
 
   private findIndex(item: Object): number {
-    if(!this.items.value) {
+    if(!this.items || !this.items.value) {
       return -1;
     }
 
@@ -242,4 +342,16 @@ function getInsertionIndex(arr: Object[], item: Object, compare?: CompareFunc): 
   }
 
   return index;
+}
+
+function defaultCompareFunc(w: Watch) {
+  return (a, b) => {
+    if(w.id(a) === w.id(b)) {
+      return 0;
+    } else if(w.id(a) > w.id(b)) {
+      return 1;
+    }
+
+    return -1;
+  };
 }

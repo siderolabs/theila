@@ -32,7 +32,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         <a
           class="block hover:bg-talos-gray-50 dark:hover:bg-talos-gray-800"
           >
-          <div class="flex items-center px-4 py-4 sm:px-6 min-w-0 md:grid md:grid-cols-8 md:gap-4">
+          <div class="flex items-center px-3 py-3 sm:px-6 min-w-0 md:grid md:grid-cols-8 md:gap-4">
             <div class="col-span-6 block">
               <p
                 class="text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100"

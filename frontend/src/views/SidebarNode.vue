@@ -10,6 +10,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         <arrow-sm-left-icon class="w-6 h-6"/>
       </template>
     </shell-menu-item>
+    <shell-menu-item :link="{name: 'Overview', query: { cluster: $route.query.cluster, namespace: $route.query.namespace, uid: $route.query.uid }, params: { node: $route.params.node } }" name="Overview">
+      <template v-slot:icon>
+        <template-icon class="w-6 h-6"/>
+      </template>
+    </shell-menu-item>
     <shell-menu-item :link="{name: 'Services', query: { cluster: $route.query.cluster, namespace: $route.query.namespace, uid: $route.query.uid }, params: { node: $route.params.node } }" name="Services">
       <template v-slot:icon>
         <server-icon class="w-6 h-6"/>
@@ -24,6 +29,7 @@ import ShellMenuItem from '../components/ShellMenuItem.vue';
 import {
   ServerIcon,
   ArrowSmLeftIcon,
+  TemplateIcon,
 } from '@heroicons/vue/outline';
 
 @Options({
@@ -31,6 +37,7 @@ import {
     ShellMenuItem,
     ServerIcon,
     ArrowSmLeftIcon,
+    TemplateIcon,
   },
 })
 export default class SidebarNode extends Vue {}

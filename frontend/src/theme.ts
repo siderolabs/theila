@@ -22,4 +22,20 @@ watch(
   }
 )
 
+export function isDark(mode: string): boolean {
+  for(let i = 0; i < 2; i++) {
+    switch(mode) {
+      case "system":
+        mode = systemTheme.value;
+        break;
+      case "dark":
+        return true;
+      case "light":
+        return false;
+    }
+  }
+
+  return false;
+}
+
 export { theme, systemTheme };

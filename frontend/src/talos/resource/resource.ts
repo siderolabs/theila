@@ -104,12 +104,12 @@ export interface WatchRequest {
   namespace: string;
   type: string;
   id: string;
-  tailEvents: number;
+  tail_events: number;
 }
 
 export interface WatchResponse {
   metadata: Metadata1 | undefined;
-  eventType: EventType;
+  event_type: EventType;
   definition: Resource | undefined;
   resource: Resource | undefined;
 }
@@ -845,7 +845,7 @@ const baseWatchRequest: object = {
   namespace: "",
   type: "",
   id: "",
-  tailEvents: 0,
+  tail_events: 0,
 };
 
 export const WatchRequest = {
@@ -859,8 +859,8 @@ export const WatchRequest = {
     if (message.id !== "") {
       writer.uint32(26).string(message.id);
     }
-    if (message.tailEvents !== 0) {
-      writer.uint32(32).uint32(message.tailEvents);
+    if (message.tail_events !== 0) {
+      writer.uint32(32).uint32(message.tail_events);
     }
     return writer;
   },
@@ -882,7 +882,7 @@ export const WatchRequest = {
           message.id = reader.string();
           break;
         case 4:
-          message.tailEvents = reader.uint32();
+          message.tail_events = reader.uint32();
           break;
         default:
           reader.skipType(tag & 7);
@@ -909,10 +909,10 @@ export const WatchRequest = {
     } else {
       message.id = "";
     }
-    if (object.tailEvents !== undefined && object.tailEvents !== null) {
-      message.tailEvents = Number(object.tailEvents);
+    if (object.tail_events !== undefined && object.tail_events !== null) {
+      message.tail_events = Number(object.tail_events);
     } else {
-      message.tailEvents = 0;
+      message.tail_events = 0;
     }
     return message;
   },
@@ -922,7 +922,8 @@ export const WatchRequest = {
     message.namespace !== undefined && (obj.namespace = message.namespace);
     message.type !== undefined && (obj.type = message.type);
     message.id !== undefined && (obj.id = message.id);
-    message.tailEvents !== undefined && (obj.tailEvents = message.tailEvents);
+    message.tail_events !== undefined &&
+      (obj.tail_events = message.tail_events);
     return obj;
   },
 
@@ -943,24 +944,24 @@ export const WatchRequest = {
     } else {
       message.id = "";
     }
-    if (object.tailEvents !== undefined && object.tailEvents !== null) {
-      message.tailEvents = object.tailEvents;
+    if (object.tail_events !== undefined && object.tail_events !== null) {
+      message.tail_events = object.tail_events;
     } else {
-      message.tailEvents = 0;
+      message.tail_events = 0;
     }
     return message;
   },
 };
 
-const baseWatchResponse: object = { eventType: 0 };
+const baseWatchResponse: object = { event_type: 0 };
 
 export const WatchResponse = {
   encode(message: WatchResponse, writer: Writer = Writer.create()): Writer {
     if (message.metadata !== undefined) {
       Metadata1.encode(message.metadata, writer.uint32(10).fork()).ldelim();
     }
-    if (message.eventType !== 0) {
-      writer.uint32(16).int32(message.eventType);
+    if (message.event_type !== 0) {
+      writer.uint32(16).int32(message.event_type);
     }
     if (message.definition !== undefined) {
       Resource.encode(message.definition, writer.uint32(26).fork()).ldelim();
@@ -982,7 +983,7 @@ export const WatchResponse = {
           message.metadata = Metadata1.decode(reader, reader.uint32());
           break;
         case 2:
-          message.eventType = reader.int32() as any;
+          message.event_type = reader.int32() as any;
           break;
         case 3:
           message.definition = Resource.decode(reader, reader.uint32());
@@ -1005,10 +1006,10 @@ export const WatchResponse = {
     } else {
       message.metadata = undefined;
     }
-    if (object.eventType !== undefined && object.eventType !== null) {
-      message.eventType = eventTypeFromJSON(object.eventType);
+    if (object.event_type !== undefined && object.event_type !== null) {
+      message.event_type = eventTypeFromJSON(object.event_type);
     } else {
-      message.eventType = 0;
+      message.event_type = 0;
     }
     if (object.definition !== undefined && object.definition !== null) {
       message.definition = Resource.fromJSON(object.definition);
@@ -1029,8 +1030,8 @@ export const WatchResponse = {
       (obj.metadata = message.metadata
         ? Metadata1.toJSON(message.metadata)
         : undefined);
-    message.eventType !== undefined &&
-      (obj.eventType = eventTypeToJSON(message.eventType));
+    message.event_type !== undefined &&
+      (obj.event_type = eventTypeToJSON(message.event_type));
     message.definition !== undefined &&
       (obj.definition = message.definition
         ? Resource.toJSON(message.definition)
@@ -1049,10 +1050,10 @@ export const WatchResponse = {
     } else {
       message.metadata = undefined;
     }
-    if (object.eventType !== undefined && object.eventType !== null) {
-      message.eventType = object.eventType;
+    if (object.event_type !== undefined && object.event_type !== null) {
+      message.event_type = object.event_type;
     } else {
-      message.eventType = 0;
+      message.event_type = 0;
     }
     if (object.definition !== undefined && object.definition !== null) {
       message.definition = Resource.fromPartial(object.definition);
