@@ -6,16 +6,25 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 <template>
   <div>
     <div v-if="title" class="w-full text-center">{{ title }}</div>
-    <div :class="{'opacity-0': loading}">
+    <div :style="{ width: width, height: height }">
+      <div v-if="err || loading" class="flex flex-row justify-center items-center w-full h-full">
+        <div v-if="err" class="flex justify-center items-center w-1/2 gap-4 text-talos-gray-500 text-sm">
+          <div class="flex-0">
+            <exclamation-icon class="w-6 h-6"/>
+          </div>
+          <div>{{ err }}</div>
+        </div>
+        <t-spinner v-else/>
+      </div>
       <apexchart
-         :width="width"
-         :height="height"
-         :type="type"
-         :options="options"
-         :series="series"
-         />
+        :style="{opacity: loading || err ? 0 : 100}"
+        :width="width"
+        :height="height"
+        :type="type"
+        :options="options"
+        :series="series"
+        />
     </div>
-    <t-spinner v-if="loading"/>
   </div>
 </template>
 
@@ -27,11 +36,15 @@ import Watch from "../api/watch";
 import TSpinner from "./TSpinner.vue";
 import { Kind } from "../api/message";
 import { context as ctx } from "../context";
+import {
+  ExclamationIcon
+} from '@heroicons/vue/outline';
 
 export default {
   components: {
     apexchart: VueApexCharts,
     TSpinner,
+    ExclamationIcon,
   },
 
   props: {
