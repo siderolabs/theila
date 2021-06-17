@@ -9,84 +9,24 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       <div class="text-lg tracking-tight text-talos-gray-900 dark:text-white font-bold">Servers</div>
     </div>
     <watch class="flex-1" :resource="{type: 'servers.v1alpha1.metal.sidero.dev'}" kubernetes>
-      <template v-slot:default="slot">
-        <a
-          class="block hover:bg-talos-gray-50 dark:hover:bg-talos-gray-800"
-          >
-          <div class="flex items-center px-4 py-4 sm:px-6">
-            <div class="flex items-center flex-1 min-w-0">
-              <div class="flex-1 min-w-0 md:grid md:grid-cols-7 md:gap-4">
-                <div class="col-span-2 block">
-                  <p
-                    class="text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100"
-                    >
-                    {{ slot.item.metadata.name }}
-                  </p>
-                </div>
-                <div class="block">
-                  <p
-                    class="text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100"
-                    >
-                    {{ slot.item.spec.hostname }}
-                  </p>
-                </div>
-                <div class="block">
-                  <div class="flex items-center text-sm text-talos-gray-500 dark:text-talos-gray-400">
-                    <div v-if="slot.item.status && slot.item.status.ready">
-                      <check-circle-icon
-                        class="flex-shrink mr-1.5 h-5 w-5 text-green-400"
-                        aria-hidden="true"
-                        />
-                    </div>
-                    <div v-else>
-                      <x-circle-icon
-                        class="flex-shrink mr-1.5 h-5 w-5 text-red-600"
-                        aria-hidden="true"
-                        />
-                    </div>
-                    <span v-if="slot.item.status.ready" class="truncate">Ready</span>
-                    <span v-else class="truncate">Not Ready</span>
-                  </div>
-                </div>
-                <div class="block">
-                  <div class="flex items-center text-sm text-talos-gray-500 dark:text-talos-gray-400">
-                    <div v-if="slot.item.status.isClean">
-                      <check-circle-icon
-                        class="flex-shrink-0 mr-1.5 h-5 w-5 text-green-400"
-                        aria-hidden="true"
-                        />
-                    </div>
-                    <div v-else>
-                      <x-circle-icon
-                        class="flex-shrink-0 mr-1.5 h-5 w-5 text-red-600"
-                        aria-hidden="true"
-                        />
-                    </div>
-                    <span v-if="slot.item.status.isClean" class="truncate">Clean</span>
-                    <span v-else class="truncate">Dirty</span>
-                  </div>
-                </div>
-                <div class="block">
-                  <div class="flex items-center text-sm text-talos-gray-500 dark:text-talos-gray-400">
-                    <div v-if="slot.item.status.power === 'on'">
-                      <lightning-bolt-icon
-                        class="flex-shrink-0 mr-1.5 h-5 w-5 text-green-400"
-                        aria-hidden="true"
-                        />
-                    </div>
-                    <div v-else>
-                      <lightning-bolt-icon
-                        class="flex-shrink-0 mr-1.5 h-5 w-5 text-red-600"
-                        aria-hidden="true"
-                        />
-                    </div>
-                    <span class="truncate">{{ slot.item.status.power }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <template v-slot:header>
+        <div class="flex items-center md:grid md:grid-cols-5">
+          <div class="col-span-2 block">
+            Name
           </div>
-        </a>
+          <div class="block">
+            Created
+          </div>
+          <div class="block">
+            Power
+          </div>
+          <div class="block">
+            Status
+          </div>
+        </div>
+      </template>
+      <template v-slot:default="slot">
+        <server-list-item :item="slot.item"/>
       </template>
     </watch>
   </div>
@@ -95,6 +35,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 <script type="ts">
 import { Options, Vue } from 'vue-class-component';
 import Watch from '../components/Watch.vue';
+import ServerListItem from '../components/ServerListItem.vue';
 import {
   CheckCircleIcon,
   DotsHorizontalIcon,
@@ -109,6 +50,7 @@ import {
     DotsHorizontalIcon,
     XCircleIcon,
     LightningBoltIcon,
+    ServerListItem,
   },
 })
 export default class Servers extends Vue{}

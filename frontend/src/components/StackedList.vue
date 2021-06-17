@@ -55,7 +55,7 @@ export default {
 }
 
 .stacked-list li {
-  @apply text-sm font-medium text-talos-gray-900 dark:text-talos-gray-100 overflow-visible;
+  @apply text-sm text-talos-gray-900 dark:text-talos-gray-100 overflow-visible;
 }
 
 .stacked-list > ul > li:first-child > * {
@@ -67,6 +67,6 @@ export default {
 }
 
 .stacked-list .table-header > * {
-  @apply flex items-center px-4 py-3 sm:px-6 min-w-0 md:grid md:gap-4 uppercase bg-talos-gray-100 dark:bg-talos-gray-700 text-talos-gray-500 dark:text-talos-gray-300;
+  @apply font-medium flex items-center px-4 py-3 sm:px-6 min-w-0 md:grid md:gap-4 uppercase bg-talos-gray-100 dark:bg-talos-gray-700 text-talos-gray-500 dark:text-talos-gray-300;
 }
 </style>
