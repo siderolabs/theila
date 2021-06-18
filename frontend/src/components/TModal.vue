@@ -58,7 +58,7 @@ export default class TModal extends Vue {}
 
 <style scoped>
 .container-modal {
-  @apply fixed bg-talos-gray-200 dark:bg-black bg-opacity-50 dark:bg-opacity-50 w-screen h-screen flex items-center justify-center transition-all transition;
+  @apply fixed bg-talos-gray-200 dark:bg-black bg-opacity-50 dark:bg-opacity-50 w-screen h-screen flex items-center justify-center transition-all transition z-50;
 }
 
 .container-modal > * {
