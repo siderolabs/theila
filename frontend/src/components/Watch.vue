@@ -12,7 +12,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       {{ err }}.
     </t-alert>
     <t-alert v-else-if="items.length == 0" type="info" title="No Records">No entries of the requested resource type are found on the server.</t-alert>
-    <stacked-list v-else :items="items" :idFn="resourceWatch.id" :showCount="showCount" :itemName="itemName" :search="search" :filterFn="filterFn">
+    <stacked-list v-else :items="items" :idFn="resourceWatch.id" :showCount="showCount" :itemName="itemName" :search="search" :filterFn="filter">
       <template v-slot:header v-if="$slots.header">
         <slot name="header"></slot>
       </template>
@@ -24,7 +24,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 </template>
 
 <script lang="ts">
-import { ref } from "vue";
+import { ref, toRefs, computed } from "vue";
 import { context as ctx } from "../context";
 import Watch from "../api/watch";
 import TSpinner from './TSpinner.vue';
@@ -52,6 +52,7 @@ export default {
   },
 
   setup(props, context) {
+    const { filterFn } = toRefs(props);
     const resourceWatch = props.watch ? props.watch : new Watch(
       ctx.api,
       ref([]),
@@ -67,6 +68,9 @@ export default {
       loading: resourceWatch.loading,
       running: resourceWatch.running,
       resourceWatch,
+      filter: computed(() => {
+        return filterFn && filterFn.value ? filterFn.value : (item, filter) => resourceWatch.id(item).includes(filter);
+      })
     };
   }
 }

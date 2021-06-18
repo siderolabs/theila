@@ -46,10 +46,7 @@ export default {
   props: {
     items: Array,
     idFn: Function,
-    filterFn: {
-      type: Function,
-      default: (item, filter) => item.metadata.name.includes(filter),
-    },
+    filterFn: Function,
     itemName: String,
     search: String,
     showCount: Boolean,
