@@ -12,7 +12,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       {{ err }}.
     </t-alert>
     <t-alert v-else-if="items.length == 0" type="info" title="No Records">No entries of the requested resource type are found on the server.</t-alert>
-    <stacked-list v-else :items="items" :idFn="watch.id" :showCount="showCount" :itemName="itemName">
+    <stacked-list v-else :items="items" :idFn="resourceWatch.id" :showCount="showCount" :itemName="itemName">
       <template v-slot:header v-if="$slots.header">
         <slot name="header"></slot>
       </template>
@@ -46,23 +46,25 @@ export default {
     compareFn: Function,
     kubernetes: Boolean,
     talos: Boolean,
+    watch: Object,
   },
 
   setup(props, context) {
-    const items = ref([]);
-    const resourceWatch = new Watch(
+    const resourceWatch = props.watch ? props.watch : new Watch(
       ctx.api,
-      items,
+      ref([]),
     );
 
-    resourceWatch.setup(props, context);
+    if(!props.watch) {
+      resourceWatch.setup(props, context);
+    }
 
     return {
-      items: items,
+      items: resourceWatch.items,
       err: resourceWatch.err,
       loading: resourceWatch.loading,
       running: resourceWatch.running,
-      watch: resourceWatch,
+      resourceWatch,
     };
   }
 }
