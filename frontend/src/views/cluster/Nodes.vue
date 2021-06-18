@@ -17,6 +17,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         showCount
         itemName="Node"
         kubernetes
+        search="Search node by name"
         :context="getContext()">
       <template v-slot:header>
         <div class="flex items-center md:grid md:grid-cols-5">

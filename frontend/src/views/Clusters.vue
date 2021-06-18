@@ -8,7 +8,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <div class="px-3 py-2">
       <h1 class="text-lg tracking-tight text-talos-gray-900 dark:text-white font-bold">Clusters</h1>
     </div>
-    <watch class="flex-1" :resource="{type: 'clusters.v1alpha3.cluster.x-k8s.io'}" kubernetes>
+    <watch class="flex-1" :resource="{type: 'clusters.v1alpha3.cluster.x-k8s.io'}" kubernetes search="Search cluster by name">
       <template v-slot:default="slot">
         <cluster-list-item :item="slot.item"/>
       </template>

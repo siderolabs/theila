@@ -5,6 +5,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <template>
   <div>
+    <t-input v-if="search" :placeholder="search" v-model="filter" class="mb-4 w-full">
+      <template v-slot:icon>
+        <search-icon class="w-5 h-5"/>
+      </template>
+    </t-input>
     <div class="stacked-list">
       <ul>
         <li v-if="showCount && itemName">
@@ -16,7 +21,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           <slot name="header"></slot>
         </li>
         <li
-          v-for="item in items"
+          v-for="item in filteredItems"
           :key="idFn(item)"
           >
           <slot :item="item"></slot>
@@ -27,19 +32,43 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 </template>
 
 <script lang="ts">
+import { ref, computed, toRefs } from 'vue';
 import pluralize from 'pluralize';
+import { SearchIcon } from '@heroicons/vue/outline';
+import TInput from './TInput.vue';
 
 export default {
+  components: {
+    SearchIcon,
+    TInput,
+  },
+
   props: {
     items: Array,
     idFn: Function,
+    filterFn: {
+      type: Function,
+      default: (item, filter) => item.metadata.name.includes(filter),
+    },
     itemName: String,
+    search: String,
     showCount: Boolean,
   },
 
-  methods: {
-    pluralize(noun, count) {
-      return pluralize(noun, count);
+  setup(props) {
+    const filter = ref("");
+    const { items, filterFn } = toRefs(props);
+    const filteredItems = computed(() => {
+      if(filter.value === "" || filterFn === null)
+        return items.value;
+
+      return items.value.filter((item) => filterFn.value(item, filter.value));
+    });
+
+    return {
+      filter,
+      pluralize,
+      filteredItems,
     }
   }
 }

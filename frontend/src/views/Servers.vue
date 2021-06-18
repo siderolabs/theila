@@ -25,7 +25,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         </template>
       </t-stat>
     </div>
-    <watch class="flex-1" :watch="servers">
+    <watch class="flex-1" :watch="servers" search="Search server" :filterFn="search">
       <template v-slot:header>
         <div class="flex items-center md:grid md:grid-cols-5">
           <div class="col-span-2 block">
@@ -110,6 +110,22 @@ export default {
 
         return (100 - getAllocated()).toFixed(0) + "%";
       }),
+      search(item, filter) {
+        if(item["metadata"]["name"].includes(filter)) {
+          return true;
+        }
+
+        if(item["spec"]["cpu"]["version"].includes(filter)) {
+          return true;
+        }
+
+        const labels = item["metadata"]["labels"] || {};
+        for(const key in labels) {
+          return key.includes(filter) || labels[key].includes(filter);
+        }
+
+        return false;
+      }
     };
   }
 };
