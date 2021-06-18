@@ -75,7 +75,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           <div class="tag details-tag">
             <check-icon class="w-5 h-5" v-if="item.spec.accepted"/>
             <x-icon class="w-5 h-5" v-else/>
-            {{ capitalize(item.spec.accepted) }}
+            {{ capitalize(item.spec.accepted || false) }}
           </div>
         </div>
         <div class="flex-1">
@@ -83,7 +83,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           <div class="tag details-tag">
             <check-icon class="w-5 h-5" v-if="item.status.isClean"/>
             <x-icon class="w-5 h-5" v-else/>
-            {{ capitalize(item.status.isClean) }}
+            {{ capitalize(item.status.isClean || false) }}
           </div>
         </div>
         <div class="flex-1">
@@ -99,7 +99,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           <div class="tag details-tag">
             <check-icon class="w-5 h-5" v-if="item.status.inUse"/>
             <x-icon class="w-5 h-5" v-else/>
-            {{ capitalize(item.status.inUse) }}
+            {{ capitalize(item.status.inUse || false) }}
           </div>
         </div>
       </div>
