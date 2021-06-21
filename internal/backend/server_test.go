@@ -78,6 +78,7 @@ func (s *ServerSuite) SetupTest() {
 
 	s.runtime = &testRuntime{}
 
+	rand.Seed(time.Now().UnixNano())
 	port := 35000 + rand.Intn(6000)
 	s.server, err = backend.NewServer("", port)
 

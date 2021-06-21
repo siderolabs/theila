@@ -12,7 +12,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       {{ err }}.
     </t-alert>
     <t-alert v-else-if="items.length == 0" type="info" title="No Records">No entries of the requested resource type are found on the server.</t-alert>
-    <stacked-list v-else :items="items" :idFn="resourceWatch.id" :showCount="showCount" :itemName="itemName" :search="search" :filterFn="filter" :categories="categories">
+    <stacked-list v-else :items="items" :idFn="(item) => resourceWatch.id(item)" :showCount="showCount" :itemName="itemName" :search="search" :filterFn="filter" :categories="categories">
       <template v-slot:header v-if="$slots.header">
         <slot name="header"></slot>
       </template>
