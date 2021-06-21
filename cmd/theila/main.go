@@ -54,7 +54,6 @@ var rootCmdArgs struct {
 
 func main() {
 	if err := rootCmd.Execute(); err != nil {
-		log.Printf("execute error %s", err)
 		os.Exit(1)
 	}
 }
