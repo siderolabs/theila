@@ -22,7 +22,7 @@ export interface CompareFunc {
 
 export default class Watch {
   private client: Client;
-  private source?: Source;
+  private source: Source = Source.Kubernetes;
   private resource?: Object;
   private uid!: string;
   private callback: Callback;
@@ -291,7 +291,7 @@ export default class Watch {
 
     const name = this.source === Source.Kubernetes ? item["metadata"]["name"] : item["metadata"]["id"];
 
-    return `${item["metadata"]["namespace"]}.${name}`;
+    return `${item["metadata"]["namespace"] || "default"}.${name}`;
   }
 }
 
