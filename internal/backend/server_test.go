@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"testing"
@@ -77,7 +78,8 @@ func (s *ServerSuite) SetupTest() {
 
 	s.runtime = &testRuntime{}
 
-	s.server, err = backend.NewServer("", 3000)
+	port := 35000 + rand.Intn(6000)
+	s.server, err = backend.NewServer("", port)
 
 	s.Require().NoError(err)
 
@@ -89,7 +91,7 @@ func (s *ServerSuite) SetupTest() {
 		return s.server.Run(s.ctx)
 	})
 
-	u := url.URL{Scheme: "ws", Host: "0.0.0.0:3000", Path: "/ws"}
+	u := url.URL{Scheme: "ws", Host: fmt.Sprintf("0.0.0.0:%d", port), Path: "/ws"}
 
 	var (
 		c    *websocket.Conn

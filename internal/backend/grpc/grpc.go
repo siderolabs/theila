@@ -21,8 +21,6 @@ import (
 	"github.com/talos-systems/theila/internal/backend/logging"
 )
 
-const gRPCPort = 9052
-
 // Server implements grpc server.
 type Server struct {
 	rpc.UnimplementedClusterResourceServiceServer
@@ -54,6 +52,15 @@ func New(ctx context.Context, mux *http.ServeMux) (*Server, error) {
 		},
 	}
 
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		cancel()
+
+		return nil, err
+	}
+
+	gRPCPort := listener.Addr().(*net.TCPAddr).Port
+
 	grpcAddress := fmt.Sprintf("127.0.0.1:%d", gRPCPort)
 
 	server := grpc.NewServer()
@@ -76,13 +83,6 @@ func New(ctx context.Context, mux *http.ServeMux) (*Server, error) {
 	mux.Handle("/api/", http.StripPrefix("/api", runtimeMux))
 
 	s.logger.Sugar().Infof("serve gRPC at %s", grpcAddress)
-
-	listener, err := net.Listen("tcp", grpcAddress)
-	if err != nil {
-		cancel()
-
-		return nil, err
-	}
 
 	go func() {
 		for {

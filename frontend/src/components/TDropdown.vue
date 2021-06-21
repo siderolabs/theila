@@ -58,7 +58,7 @@ export default {
 
 <style>
 .dropdown-items a {
-  @apply block px-4 py-2 text-sm text-talos-gray-700 dark:text-talos-gray-50;
+  @apply block px-4 py-2 text-sm text-talos-gray-700 dark:text-talos-gray-50 cursor-default;
 }
 
 .dropdown-items a.active {

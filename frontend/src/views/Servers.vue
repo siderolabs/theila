@@ -25,7 +25,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         </template>
       </t-stat>
     </div>
-    <watch class="flex-1" :watch="servers" search="Search server" :filterFn="search">
+    <watch class="flex-1" :watch="servers" search="Search server" :filterFn="search" :categories="categories">
       <template v-slot:header>
         <div class="flex items-center md:grid md:grid-cols-5">
           <div class="col-span-2 block">
@@ -90,11 +90,32 @@ export default {
     servers.setup(props, {});
 
     const getAllocated = () => {
-
       return items.value.filter((item) => item["status"]["inUse"]).length / items.value.length * 100;
     };
 
+    const categories = [
+      {
+        placeholder: "All Servers",
+        options: [
+          { name: "In Use", filter: (item) => item["status"]["inUse"] },
+          { name: "Not In Use", filter: (item) => !item["status"]["inUse"] },
+          { name: "Accepted", filter: (item) => item["spec"]["accepted"] },
+          { name: "Not Accepted", filter: (item) => !item["spec"]["accepted"] },
+          { name: "On", filter: (item) => item["status"]["power"] === 'on' },
+          { name: "Off", filter: (item) => item["status"]["power"] === 'off' },
+        ]
+      },
+      {
+        placeholder: "All Statuses",
+        options: [
+          { name: "Ready", filter: (item) => item["status"]["ready"] },
+          { name: "Error", filter: (item) => !item["status"]["ready"] },
+        ]
+      }
+    ];
+
     return {
+      categories,
       items,
       servers,
       loading: servers.loading,
