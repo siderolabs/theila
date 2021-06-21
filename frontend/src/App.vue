@@ -26,6 +26,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 <script lang="ts">
 import { ref, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import Shell from './components/Shell.vue';
 import SidebarChangeContext from './views/SidebarChangeContext.vue';
 import Sidebar from './views/Sidebar.vue';
@@ -53,6 +54,7 @@ export default {
     const contexts = ref<Context[]>([]);
     const currentContext = ref("");
     const selectContext = ref(false);
+    const router = useRouter();
 
     const updateTheme = (mode) => {
       dark.value = isDark(mode);
@@ -107,6 +109,8 @@ export default {
       changeContext(c);
 
       selectContext.value = false;
+
+      router.push("/");
     };
 
     return {
