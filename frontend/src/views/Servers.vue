@@ -25,7 +25,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         </template>
       </t-stat>
     </div>
-    <watch class="flex-1" :watch="servers" search="Search server" :filterFn="search" :categories="categories">
+    <watch class="flex-1" :watch="servers" search="Search server" :filterFn="search" :categories="categories" :sortOptions="sortOptions">
       <template v-slot:header>
         <div class="flex items-center md:grid md:grid-cols-5">
           <div class="col-span-2 block">
@@ -114,8 +114,26 @@ export default {
       }
     ];
 
+    const newest = (a, b) => {
+      const timestamp1 = a["metadata"]["creationTimestamp"];
+      const timestamp2 = b["metadata"]["creationTimestamp"];
+
+      if(timestamp1 === timestamp2)
+        return 0;
+      else if(timestamp1 < timestamp2)
+        return 1;
+
+      return -1;
+    };
+
+    const sortOptions = [
+      { name: "Newest", function: newest },
+      { name: "Oldest", function: (a, b) => newest(a, b) * -1 },
+    ];
+
     return {
       categories,
+      sortOptions,
       items,
       servers,
       loading: servers.loading,

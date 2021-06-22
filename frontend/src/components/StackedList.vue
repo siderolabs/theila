@@ -22,6 +22,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           </menu-item>
         </template>
       </t-dropdown>
+      <slot name="menu"></slot>
     </div>
     <div class="stacked-list">
       <ul>

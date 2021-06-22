@@ -30,6 +30,7 @@ export default class Watch {
   private handler?: any;
   private compare?: CompareFunc;
 
+  public sort: Ref<CompareFunc>;
   public items?: any;
   public loading: any;
   public err: any;
@@ -42,9 +43,15 @@ export default class Watch {
     this.loading = ref(false);
     this.err = ref("");
     this.running = ref(false);
+    this.sort = ref(defaultCompareFunc(this));
 
-    if(items)
+    if(items) {
       this.items = items;
+
+      watch(this.sort, () => {
+        this.items.value.sort(this.sort.value);
+      });
+    }
 
     this.callback = (message: Message) => {
       const spec = JSON.parse(message.spec);
@@ -74,7 +81,7 @@ export default class Watch {
             return;
           }
 
-          index = getInsertionIndex(this.items.value, spec, this.compare);
+          index = getInsertionIndex(this.items.value, spec, this.sort.value);
 
           this.items.value.splice(index, 0, spec);
 
@@ -344,7 +351,7 @@ function getInsertionIndex(arr: Object[], item: Object, compare?: CompareFunc): 
   return index;
 }
 
-function defaultCompareFunc(w: Watch) {
+export function defaultCompareFunc(w: Watch) {
   return (a, b) => {
     if(w.id(a) === w.id(b)) {
       return 0;
