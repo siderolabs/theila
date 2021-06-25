@@ -49,6 +49,9 @@ spec:
     - source: https://raw.githubusercontent.com/talos-systems/talos/master/api/resource/resource.proto
       subdirectory: talos/resource/
       genGateway: true
+    - source: https://raw.githubusercontent.com/talos-systems/talos/master/api/machine/machine.proto
+      subdirectory: talos/machine/
+      genGateway: true
 ---
 kind: js.Protobuf
 spec:
@@ -75,6 +78,26 @@ spec:
     - source: https://raw.githubusercontent.com/talos-systems/talos/master/api/resource/resource.proto
       destinationRoot: src
       subdirectory: talos/resource
+      genGateway: true
+    - source: https://raw.githubusercontent.com/talos-systems/talos/master/api/machine/machine.proto
+      destinationRoot: src
+      subdirectory: talos/machine
+      genGateway: true
+    - source: https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/any.proto
+      destinationRoot: src
+      subdirectory: google/protobuf/
+      genGateway: true
+    - source: https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/duration.proto
+      destinationRoot: src
+      subdirectory: google/protobuf/
+      genGateway: true
+    - source: https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/empty.proto
+      destinationRoot: src
+      subdirectory: google/protobuf/
+      genGateway: true
+    - source: https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/timestamp.proto
+      destinationRoot: src
+      subdirectory: google/protobuf/
       genGateway: true
     - source: https://raw.githubusercontent.com/talos-systems/talos/master/api/common/common.proto
       destinationRoot: src

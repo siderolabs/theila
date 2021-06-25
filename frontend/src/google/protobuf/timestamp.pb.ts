@@ -1,0 +1,7 @@
+/*
+* This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
+*/
+export type Timestamp = {
+  seconds?: string
+  nanos?: number
+}

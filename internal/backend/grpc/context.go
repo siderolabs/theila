@@ -14,18 +14,20 @@ import (
 	"github.com/talos-systems/theila/internal/backend/runtime/kubernetes"
 )
 
-type contextService struct {
+type contextServer struct {
 	rpc.UnimplementedContextServiceServer
 }
 
-func (s *contextService) register(ctx context.Context, server grpc.ServiceRegistrar, mux *gateway.ServeMux, address string, opts []grpc.DialOption) error {
+func (s *contextServer) register(server grpc.ServiceRegistrar) {
 	rpc.RegisterContextServiceServer(server, s)
+}
 
+func (s *contextServer) gateway(ctx context.Context, mux *gateway.ServeMux, address string, opts []grpc.DialOption) error {
 	return rpc.RegisterContextServiceHandlerFromEndpoint(ctx, mux, address, opts)
 }
 
 // List returns the list of locally defined clusters.
-func (s *contextService) List(ctx context.Context, in *rpc.ListContextsRequest) (*rpc.ListContextsResponse, error) {
+func (s *contextServer) List(ctx context.Context, in *rpc.ListContextsRequest) (*rpc.ListContextsResponse, error) {
 	current, err := kubernetes.CurrentContext()
 	if err != nil {
 		return nil, err

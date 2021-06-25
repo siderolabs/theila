@@ -10,7 +10,7 @@ replace (
 )
 
 require (
-	github.com/cosi-project/runtime v0.0.0-20210603165903-ca95c7538d17
+	github.com/cosi-project/runtime v0.0.0-20210624153826-3e48f565450e
 	github.com/gertd/go-pluralize v0.1.7
 	github.com/go-logr/logr v0.2.1 // indirect
 	github.com/golang/protobuf v1.5.2
@@ -25,8 +25,9 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/talos-systems/cluster-api-bootstrap-provider-talos v0.2.0-alpha.11
 	github.com/talos-systems/cluster-api-control-plane-provider-talos v0.1.0-alpha.11
+	github.com/talos-systems/grpc-proxy v0.2.0
 	github.com/talos-systems/sidero v0.2.0
-	github.com/talos-systems/talos/pkg/machinery v0.0.0-20210611152018-744ea8a5d4b4
+	github.com/talos-systems/talos/pkg/machinery v0.0.0-20210625144407-2060ceaa0b16
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c

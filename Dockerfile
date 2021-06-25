@@ -2,7 +2,7 @@
 
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-06-11T11:16:20Z by kres a97e980-dirty.
+# Generated on 2021-06-22T21:17:31Z by kres a97e980-dirty.
 
 ARG JS_TOOLCHAIN
 ARG TOOLCHAIN
@@ -37,6 +37,7 @@ ADD api/rpc/context.proto /api/rpc/
 ADD https://raw.githubusercontent.com/googleapis/googleapis/master/google/rpc/status.proto /api/google/rpc/
 ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/common/common.proto /api/common/
 ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/resource/resource.proto /api/talos/resource/
+ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/machine/machine.proto /api/talos/machine/
 
 # collects proto specs
 FROM scratch AS proto-specs-frontend
@@ -46,6 +47,11 @@ ADD api/rpc/resource.proto /frontend/src/api/
 ADD api/rpc/context.proto /frontend/src/api/
 ADD https://raw.githubusercontent.com/googleapis/googleapis/master/google/rpc/status.proto /frontend/src/google/rpc/
 ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/resource/resource.proto /frontend/src/talos/resource/
+ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/machine/machine.proto /frontend/src/talos/machine/
+ADD https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/any.proto /frontend/src/google/protobuf/
+ADD https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/duration.proto /frontend/src/google/protobuf/
+ADD https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/empty.proto /frontend/src/google/protobuf/
+ADD https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/timestamp.proto /frontend/src/google/protobuf/
 ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/common/common.proto /frontend/src/common/
 
 # base toolchain image
@@ -114,6 +120,11 @@ RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src -
 RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/api/context.proto
 RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/google/rpc/status.proto
 RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/talos/resource/resource.proto
+RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/talos/machine/machine.proto
+RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/google/protobuf/any.proto
+RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/google/protobuf/duration.proto
+RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/google/protobuf/empty.proto
+RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/google/protobuf/timestamp.proto
 RUN protoc -I/frontend/src --grpc-gateway-ts_out=source_relative:/frontend/src --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/common/common.proto
 RUN rm /frontend/src/common/theila.proto
 RUN rm /frontend/src/api/message.proto
@@ -134,6 +145,7 @@ RUN protoc -I/api --grpc-gateway_out=paths=source_relative:/api --grpc-gateway_o
 RUN protoc -I/api --grpc-gateway_out=paths=source_relative:/api --grpc-gateway_opt=generate_unbound_methods=true --grpc-gateway_opt=standalone=true /api/google/rpc/status.proto
 RUN protoc -I/api --grpc-gateway_out=paths=source_relative:/api --grpc-gateway_opt=generate_unbound_methods=true --grpc-gateway_opt=standalone=true /api/common/common.proto
 RUN protoc -I/api --grpc-gateway_out=paths=source_relative:/api --grpc-gateway_opt=generate_unbound_methods=true --grpc-gateway_opt=standalone=true /api/talos/resource/resource.proto
+RUN protoc -I/api --grpc-gateway_out=paths=source_relative:/api --grpc-gateway_opt=generate_unbound_methods=true --grpc-gateway_opt=standalone=true /api/talos/machine/machine.proto
 RUN rm /api/socket/message/message.proto
 RUN rm /api/common/theila.proto
 RUN rm /api/rpc/resource.proto
@@ -198,19 +210,19 @@ RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/g
 FROM base AS theila-linux-amd64-build
 COPY --from=generate / /
 WORKDIR /src/cmd/theila
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o /theila-linux-amd64
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOARCH=amd64 GOOS=linux go build -ldflags "-s -w" -o /theila-linux-amd64
 
 # builds theila-linux-arm64
 FROM base AS theila-linux-arm64-build
 COPY --from=generate / /
 WORKDIR /src/cmd/theila
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOOS=linux GOARCH=arm64 go build -ldflags "-s -w" -o /theila-linux-arm64
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOARCH=arm64 GOOS=linux go build -ldflags "-s -w" -o /theila-linux-arm64
 
 # builds theila-linux-armv7
 FROM base AS theila-linux-armv7-build
 COPY --from=generate / /
 WORKDIR /src/cmd/theila
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOOS=linux GOARCH=arm GOARM=7 go build -ldflags "-s -w" -o /theila-linux-armv7
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOARM=7 GOOS=linux GOARCH=arm go build -ldflags "-s -w" -o /theila-linux-armv7
 
 # builds theila-windows-amd64.exe
 FROM base AS theila-windows-amd64.exe-build

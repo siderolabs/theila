@@ -14,10 +14,13 @@ import (
 	"time"
 
 	gateway "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/talos-systems/grpc-proxy/proxy"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
 	"github.com/talos-systems/theila/api/rpc"
+	"github.com/talos-systems/theila/api/talos/machine"
+	"github.com/talos-systems/theila/internal/backend/grpc/router"
 	"github.com/talos-systems/theila/internal/backend/logging"
 )
 
@@ -28,11 +31,11 @@ type Server struct {
 	ctx     context.Context
 	cancel  context.CancelFunc
 	stopped chan struct{}
-	servers []grpcServer
 }
 
 type grpcServer interface {
-	register(context.Context, grpc.ServiceRegistrar, *gateway.ServeMux, string, []grpc.DialOption) error
+	register(grpc.ServiceRegistrar)
+	gateway(context.Context, *gateway.ServeMux, string, []grpc.DialOption) error
 }
 
 // New creates new grpc server and registers all routes.
@@ -46,24 +49,52 @@ func New(ctx context.Context, mux *http.ServeMux) (*Server, error) {
 		ctx:     ctx,
 		cancel:  cancel,
 		stopped: make(chan struct{}),
-		servers: []grpcServer{
-			&contextService{},
-			&clusterResourceServer{},
-		},
 	}
 
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	servers := []grpcServer{
+		&contextServer{},
+		&clusterResourceServer{},
+	}
+
+	addr, local, err := s.newServer(servers)
 	if err != nil {
 		cancel()
 
 		return nil, err
 	}
 
-	gRPCPort := listener.Addr().(*net.TCPAddr).Port
+	conn, err := grpc.DialContext(
+		ctx,
+		"dns:///"+addr,
+		grpc.WithInsecure(),
+		grpc.WithCodec(proxy.Codec()), //nolint: staticcheck
+	)
+	if err != nil {
+		cancel()
 
-	grpcAddress := fmt.Sprintf("127.0.0.1:%d", gRPCPort)
+		return nil, err
+	}
 
-	server := grpc.NewServer()
+	router := router.NewRouter(
+		router.NewBackend("theila", conn),
+	)
+
+	var server *grpc.Server
+
+	addr, server, err = s.newServer(
+		nil,
+		grpc.CustomCodec(proxy.Codec()), //nolint:staticcheck
+		grpc.UnknownServiceHandler(
+			proxy.TransparentHandler(
+				router.Director,
+			)),
+	)
+
+	if err != nil {
+		cancel()
+
+		return nil, err
+	}
 
 	marshaller := &gateway.JSONPb{}
 	runtimeMux := gateway.NewServeMux(
@@ -71,8 +102,8 @@ func New(ctx context.Context, mux *http.ServeMux) (*Server, error) {
 	)
 	opts := []grpc.DialOption{grpc.WithInsecure()}
 
-	for _, grpcServer := range s.servers {
-		err := grpcServer.register(ctx, server, runtimeMux, grpcAddress, opts)
+	for _, srv := range servers {
+		err = srv.gateway(ctx, runtimeMux, addr, opts)
 		if err != nil {
 			cancel()
 
@@ -80,9 +111,52 @@ func New(ctx context.Context, mux *http.ServeMux) (*Server, error) {
 		}
 	}
 
+	if err = machine.RegisterMachineServiceHandlerFromEndpoint(ctx, runtimeMux, addr, opts); err != nil {
+		cancel()
+
+		return nil, err
+	}
+
 	mux.Handle("/api/", http.StripPrefix("/api", runtimeMux))
 
-	s.logger.Sugar().Infof("serve gRPC at %s", grpcAddress)
+	s.logger.Sugar().Infof("serve gRPC at %s", addr)
+
+	go func() {
+		<-ctx.Done()
+
+		defer close(s.stopped)
+
+		for _, srv := range []*grpc.Server{local, server} {
+			srv := srv
+
+			go func() {
+				<-time.After(time.Second * 30)
+				srv.Stop()
+			}()
+
+			srv.GracefulStop()
+			s.logger.Info("stopped gRPC server")
+		}
+	}()
+
+	return s, nil
+}
+
+func (s *Server) newServer(servers []grpcServer, opts ...grpc.ServerOption) (string, *grpc.Server, error) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		return "", nil, err
+	}
+
+	gRPCPort := listener.Addr().(*net.TCPAddr).Port
+
+	grpcAddress := fmt.Sprintf("127.0.0.1:%d", gRPCPort)
+
+	server := grpc.NewServer(opts...)
+
+	for _, srv := range servers {
+		srv.register(server)
+	}
 
 	go func() {
 		for {
@@ -95,21 +169,7 @@ func New(ctx context.Context, mux *http.ServeMux) (*Server, error) {
 		}
 	}()
 
-	go func() {
-		<-ctx.Done()
-
-		defer close(s.stopped)
-
-		go func() {
-			<-time.After(time.Second * 30)
-			server.Stop()
-		}()
-
-		server.GracefulStop()
-		s.logger.Info("stopped gRPC server")
-	}()
-
-	return s, nil
+	return grpcAddress, server, nil
 }
 
 // Shutdown waits until the grpc server is stopped.
