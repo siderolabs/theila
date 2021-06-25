@@ -12,7 +12,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     </shell-menu-item>
     <shell-menu-item :link="{name: 'Overview', query: { cluster: $route.query.cluster, namespace: $route.query.namespace, uid: $route.query.uid }, params: { node: $route.params.node } }" name="Overview">
       <template v-slot:icon>
-        <template-icon class="w-6 h-6"/>
+        <presentation-chart-line-icon class="w-6 h-6"/>
       </template>
     </shell-menu-item>
     <shell-menu-item :link="{name: 'Services', query: { cluster: $route.query.cluster, namespace: $route.query.namespace, uid: $route.query.uid }, params: { node: $route.params.node } }" name="Services">
@@ -20,25 +20,94 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         <server-icon class="w-6 h-6"/>
       </template>
     </shell-menu-item>
+    <disclosure as="template" defaultOpen v-slot="{ open }" v-if="services.length > 0">
+      <disclosure-button as="div" class="disclosure-button">
+        SERVICE LOGS
+        <chevron-up-icon :class="{ chevron: true, open: open }"/>
+      </disclosure-button>
+      <disclosure-panel as="template">
+        <div class="flex flex-col gap-2">
+          <shell-menu-item v-for="service in services" :name="service.metadata.id" :key="service.metadata.id" :link="{name: 'Logs', query: { cluster: $route.query.cluster, namespace: $route.query.namespace, uid: $route.query.uid }, params: { node: $route.params.node, service: service.metadata.id } }">
+            <template v-slot:icon>
+              <document-text-icon class="w-6 h-6"/>
+            </template>
+          </shell-menu-item>
+        </div>
+      </disclosure-panel>
+    </disclosure>
   </div>
 </template>
 
 <script lang="ts">
-import { Options, Vue } from 'vue-class-component';
+import { ref, onMounted, Ref } from 'vue';
 import ShellMenuItem from '../components/ShellMenuItem.vue';
 import {
   ServerIcon,
   ArrowSmLeftIcon,
-  TemplateIcon,
+  ChevronUpIcon,
+  PresentationChartLineIcon,
+  DocumentTextIcon,
 } from '@heroicons/vue/outline';
+import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
+import { ResourceService } from '../api/grpc';
+import { Source } from '../common/theila.pb';
+import { useRoute } from 'vue-router';
 
-@Options({
+export default {
   components: {
     ShellMenuItem,
     ServerIcon,
     ArrowSmLeftIcon,
-    TemplateIcon,
+    Disclosure,
+    DisclosureButton,
+    DisclosurePanel,
+    ChevronUpIcon,
+    PresentationChartLineIcon,
+    DocumentTextIcon,
   },
-})
-export default class SidebarNode extends Vue {}
+
+  setup() {
+    const services: Ref<Object[]> = ref([]);
+    const route = useRoute();
+
+    // TODO: convert to watch, populate nodes list
+    onMounted(async () => {
+      const response = await ResourceService.List({
+        resource: {
+          type: 'services',
+        },
+        context: {
+          nodes: [route.params.node as string],
+        },
+        source: Source.Talos,
+      });
+
+      for(const message of response) {
+        services.value = services.value.concat(message["items"]);
+      }
+    });
+
+    return {
+      services,
+    };
+  }
+};
 </script>
+
+<style scoped>
+.disclosure-button {
+  @apply text-talos-gray-500 px-4 my-2 text-sm font-medium flex justify-between w-full;
+}
+
+.disclosure-button:hover {
+  @apply text-talos-gray-400;
+}
+
+.chevron {
+  @apply w-5 h-5;
+}
+
+.open {
+  @apply transform rotate-180;
+}
+</style>

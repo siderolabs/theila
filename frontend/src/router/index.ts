@@ -8,6 +8,7 @@ import Servers from "../views/Servers.vue";
 import Nodes from "../views/cluster/Nodes.vue";
 import Pods from "../views/cluster/Pods.vue";
 import Overview from "../views/node/Overview.vue";
+import Logs from "../views/node/Logs.vue";
 import Services from "../views/node/Services.vue";
 import SidebarRoot from "../views/SidebarRoot.vue";
 import SidebarCluster from "../views/SidebarCluster.vue";
@@ -117,6 +118,13 @@ const routes = [
         default: Overview,
       },
     },
+    {
+      path: "/logs/:service",
+      name: "Logs",
+      components: {
+        default: Logs,
+      }
+    }
   ]),
 ];
 

@@ -21,9 +21,11 @@ type clusterResourceServer struct {
 	rpc.UnimplementedClusterResourceServiceServer
 }
 
-func (s *clusterResourceServer) register(ctx context.Context, server grpc.ServiceRegistrar, mux *gateway.ServeMux, address string, opts []grpc.DialOption) error {
+func (s *clusterResourceServer) register(server grpc.ServiceRegistrar) {
 	rpc.RegisterClusterResourceServiceServer(server, s)
+}
 
+func (s *clusterResourceServer) gateway(ctx context.Context, mux *gateway.ServeMux, address string, opts []grpc.DialOption) error {
 	return rpc.RegisterClusterResourceServiceHandlerFromEndpoint(ctx, mux, address, opts)
 }
 

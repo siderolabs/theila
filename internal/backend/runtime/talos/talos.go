@@ -119,7 +119,7 @@ func (r *Runtime) Watch(ctx context.Context, request *message.WatchSpec, events 
 		ctx = withNodes(ctx, request.Context.Nodes)
 	}
 
-	c, err := r.getClient(ctx, contextName, cluster)
+	c, err := r.GetClient(ctx, contextName, cluster)
 	if err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func (r *Runtime) Get(ctx context.Context, setters ...runtime.QueryOption) (inte
 
 	ctx = withNodes(ctx, opts.Nodes)
 
-	c, err := r.getClient(ctx, opts.Context, opts.Cluster)
+	c, err := r.GetClient(ctx, opts.Context, opts.Cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -191,7 +191,7 @@ func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) (int
 
 	ctx = withNodes(ctx, opts.Nodes)
 
-	c, err := r.getClient(ctx, opts.Context, opts.Cluster)
+	c, err := r.GetClient(ctx, opts.Context, opts.Cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -213,6 +213,10 @@ func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) (int
 			}
 
 			return nil, fmt.Errorf("error streaming results: %w", err)
+		}
+
+		if info.Metadata == nil || info.Resource == nil {
+			continue
 		}
 
 		if info.Metadata.Error != "" {
@@ -282,7 +286,8 @@ func (r *Runtime) GetContext(ctx context.Context, context *common.Context, clust
 	return config.Bytes()
 }
 
-func (r *Runtime) getClient(ctx context.Context, name string, cluster *common.Cluster) (*client.Client, error) {
+// GetClient returns talos client for the context name or CAPI cluster.
+func (r *Runtime) GetClient(ctx context.Context, name string, cluster *common.Cluster) (*client.Client, error) {
 	contextName := runtime.DefaultClient
 
 	switch {
