@@ -15,6 +15,7 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
+	common_0 "github.com/talos-systems/theila/api/common"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
@@ -100,7 +101,7 @@ func local_request_ClusterResourceService_List_0(ctx context.Context, marshaler 
 }
 
 func request_ClusterResourceService_GetConfig_0(ctx context.Context, marshaler runtime.Marshaler, client ClusterResourceServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ConfigRequest
+	var protoReq common_0.Cluster
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -117,7 +118,7 @@ func request_ClusterResourceService_GetConfig_0(ctx context.Context, marshaler r
 }
 
 func local_request_ClusterResourceService_GetConfig_0(ctx context.Context, marshaler runtime.Marshaler, server ClusterResourceServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ConfigRequest
+	var protoReq common_0.Cluster
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)

@@ -13,7 +13,6 @@ import (
 	"io"
 	"net/http"
 
-	extEmpty "github.com/golang/protobuf/ptypes/empty"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	extCommon "github.com/talos-systems/talos/pkg/machinery/api/common"
@@ -24,6 +23,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	extEmptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // Suppress "imported and not used" errors
@@ -162,7 +162,7 @@ func request_MachineService_Copy_0(ctx context.Context, marshaler runtime.Marsha
 }
 
 func request_MachineService_CPUInfo_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -179,7 +179,7 @@ func request_MachineService_CPUInfo_0(ctx context.Context, marshaler runtime.Mar
 }
 
 func local_request_MachineService_CPUInfo_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -196,7 +196,7 @@ func local_request_MachineService_CPUInfo_0(ctx context.Context, marshaler runti
 }
 
 func request_MachineService_DiskStats_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -213,7 +213,7 @@ func request_MachineService_DiskStats_0(ctx context.Context, marshaler runtime.M
 }
 
 func local_request_MachineService_DiskStats_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -519,7 +519,7 @@ func local_request_MachineService_GenerateConfiguration_0(ctx context.Context, m
 }
 
 func request_MachineService_Hostname_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -536,7 +536,7 @@ func request_MachineService_Hostname_0(ctx context.Context, marshaler runtime.Ma
 }
 
 func local_request_MachineService_Hostname_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -553,7 +553,7 @@ func local_request_MachineService_Hostname_0(ctx context.Context, marshaler runt
 }
 
 func request_MachineService_Kubeconfig_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (extMachine.MachineService_KubeconfigClient, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -628,7 +628,7 @@ func request_MachineService_DiskUsage_0(ctx context.Context, marshaler runtime.M
 }
 
 func request_MachineService_LoadAvg_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -645,7 +645,7 @@ func request_MachineService_LoadAvg_0(ctx context.Context, marshaler runtime.Mar
 }
 
 func local_request_MachineService_LoadAvg_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -687,7 +687,7 @@ func request_MachineService_Logs_0(ctx context.Context, marshaler runtime.Marsha
 }
 
 func request_MachineService_Memory_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -704,7 +704,7 @@ func request_MachineService_Memory_0(ctx context.Context, marshaler runtime.Mars
 }
 
 func local_request_MachineService_Memory_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -721,7 +721,7 @@ func local_request_MachineService_Memory_0(ctx context.Context, marshaler runtim
 }
 
 func request_MachineService_Mounts_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -738,7 +738,7 @@ func request_MachineService_Mounts_0(ctx context.Context, marshaler runtime.Mars
 }
 
 func local_request_MachineService_Mounts_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -755,7 +755,7 @@ func local_request_MachineService_Mounts_0(ctx context.Context, marshaler runtim
 }
 
 func request_MachineService_NetworkDeviceStats_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -772,7 +772,7 @@ func request_MachineService_NetworkDeviceStats_0(ctx context.Context, marshaler 
 }
 
 func local_request_MachineService_NetworkDeviceStats_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -789,7 +789,7 @@ func local_request_MachineService_NetworkDeviceStats_0(ctx context.Context, mars
 }
 
 func request_MachineService_Processes_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -806,7 +806,7 @@ func request_MachineService_Processes_0(ctx context.Context, marshaler runtime.M
 }
 
 func local_request_MachineService_Processes_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -848,7 +848,7 @@ func request_MachineService_Read_0(ctx context.Context, marshaler runtime.Marsha
 }
 
 func request_MachineService_Reboot_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -865,7 +865,7 @@ func request_MachineService_Reboot_0(ctx context.Context, marshaler runtime.Mars
 }
 
 func local_request_MachineService_Reboot_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -984,7 +984,7 @@ func local_request_MachineService_Reset_0(ctx context.Context, marshaler runtime
 }
 
 func request_MachineService_RemoveBootkubeInitializedKey_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -1001,7 +1001,7 @@ func request_MachineService_RemoveBootkubeInitializedKey_0(ctx context.Context, 
 }
 
 func local_request_MachineService_RemoveBootkubeInitializedKey_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -1018,7 +1018,7 @@ func local_request_MachineService_RemoveBootkubeInitializedKey_0(ctx context.Con
 }
 
 func request_MachineService_ServiceList_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -1035,7 +1035,7 @@ func request_MachineService_ServiceList_0(ctx context.Context, marshaler runtime
 }
 
 func local_request_MachineService_ServiceList_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -1154,7 +1154,7 @@ func local_request_MachineService_ServiceStop_0(ctx context.Context, marshaler r
 }
 
 func request_MachineService_Shutdown_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -1171,7 +1171,7 @@ func request_MachineService_Shutdown_0(ctx context.Context, marshaler runtime.Ma
 }
 
 func local_request_MachineService_Shutdown_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -1222,7 +1222,7 @@ func local_request_MachineService_Stats_0(ctx context.Context, marshaler runtime
 }
 
 func request_MachineService_SystemStat_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -1239,7 +1239,7 @@ func request_MachineService_SystemStat_0(ctx context.Context, marshaler runtime.
 }
 
 func local_request_MachineService_SystemStat_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -1290,7 +1290,7 @@ func local_request_MachineService_Upgrade_0(ctx context.Context, marshaler runti
 }
 
 func request_MachineService_Version_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -1307,7 +1307,7 @@ func request_MachineService_Version_0(ctx context.Context, marshaler runtime.Mar
 }
 
 func local_request_MachineService_Version_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmpty.Empty
+	var protoReq extEmptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)

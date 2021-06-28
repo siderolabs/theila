@@ -60,5 +60,5 @@ func main() {
 
 func init() {
 	rootCmd.Flags().IntVarP(&rootCmdArgs.port, "port", "p", 8080, "Start HTTP server on the defined port.")
-	rootCmd.Flags().StringVar(&rootCmdArgs.address, "address", "", "Start HTTP server on the defined address.")
+	rootCmd.Flags().StringVar(&rootCmdArgs.address, "address", "[::]", "Start HTTP server on the defined address.")
 }

@@ -2,6 +2,7 @@
 import { util, configure, Writer, Reader } from "protobufjs/minimal";
 import * as Long from "long";
 import { Observable } from "rxjs";
+import { Timestamp } from "../../google/protobuf/timestamp";
 import { Metadata as Metadata1 } from "../../common/common";
 
 export const protobufPackage = "resource";
@@ -56,6 +57,8 @@ export interface Metadata {
   version: string;
   owner: string;
   phase: string;
+  created: Date | undefined;
+  updated: Date | undefined;
   finalizers: string[];
 }
 
@@ -220,6 +223,18 @@ export const Metadata = {
     if (message.phase !== "") {
       writer.uint32(42).string(message.phase);
     }
+    if (message.created !== undefined) {
+      Timestamp.encode(
+        toTimestamp(message.created),
+        writer.uint32(66).fork()
+      ).ldelim();
+    }
+    if (message.updated !== undefined) {
+      Timestamp.encode(
+        toTimestamp(message.updated),
+        writer.uint32(74).fork()
+      ).ldelim();
+    }
     for (const v of message.finalizers) {
       writer.uint32(50).string(v!);
     }
@@ -251,6 +266,16 @@ export const Metadata = {
           break;
         case 5:
           message.phase = reader.string();
+          break;
+        case 8:
+          message.created = fromTimestamp(
+            Timestamp.decode(reader, reader.uint32())
+          );
+          break;
+        case 9:
+          message.updated = fromTimestamp(
+            Timestamp.decode(reader, reader.uint32())
+          );
           break;
         case 6:
           message.finalizers.push(reader.string());
@@ -296,6 +321,16 @@ export const Metadata = {
     } else {
       message.phase = "";
     }
+    if (object.created !== undefined && object.created !== null) {
+      message.created = fromJsonTimestamp(object.created);
+    } else {
+      message.created = undefined;
+    }
+    if (object.updated !== undefined && object.updated !== null) {
+      message.updated = fromJsonTimestamp(object.updated);
+    } else {
+      message.updated = undefined;
+    }
     if (object.finalizers !== undefined && object.finalizers !== null) {
       for (const e of object.finalizers) {
         message.finalizers.push(String(e));
@@ -312,6 +347,10 @@ export const Metadata = {
     message.version !== undefined && (obj.version = message.version);
     message.owner !== undefined && (obj.owner = message.owner);
     message.phase !== undefined && (obj.phase = message.phase);
+    message.created !== undefined &&
+      (obj.created = message.created.toISOString());
+    message.updated !== undefined &&
+      (obj.updated = message.updated.toISOString());
     if (message.finalizers) {
       obj.finalizers = message.finalizers.map((e) => e);
     } else {
@@ -352,6 +391,16 @@ export const Metadata = {
       message.phase = object.phase;
     } else {
       message.phase = "";
+    }
+    if (object.created !== undefined && object.created !== null) {
+      message.created = object.created;
+    } else {
+      message.created = undefined;
+    }
+    if (object.updated !== undefined && object.updated !== null) {
+      message.updated = object.updated;
+    } else {
+      message.updated = undefined;
     }
     if (object.finalizers !== undefined && object.finalizers !== null) {
       for (const e of object.finalizers) {
@@ -1130,6 +1179,28 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+function toTimestamp(date: Date): Timestamp {
+  const seconds = date.getTime() / 1_000;
+  const nanos = (date.getTime() % 1_000) * 1_000_000;
+  return { seconds, nanos };
+}
+
+function fromTimestamp(t: Timestamp): Date {
+  let millis = t.seconds * 1_000;
+  millis += t.nanos / 1_000_000;
+  return new Date(millis);
+}
+
+function fromJsonTimestamp(o: any): Date {
+  if (o instanceof Date) {
+    return o;
+  } else if (typeof o === "string") {
+    return new Date(o);
+  } else {
+    return fromTimestamp(Timestamp.fromJSON(o));
+  }
+}
 
 // If you get a compile-error about 'Constructor<Long> and ... have no overlap',
 // add '--ts_proto_opt=esModuleInterop=true' as a flag when calling 'protoc'.

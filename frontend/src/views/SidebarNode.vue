@@ -49,7 +49,7 @@ import {
   DocumentTextIcon,
 } from '@heroicons/vue/outline';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
-import { ResourceService } from '../api/grpc';
+import { ResourceService, getCluster } from '../api/grpc';
 import { Source } from '../common/theila.pb';
 import { useRoute } from 'vue-router';
 
@@ -70,14 +70,15 @@ export default {
     const services: Ref<Object[]> = ref([]);
     const route = useRoute();
 
-    // TODO: convert to watch, populate nodes list
     onMounted(async () => {
       const response = await ResourceService.List({
         resource: {
           type: 'services',
         },
-        context: {
-          nodes: [route.params.node as string],
+      }, {
+        metadata: {
+          nodes: [route.params.node],
+          ...getCluster(route),
         },
         source: Source.Talos,
       });

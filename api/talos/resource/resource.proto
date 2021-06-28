@@ -5,6 +5,7 @@ package resource;
 option go_package = "github.com/talos-systems/talos/pkg/machinery/api/resource";
 
 import "common/common.proto";
+import "google/protobuf/timestamp.proto";
 
 // The resource service definition.
 //
@@ -29,6 +30,8 @@ message Metadata {
     string version = 4;
     string owner = 7;
     string phase = 5;
+    google.protobuf.Timestamp created = 8;
+    google.protobuf.Timestamp updated = 9;
     repeated string finalizers = 6;
 }
 

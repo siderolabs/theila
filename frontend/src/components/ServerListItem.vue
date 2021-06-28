@@ -40,11 +40,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           'w-5': true,
           'h-5': true,
           'mr-1': true,
-          'on': item.status.power === 'on',
-          'off': item.status.power === 'off'
+          'on': (item.status || {}).power === 'on',
+          'off': (item.status || {power: 'off'}).power === 'off'
           }"/>
-        <span class="text-sm text-talos-gray-900 dark:text-talos-gray-100">
-          {{ capitalize(item.status.power) }}
+        <span class="text-sm text-talos-gray-900 dark:text-talos-gray-100 capitalize">
+          {{ (item.status || {power: 'off'}).power }}
         </span>
       </p>
     </div>
@@ -72,18 +72,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         </div>
         <div class="flex-1">
           <div class="label">Accepted</div>
-          <div class="tag details-tag">
+          <div class="tag details-tag capitalize">
             <check-icon class="w-5 h-5" v-if="item.spec.accepted"/>
             <x-icon class="w-5 h-5" v-else/>
-            {{ capitalize(item.spec.accepted || false) }}
+            {{ item.spec.accepted || false }}
           </div>
         </div>
         <div class="flex-1">
           <div class="label">Clean</div>
-          <div class="tag details-tag">
-            <check-icon class="w-5 h-5" v-if="item.status.isClean"/>
+          <div class="tag details-tag capitalize">
+            <check-icon class="w-5 h-5" v-if="item.status && item.status.isClean"/>
             <x-icon class="w-5 h-5" v-else/>
-            {{ capitalize(item.status.isClean || false) }}
+            {{ !!(item.status || {}).isClean }}
           </div>
         </div>
         <div class="flex-1">
@@ -96,10 +96,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         </div>
         <div class="flex-1">
           <div class="label">In Use</div>
-          <div class="tag details-tag">
-            <check-icon class="w-5 h-5" v-if="item.status.inUse"/>
+          <div class="tag details-tag capitalize">
+            <check-icon class="w-5 h-5" v-if="item.status && item.status.inUse"/>
             <x-icon class="w-5 h-5" v-else/>
-            {{ capitalize(item.status.inUse || false) }}
+            {{ !!(item.status || {}).inUse }}
           </div>
         </div>
       </div>
@@ -154,11 +154,6 @@ export default {
       expand: () => {
         expanded.value = !expanded.value;
       },
-      capitalize: (input) => {
-        const s = String(input);
-
-        return s.charAt(0).toUpperCase() + s.slice(1);
-      }
     }
   }
 };

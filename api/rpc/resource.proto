@@ -8,10 +8,6 @@ import "common/theila.proto";
 
 message GetFromClusterRequest {
   resource.GetRequest resource = 1;
-  // Context to use to get the resource.
-  common.Context context = 2;
-  // Data source to use to get the resource.
-  common.Source source = 3;
 }
 
 message GetFromClusterResponse {
@@ -21,26 +17,13 @@ message GetFromClusterResponse {
 
 message ListFromClusterRequest {
   resource.ListRequest resource = 1;
-  // Context to use to get the resource.
-  common.Context context = 2;
-  // Data source to use to get the resource.
-  common.Source source = 3;
   // Selectors allow filtering list results by labels.
-  repeated string selectors = 4;
+  repeated string selectors = 2;
 }
 
 message ListFromClusterResponse {
   // Messages should contain JSON encoded list spec.
   repeated string messages = 1;
-}
-
-message ConfigRequest {
-  // Context to get the configuration from.
-  common.Context context = 1;
-  // Cluster to get the configuration for.
-  common.Cluster cluster = 2;
-  // Data source to use to get the resource.
-  common.Source source = 3;
 }
 
 message ConfigResponse {
@@ -51,5 +34,5 @@ message ConfigResponse {
 service ClusterResourceService {
   rpc Get(GetFromClusterRequest) returns (GetFromClusterResponse);
   rpc List(ListFromClusterRequest) returns (ListFromClusterResponse);
-  rpc GetConfig(ConfigRequest) returns (ConfigResponse);
+  rpc GetConfig(common.Cluster) returns (ConfigResponse);
 }

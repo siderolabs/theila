@@ -39,7 +39,7 @@ import { useRoute } from 'vue-router';
 import TBreadcrumbs from '../../components/TBreadcrumbs.vue';
 import TAlert from '../../components/TAlert.vue';
 import { ref, watch, onUnmounted, onUpdated, computed } from 'vue';
-import { MachineService, Options, subscribe } from '../../api/grpc';
+import { MachineService, subscribe, getCluster } from '../../api/grpc';
 import { Source } from '../../common/theila.pb';
 import { Switch } from '@headlessui/vue';
 import { CheckIcon } from '@heroicons/vue/solid';
@@ -109,9 +109,13 @@ export default {
         }
 
         scrollToBottom();
-      }, new Options(Source.Talos, {
-        nodes: [route.params.node],
-      }));
+      }, {
+        source: Source.Talos, 
+        metadata: {
+          nodes: [route.params.node],
+          ...getCluster(route),
+        },
+      });
     }
 
     init();

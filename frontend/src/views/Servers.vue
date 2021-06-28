@@ -89,27 +89,39 @@ export default {
 
     servers.setup(props, {});
 
+    const inUse = (item) => getField(item, "status", "inUse");
+    const getField = (item, ...args) => {
+      let el = item;
+      for(const a of args) {
+        el = el[a];
+        if(!el)
+          return null;
+      }
+
+      return el;
+    };
+
     const getAllocated = () => {
-      return items.value.filter((item) => item["status"]["inUse"]).length / items.value.length * 100;
+      return items.value.filter(inUse).length / items.value.length * 100;
     };
 
     const categories = [
       {
         placeholder: "All Servers",
         options: [
-          { name: "In Use", filter: (item) => item["status"]["inUse"] },
-          { name: "Not In Use", filter: (item) => !item["status"]["inUse"] },
+          { name: "In Use", filter: inUse },
+          { name: "Not In Use", filter: (item) => !inUse(item) },
           { name: "Accepted", filter: (item) => item["spec"]["accepted"] },
           { name: "Not Accepted", filter: (item) => !item["spec"]["accepted"] },
-          { name: "On", filter: (item) => item["status"]["power"] === 'on' },
-          { name: "Off", filter: (item) => item["status"]["power"] === 'off' },
+          { name: "On", filter: (item) => getField(item, "status", "power") === 'on' },
+          { name: "Off", filter: (item) => (getField(item, "status", "power") || 'off') === 'off' },
         ]
       },
       {
         placeholder: "All Statuses",
         options: [
-          { name: "Ready", filter: (item) => item["status"]["ready"] },
-          { name: "Error", filter: (item) => !item["status"]["ready"] },
+          { name: "Ready", filter: (item) => getField(item, "status", "ready") },
+          { name: "Error", filter: (item) => !getField(item, "status", "ready") },
         ]
       }
     ];

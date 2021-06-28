@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/talos-systems/grpc-proxy/proxy"
 	"google.golang.org/grpc"
@@ -21,8 +22,9 @@ import (
 
 // Router wraps grpc-proxy StreamDirector.
 type Router struct {
-	local    proxy.Backend
-	backends map[string]proxy.Backend
+	local      proxy.Backend
+	backends   map[string]proxy.Backend
+	backendsMu sync.Mutex
 }
 
 // NewRouter builds new Router.
@@ -47,47 +49,32 @@ func (r *Router) Director(ctx context.Context, fullMethodName string) (proxy.Mod
 			return proxy.One2One, nil, fmt.Errorf("machine requests require metadata to be defined in the request")
 		}
 
-		backends, err := r.getTalosBackend(ctx, md)
-		if err != nil {
-			return proxy.One2Many, nil, err
-		}
+		if source := md.Get("source"); source != nil && source[0] == common.Source_Talos.String() {
+			backends, err := r.getTalosBackend(ctx, md)
+			if err != nil {
+				return proxy.One2One, nil, err
+			}
 
-		return proxy.One2One, backends, nil
+			return proxy.One2One, backends, nil
+		}
 	}
 
 	return proxy.One2One, []proxy.Backend{r.local}, nil
 }
 
-func (r *Router) extractParams(md metadata.MD) (string, *common.Cluster) {
-	get := func(key string) string {
-		vals := md.Get(key)
-		if vals == nil {
-			return ""
-		}
-
-		return vals[0]
-	}
-
-	context := get("context")
-	name := get("name")
-	namespace := get("namespace")
-	uid := get("uid")
+func (r *Router) getTalosBackend(ctx context.Context, md metadata.MD) ([]proxy.Backend, error) {
+	r.backendsMu.Lock()
+	defer r.backendsMu.Unlock()
 
 	var cluster *common.Cluster
 
-	if name != "" && namespace != "" && uid != "" {
-		cluster = &common.Cluster{
-			Name:      name,
-			Namespace: namespace,
-			Uid:       uid,
-		}
+	contextName := runtime.DefaultClient
+
+	if context := extractContext(md); context != nil {
+		contextName = context.Name
+
+		cluster = context.Cluster
 	}
-
-	return context, cluster
-}
-
-func (r *Router) getTalosBackend(ctx context.Context, md metadata.MD) ([]proxy.Backend, error) {
-	contextName, cluster := r.extractParams(md)
 
 	parts := []string{contextName}
 	if cluster != nil {
@@ -120,10 +107,55 @@ func (r *Router) getTalosBackend(ctx context.Context, md metadata.MD) ([]proxy.B
 		return nil, err
 	}
 
-	b := NewBackend(contextName, conn)
+	b := NewBackend(id, conn)
 	r.backends[id] = b
 
 	backends := []proxy.Backend{b}
 
 	return backends, nil
+}
+
+// ExtractContext reads cluster context from the supplied metadata.
+func ExtractContext(ctx context.Context) *common.Context {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil
+	}
+
+	return extractContext(md)
+}
+
+func extractContext(md metadata.MD) *common.Context {
+	get := func(key string) string {
+		vals := md.Get(key)
+		if vals == nil {
+			return ""
+		}
+
+		return vals[0]
+	}
+
+	context := get("context")
+	cluster := get("cluster")
+	namespace := get("namespace")
+	uid := get("uid")
+
+	var c *common.Cluster
+
+	if cluster != "" && namespace != "" && uid != "" {
+		c = &common.Cluster{
+			Name:      cluster,
+			Namespace: namespace,
+			Uid:       uid,
+		}
+	}
+
+	if c == nil && context == "" {
+		return nil
+	}
+
+	return &common.Context{
+		Name:    context,
+		Cluster: c,
+	}
 }

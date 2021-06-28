@@ -60,7 +60,6 @@ import { getContext } from '../../router';
 import TBreadcrumbs from '../../components/TBreadcrumbs.vue';
 import TChart from '../../components/TChart.vue';
 
-
 function diff(a, b) {
   const result = {};
 
