@@ -4,6 +4,7 @@ package rpc
 
 import (
 	context "context"
+	common "github.com/talos-systems/theila/api/common"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -20,7 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 type ClusterResourceServiceClient interface {
 	Get(ctx context.Context, in *GetFromClusterRequest, opts ...grpc.CallOption) (*GetFromClusterResponse, error)
 	List(ctx context.Context, in *ListFromClusterRequest, opts ...grpc.CallOption) (*ListFromClusterResponse, error)
-	GetConfig(ctx context.Context, in *ConfigRequest, opts ...grpc.CallOption) (*ConfigResponse, error)
+	GetConfig(ctx context.Context, in *common.Cluster, opts ...grpc.CallOption) (*ConfigResponse, error)
 }
 
 type clusterResourceServiceClient struct {
@@ -49,7 +50,7 @@ func (c *clusterResourceServiceClient) List(ctx context.Context, in *ListFromClu
 	return out, nil
 }
 
-func (c *clusterResourceServiceClient) GetConfig(ctx context.Context, in *ConfigRequest, opts ...grpc.CallOption) (*ConfigResponse, error) {
+func (c *clusterResourceServiceClient) GetConfig(ctx context.Context, in *common.Cluster, opts ...grpc.CallOption) (*ConfigResponse, error) {
 	out := new(ConfigResponse)
 	err := c.cc.Invoke(ctx, "/resource.ClusterResourceService/GetConfig", in, out, opts...)
 	if err != nil {
@@ -64,7 +65,7 @@ func (c *clusterResourceServiceClient) GetConfig(ctx context.Context, in *Config
 type ClusterResourceServiceServer interface {
 	Get(context.Context, *GetFromClusterRequest) (*GetFromClusterResponse, error)
 	List(context.Context, *ListFromClusterRequest) (*ListFromClusterResponse, error)
-	GetConfig(context.Context, *ConfigRequest) (*ConfigResponse, error)
+	GetConfig(context.Context, *common.Cluster) (*ConfigResponse, error)
 	mustEmbedUnimplementedClusterResourceServiceServer()
 }
 
@@ -78,7 +79,7 @@ func (UnimplementedClusterResourceServiceServer) Get(context.Context, *GetFromCl
 func (UnimplementedClusterResourceServiceServer) List(context.Context, *ListFromClusterRequest) (*ListFromClusterResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
-func (UnimplementedClusterResourceServiceServer) GetConfig(context.Context, *ConfigRequest) (*ConfigResponse, error) {
+func (UnimplementedClusterResourceServiceServer) GetConfig(context.Context, *common.Cluster) (*ConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetConfig not implemented")
 }
 func (UnimplementedClusterResourceServiceServer) mustEmbedUnimplementedClusterResourceServiceServer() {
@@ -132,7 +133,7 @@ func _ClusterResourceService_List_Handler(srv interface{}, ctx context.Context, 
 }
 
 func _ClusterResourceService_GetConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConfigRequest)
+	in := new(common.Cluster)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -144,7 +145,7 @@ func _ClusterResourceService_GetConfig_Handler(srv interface{}, ctx context.Cont
 		FullMethod: "/resource.ClusterResourceService/GetConfig",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClusterResourceServiceServer).GetConfig(ctx, req.(*ConfigRequest))
+		return srv.(ClusterResourceServiceServer).GetConfig(ctx, req.(*common.Cluster))
 	}
 	return interceptor(ctx, in, info, handler)
 }

@@ -2,20 +2,42 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import { ClusterResourceService, GetFromClusterRequest, ListFromClusterRequest, ConfigRequest} from './resource.pb';
+import { ClusterResourceService, GetFromClusterRequest, ListFromClusterRequest} from './resource.pb';
 import { ContextService as WrappedContextService, ListContextsRequest, ListContextsResponse } from './context.pb';
 import { MachineService as WrappedMachineService } from '../talos/machine/machine.pb';
-import { Source, Context } from '../common/theila.pb';
+import { Source, Context, Cluster } from '../common/theila.pb';
 import { context } from '../context';
 import { backOff, IBackOffOptions } from "exponential-backoff";
 import { ref, Ref } from 'vue';
+import { RouteLocationNormalized } from 'vue-router';
 
 const pathPrefix = "/api";
 const prefix = {pathPrefix: pathPrefix};
 
+type OptionsPartial = {
+  source?: Source
+  metadata?: Object
+}
+
+export const getCluster = (route: RouteLocationNormalized) => {
+  const res = {};
+  const query = route.query;
+
+  if(query.cluster)
+    res["cluster"] = query.cluster;
+
+  if(query.uid)
+    res["uid"] = query.uid
+
+  if(query.namespace)
+    res["namespace"] = query.namespace;
+
+  return res;
+}
+
 export class Options {
   public headers: Headers;
-  public pathPrefix: String = pathPrefix;
+  public pathPrefix: string = pathPrefix;
   public signal: AbortSignal;
 
   private controller: AbortController = new AbortController()
@@ -42,9 +64,16 @@ export class Options {
   public abort() {
     this.controller.abort();
   }
+
+  public static fromPartial(obj?: Partial<OptionsPartial>): Options {
+    if(!obj)
+      return new Options();
+
+    return new Options(obj.source, obj.metadata);
+  }
 }
 
-export const subscribe = (method: Function, params: Object, handler: Function, options?: Options) => {
+export const subscribe = (method: Function, params: Object, handler: Function, options?: OptionsPartial) => {
   return new Stream(method, params, handler, options);
 }
 
@@ -54,7 +83,7 @@ export class Stream {
 
   public err: Ref<any> = ref(null);
 
-  constructor(method: Function, params: Object, handler: Function, options?: Options) {
+  constructor(method: Function, params: Object, handler: Function, options?: Partial<OptionsPartial>) {
     const backoffOptions:Partial<IBackOffOptions> = {
       numOfAttempts: Infinity,
       startingDelay: 5000,
@@ -63,15 +92,15 @@ export class Stream {
       retry: () => !this.stopped,
     };
 
-    const opts = options || new Options();
+    const opts = options || {};
 
-    this.options = opts;
+    this.options = Options.fromPartial(opts);
 
     backOff(async () => {
       try {
         this.err.value = null;
 
-        await method(params, handler, opts);
+        await method(params, handler, this.options);
       } catch(e) {
         handler({
           error: e,
@@ -91,28 +120,10 @@ export class Stream {
   }
 }
 
-
-function populateCurrentContext(source?: Source, ctx?: Context) {
-  let res = ctx;
-  if (context.current.value) {
-    if (!res) {
-      res = {};
-    }
-
-    if (res && !res.name) {
-      res.name = source == Source.Talos ? context.current.value.cluster : context.current.value.name;
-    }
-  }
-
-  return res;
-}
-
 // define a wrapper for grpc resource service.
 export class ResourceService {
-  static async Get(request: GetFromClusterRequest): Promise<Object> {
-    request.context = populateCurrentContext(request.source, request.context);
-
-    const res = await ClusterResourceService.Get(request, prefix);
+  static async Get(request: GetFromClusterRequest, options?: Partial<OptionsPartial>): Promise<Object> {
+    const res = await ClusterResourceService.Get(request, Options.fromPartial(options));
     if (res.body == null) {
       throw new Error("empty body in the response");
     }
@@ -120,10 +131,8 @@ export class ResourceService {
     return JSON.parse(res.body);
   }
 
-  static async List(request: ListFromClusterRequest): Promise<Object[]> {
-    request.context = populateCurrentContext(request.source, request.context);
-
-    const res = await ClusterResourceService.List(request, prefix);
+  static async List(request: ListFromClusterRequest, options?: Partial<OptionsPartial>): Promise<Object[]> {
+    const res = await ClusterResourceService.List(request, Options.fromPartial(options));
     if (res.messages == null) {
       throw new Error("empty body in the response");
     }
@@ -137,10 +146,8 @@ export class ResourceService {
     return results;
   }
   
-  static async GetConfig(request: ConfigRequest): Promise<string> {
-    request.context = populateCurrentContext(request.source, request.context);
-
-    const res = await ClusterResourceService.GetConfig(request, prefix);
+  static async GetConfig(cluster: Cluster, options?: Partial<OptionsPartial>): Promise<string> {
+    const res = await ClusterResourceService.GetConfig(cluster, Options.fromPartial(options));
 
     if(!res.data) {
       return "";
@@ -150,7 +157,6 @@ export class ResourceService {
   }
 }
 
-// define a wrapper for grpc machine service.
 export const MachineService = createProxy(WrappedMachineService);
 export const ContextService = createProxy(WrappedContextService);
 
@@ -163,8 +169,13 @@ function createProxy(service: any): any {
             args.push({});
           }
 
-          if(!args[args.length - 1].pathPrefix)
+          const opts = args[args.length - 1];
+          // check if the last arg is a function (streaming request)
+          // or if has only a single argument
+          if((typeof opts) === "function" || args.length == 1)
             args.push(prefix);
+          else if(opts.metadata) // it's the partial object, so it should be converted
+            args[args.length - 1] = Options.fromPartial(opts)
 
           return target[prop](...args);
         };

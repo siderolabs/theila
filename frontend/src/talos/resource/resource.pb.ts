@@ -4,6 +4,7 @@
 
 import * as CommonCommon from "../../common/common.pb"
 import * as fm from "../../fetch.pb"
+import * as GoogleProtobufTimestamp from "../../google/protobuf/timestamp.pb"
 
 export enum EventType {
   CREATED = "CREATED",
@@ -23,6 +24,8 @@ export type Metadata = {
   version?: string
   owner?: string
   phase?: string
+  created?: GoogleProtobufTimestamp.Timestamp
+  updated?: GoogleProtobufTimestamp.Timestamp
   finalizers?: string[]
 }
 

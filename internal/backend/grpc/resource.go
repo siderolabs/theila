@@ -11,32 +11,34 @@ import (
 
 	gateway "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 
 	"github.com/talos-systems/theila/api/common"
 	"github.com/talos-systems/theila/api/rpc"
+	"github.com/talos-systems/theila/internal/backend/grpc/router"
 	"github.com/talos-systems/theila/internal/backend/runtime"
 )
 
-type clusterResourceServer struct {
+type resourceServer struct {
 	rpc.UnimplementedClusterResourceServiceServer
 }
 
-func (s *clusterResourceServer) register(server grpc.ServiceRegistrar) {
+func (s *resourceServer) register(server grpc.ServiceRegistrar) {
 	rpc.RegisterClusterResourceServiceServer(server, s)
 }
 
-func (s *clusterResourceServer) gateway(ctx context.Context, mux *gateway.ServeMux, address string, opts []grpc.DialOption) error {
+func (s *resourceServer) gateway(ctx context.Context, mux *gateway.ServeMux, address string, opts []grpc.DialOption) error {
 	return rpc.RegisterClusterResourceServiceHandlerFromEndpoint(ctx, mux, address, opts)
 }
 
 // Get returns resource from cluster using Talos or Kubernetes.
-func (s *clusterResourceServer) Get(ctx context.Context, in *rpc.GetFromClusterRequest) (*rpc.GetFromClusterResponse, error) {
-	r, err := runtime.Get(in.Source.String())
+func (s *resourceServer) Get(ctx context.Context, in *rpc.GetFromClusterRequest) (*rpc.GetFromClusterResponse, error) {
+	r, err := runtime.Get(getSource(ctx).String())
 	if err != nil {
 		return nil, err
 	}
 
-	opts := withContext(in.Context)
+	opts := withContext(router.ExtractContext(ctx))
 
 	opts = append(opts, withResource(in.Resource)...)
 
@@ -45,6 +47,12 @@ func (s *clusterResourceServer) Get(ctx context.Context, in *rpc.GetFromClusterR
 	}
 
 	res := &rpc.GetFromClusterResponse{}
+
+	md, _ := metadata.FromIncomingContext(ctx)
+
+	if nodes := md.Get("nodes"); nodes != nil {
+		opts = append(opts, runtime.WithNodes(nodes...))
+	}
 
 	result, err := r.Get(ctx, opts...)
 	if err != nil {
@@ -62,13 +70,13 @@ func (s *clusterResourceServer) Get(ctx context.Context, in *rpc.GetFromClusterR
 }
 
 // List returns resources from cluster using Talos or Kubernetes.
-func (s *clusterResourceServer) List(ctx context.Context, in *rpc.ListFromClusterRequest) (*rpc.ListFromClusterResponse, error) {
-	r, err := runtime.Get(in.Source.String())
+func (s *resourceServer) List(ctx context.Context, in *rpc.ListFromClusterRequest) (*rpc.ListFromClusterResponse, error) {
+	r, err := runtime.Get(getSource(ctx).String())
 	if err != nil {
 		return nil, err
 	}
 
-	opts := withContext(in.Context)
+	opts := withContext(router.ExtractContext(ctx))
 
 	opts = append(opts, withResource(in.Resource)...)
 
@@ -77,6 +85,12 @@ func (s *clusterResourceServer) List(ctx context.Context, in *rpc.ListFromCluste
 	}
 
 	res := &rpc.ListFromClusterResponse{}
+
+	md, _ := metadata.FromIncomingContext(ctx)
+
+	if nodes := md.Get("nodes"); nodes != nil {
+		opts = append(opts, runtime.WithNodes(nodes...))
+	}
 
 	result, err := r.List(ctx, opts...)
 	if err != nil {
@@ -97,17 +111,18 @@ func (s *clusterResourceServer) List(ctx context.Context, in *rpc.ListFromCluste
 
 // GetConfig returns kubeconfig or talos config.
 // It's a bit more than just getting a resource that's why it has this custom getter.
-func (s *clusterResourceServer) GetConfig(ctx context.Context, in *rpc.ConfigRequest) (*rpc.ConfigResponse, error) {
-	r, err := runtime.Get(in.Source.String())
+func (s *resourceServer) GetConfig(ctx context.Context, cluster *common.Cluster) (*rpc.ConfigResponse, error) {
+	r, err := runtime.Get(getSource(ctx).String())
 	if err != nil {
 		return nil, err
 	}
 
-	if in.Cluster == nil {
-		return nil, fmt.Errorf("cluster is not set")
+	context := router.ExtractContext(ctx)
+	if context == nil {
+		return nil, fmt.Errorf("context parameters are required for the config request")
 	}
 
-	res, err := r.GetContext(ctx, in.Context, in.Cluster)
+	res, err := r.GetContext(ctx, context, cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -115,6 +130,19 @@ func (s *clusterResourceServer) GetConfig(ctx context.Context, in *rpc.ConfigReq
 	return &rpc.ConfigResponse{
 		Data: string(res),
 	}, nil
+}
+
+func getSource(ctx context.Context) common.Source {
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		source := md.Get("source")
+		if source != nil {
+			if res, ok := common.Source_value[source[0]]; ok {
+				return common.Source(res)
+			}
+		}
+	}
+
+	return common.Source_Kubernetes
 }
 
 type resource interface {
@@ -132,10 +160,6 @@ func withContext(ctx *common.Context) []runtime.QueryOption {
 
 	if ctx.Cluster != nil {
 		opts = append(opts, runtime.WithCluster(ctx.Cluster))
-	}
-
-	if len(ctx.Nodes) > 0 {
-		opts = append(opts, runtime.WithNodes(ctx.Nodes...))
 	}
 
 	return opts

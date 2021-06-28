@@ -1,23 +1,13 @@
 /* eslint-disable */
 import { util, configure, Writer, Reader } from "protobufjs/minimal";
 import * as Long from "long";
-import {
-  Source,
-  Context,
-  Cluster,
-  sourceFromJSON,
-  sourceToJSON,
-} from "../common/theila";
 import { GetRequest, ListRequest } from "../talos/resource/resource";
+import { Cluster } from "../common/theila";
 
 export const protobufPackage = "resource";
 
 export interface GetFromClusterRequest {
   resource: GetRequest | undefined;
-  /** Context to use to get the resource. */
-  context: Context | undefined;
-  /** Data source to use to get the resource. */
-  source: Source;
 }
 
 export interface GetFromClusterResponse {
@@ -27,10 +17,6 @@ export interface GetFromClusterResponse {
 
 export interface ListFromClusterRequest {
   resource: ListRequest | undefined;
-  /** Context to use to get the resource. */
-  context: Context | undefined;
-  /** Data source to use to get the resource. */
-  source: Source;
   /** Selectors allow filtering list results by labels. */
   selectors: string[];
 }
@@ -40,21 +26,12 @@ export interface ListFromClusterResponse {
   messages: string[];
 }
 
-export interface ConfigRequest {
-  /** Context to get the configuration from. */
-  context: Context | undefined;
-  /** Cluster to get the configuration for. */
-  cluster: Cluster | undefined;
-  /** Data source to use to get the resource. */
-  source: Source;
-}
-
 export interface ConfigResponse {
   /** Data raw config data. */
   data: string;
 }
 
-const baseGetFromClusterRequest: object = { source: 0 };
+const baseGetFromClusterRequest: object = {};
 
 export const GetFromClusterRequest = {
   encode(
@@ -63,12 +40,6 @@ export const GetFromClusterRequest = {
   ): Writer {
     if (message.resource !== undefined) {
       GetRequest.encode(message.resource, writer.uint32(10).fork()).ldelim();
-    }
-    if (message.context !== undefined) {
-      Context.encode(message.context, writer.uint32(18).fork()).ldelim();
-    }
-    if (message.source !== 0) {
-      writer.uint32(24).int32(message.source);
     }
     return writer;
   },
@@ -82,12 +53,6 @@ export const GetFromClusterRequest = {
       switch (tag >>> 3) {
         case 1:
           message.resource = GetRequest.decode(reader, reader.uint32());
-          break;
-        case 2:
-          message.context = Context.decode(reader, reader.uint32());
-          break;
-        case 3:
-          message.source = reader.int32() as any;
           break;
         default:
           reader.skipType(tag & 7);
@@ -104,16 +69,6 @@ export const GetFromClusterRequest = {
     } else {
       message.resource = undefined;
     }
-    if (object.context !== undefined && object.context !== null) {
-      message.context = Context.fromJSON(object.context);
-    } else {
-      message.context = undefined;
-    }
-    if (object.source !== undefined && object.source !== null) {
-      message.source = sourceFromJSON(object.source);
-    } else {
-      message.source = 0;
-    }
     return message;
   },
 
@@ -123,11 +78,6 @@ export const GetFromClusterRequest = {
       (obj.resource = message.resource
         ? GetRequest.toJSON(message.resource)
         : undefined);
-    message.context !== undefined &&
-      (obj.context = message.context
-        ? Context.toJSON(message.context)
-        : undefined);
-    message.source !== undefined && (obj.source = sourceToJSON(message.source));
     return obj;
   },
 
@@ -139,16 +89,6 @@ export const GetFromClusterRequest = {
       message.resource = GetRequest.fromPartial(object.resource);
     } else {
       message.resource = undefined;
-    }
-    if (object.context !== undefined && object.context !== null) {
-      message.context = Context.fromPartial(object.context);
-    } else {
-      message.context = undefined;
-    }
-    if (object.source !== undefined && object.source !== null) {
-      message.source = object.source;
-    } else {
-      message.source = 0;
     }
     return message;
   },
@@ -214,7 +154,7 @@ export const GetFromClusterResponse = {
   },
 };
 
-const baseListFromClusterRequest: object = { source: 0, selectors: "" };
+const baseListFromClusterRequest: object = { selectors: "" };
 
 export const ListFromClusterRequest = {
   encode(
@@ -224,14 +164,8 @@ export const ListFromClusterRequest = {
     if (message.resource !== undefined) {
       ListRequest.encode(message.resource, writer.uint32(10).fork()).ldelim();
     }
-    if (message.context !== undefined) {
-      Context.encode(message.context, writer.uint32(18).fork()).ldelim();
-    }
-    if (message.source !== 0) {
-      writer.uint32(24).int32(message.source);
-    }
     for (const v of message.selectors) {
-      writer.uint32(34).string(v!);
+      writer.uint32(18).string(v!);
     }
     return writer;
   },
@@ -248,12 +182,6 @@ export const ListFromClusterRequest = {
           message.resource = ListRequest.decode(reader, reader.uint32());
           break;
         case 2:
-          message.context = Context.decode(reader, reader.uint32());
-          break;
-        case 3:
-          message.source = reader.int32() as any;
-          break;
-        case 4:
           message.selectors.push(reader.string());
           break;
         default:
@@ -272,16 +200,6 @@ export const ListFromClusterRequest = {
     } else {
       message.resource = undefined;
     }
-    if (object.context !== undefined && object.context !== null) {
-      message.context = Context.fromJSON(object.context);
-    } else {
-      message.context = undefined;
-    }
-    if (object.source !== undefined && object.source !== null) {
-      message.source = sourceFromJSON(object.source);
-    } else {
-      message.source = 0;
-    }
     if (object.selectors !== undefined && object.selectors !== null) {
       for (const e of object.selectors) {
         message.selectors.push(String(e));
@@ -296,11 +214,6 @@ export const ListFromClusterRequest = {
       (obj.resource = message.resource
         ? ListRequest.toJSON(message.resource)
         : undefined);
-    message.context !== undefined &&
-      (obj.context = message.context
-        ? Context.toJSON(message.context)
-        : undefined);
-    message.source !== undefined && (obj.source = sourceToJSON(message.source));
     if (message.selectors) {
       obj.selectors = message.selectors.map((e) => e);
     } else {
@@ -318,16 +231,6 @@ export const ListFromClusterRequest = {
       message.resource = ListRequest.fromPartial(object.resource);
     } else {
       message.resource = undefined;
-    }
-    if (object.context !== undefined && object.context !== null) {
-      message.context = Context.fromPartial(object.context);
-    } else {
-      message.context = undefined;
-    }
-    if (object.source !== undefined && object.source !== null) {
-      message.source = object.source;
-    } else {
-      message.source = 0;
     }
     if (object.selectors !== undefined && object.selectors !== null) {
       for (const e of object.selectors) {
@@ -411,101 +314,6 @@ export const ListFromClusterResponse = {
   },
 };
 
-const baseConfigRequest: object = { source: 0 };
-
-export const ConfigRequest = {
-  encode(message: ConfigRequest, writer: Writer = Writer.create()): Writer {
-    if (message.context !== undefined) {
-      Context.encode(message.context, writer.uint32(10).fork()).ldelim();
-    }
-    if (message.cluster !== undefined) {
-      Cluster.encode(message.cluster, writer.uint32(18).fork()).ldelim();
-    }
-    if (message.source !== 0) {
-      writer.uint32(24).int32(message.source);
-    }
-    return writer;
-  },
-
-  decode(input: Reader | Uint8Array, length?: number): ConfigRequest {
-    const reader = input instanceof Reader ? input : new Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseConfigRequest } as ConfigRequest;
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.context = Context.decode(reader, reader.uint32());
-          break;
-        case 2:
-          message.cluster = Cluster.decode(reader, reader.uint32());
-          break;
-        case 3:
-          message.source = reader.int32() as any;
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ConfigRequest {
-    const message = { ...baseConfigRequest } as ConfigRequest;
-    if (object.context !== undefined && object.context !== null) {
-      message.context = Context.fromJSON(object.context);
-    } else {
-      message.context = undefined;
-    }
-    if (object.cluster !== undefined && object.cluster !== null) {
-      message.cluster = Cluster.fromJSON(object.cluster);
-    } else {
-      message.cluster = undefined;
-    }
-    if (object.source !== undefined && object.source !== null) {
-      message.source = sourceFromJSON(object.source);
-    } else {
-      message.source = 0;
-    }
-    return message;
-  },
-
-  toJSON(message: ConfigRequest): unknown {
-    const obj: any = {};
-    message.context !== undefined &&
-      (obj.context = message.context
-        ? Context.toJSON(message.context)
-        : undefined);
-    message.cluster !== undefined &&
-      (obj.cluster = message.cluster
-        ? Cluster.toJSON(message.cluster)
-        : undefined);
-    message.source !== undefined && (obj.source = sourceToJSON(message.source));
-    return obj;
-  },
-
-  fromPartial(object: DeepPartial<ConfigRequest>): ConfigRequest {
-    const message = { ...baseConfigRequest } as ConfigRequest;
-    if (object.context !== undefined && object.context !== null) {
-      message.context = Context.fromPartial(object.context);
-    } else {
-      message.context = undefined;
-    }
-    if (object.cluster !== undefined && object.cluster !== null) {
-      message.cluster = Cluster.fromPartial(object.cluster);
-    } else {
-      message.cluster = undefined;
-    }
-    if (object.source !== undefined && object.source !== null) {
-      message.source = object.source;
-    } else {
-      message.source = 0;
-    }
-    return message;
-  },
-};
-
 const baseConfigResponse: object = { data: "" };
 
 export const ConfigResponse = {
@@ -564,7 +372,7 @@ export const ConfigResponse = {
 export interface ClusterResourceService {
   Get(request: GetFromClusterRequest): Promise<GetFromClusterResponse>;
   List(request: ListFromClusterRequest): Promise<ListFromClusterResponse>;
-  GetConfig(request: ConfigRequest): Promise<ConfigResponse>;
+  GetConfig(request: Cluster): Promise<ConfigResponse>;
 }
 
 type Builtin =

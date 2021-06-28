@@ -141,11 +141,10 @@ import pluralize from 'pluralize';
   methods: {
     async downloadTalosConfig() {
       const response = await ResourceService.GetConfig({
-        cluster: {
-          name: this.item.metadata.name,
-          uid: this.item.metadata.uid,
-          namespace: this.item.metadata.namespace,
-        },
+        name: this.item.metadata.name,
+        uid: this.item.metadata.uid,
+        namespace: this.item.metadata.namespace,
+      }, {
         source: Source.Talos,
       });
 
@@ -156,11 +155,10 @@ import pluralize from 'pluralize';
 
     async downloadKubeconfig() {
       const response = await ResourceService.GetConfig({
-        cluster: {
-          name: this.item.metadata.name,
-          uid: this.item.metadata.uid,
-          namespace: this.item.metadata.namespace,
-        },
+        name: this.item.metadata.name,
+        uid: this.item.metadata.uid,
+        namespace: this.item.metadata.namespace,
+      }, {
         source: Source.Kubernetes,
       });
 
