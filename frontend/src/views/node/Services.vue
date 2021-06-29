@@ -54,6 +54,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 class="text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100"
                 >
                 <check-circle-icon class="ok" v-if="slot.item.spec.healthy"/>
+                <question-mark-circle-icon class="info" v-else-if="slot.item.spec.unknown"/>
                 <exclamation-circle-icon class="error" v-else/>
               </p>
             </div>
@@ -69,6 +70,7 @@ import Watch from '../../components/Watch.vue';
 import TBreadcrumbs from '../../components/TBreadcrumbs.vue';
 import {
   CheckCircleIcon,
+  QuestionMarkCircleIcon,
   XCircleIcon,
   ExclamationCircleIcon
 } from '@heroicons/vue/outline';
@@ -80,6 +82,7 @@ export default {
     TBreadcrumbs,
     Watch,
     CheckCircleIcon,
+    QuestionMarkCircleIcon,
     XCircleIcon,
     ExclamationCircleIcon,
   },
@@ -105,6 +108,10 @@ export default {
 <style scoped>
 .ok {
   @apply h-5 w-5 text-green-400;
+}
+
+.info {
+  @apply h-5 w-5 text-blue-400;
 }
 
 .error {

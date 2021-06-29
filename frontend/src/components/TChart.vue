@@ -39,6 +39,7 @@ import { context as ctx } from "../context";
 import {
   ExclamationIcon
 } from '@heroicons/vue/outline';
+import { DateTime } from 'luxon';
 
 export default {
   components: {
@@ -121,10 +122,16 @@ export default {
           continue;
         }
 
-        points.push(data[key]);
+        let point = data[key];
+        const updated = spec["new"]["metadata"]["updated"];
+        if(updated) {
+          point = [DateTime.fromISO(updated).toMillis(), point];
+        }
+
+        points.push(point);
         meta.version = version;
 
-        if(points.length > numPoints.value) {
+        if(points.length >= numPoints.value) {
           points.splice(0, 1);
         }
       }
@@ -181,6 +188,9 @@ export default {
         stroke: stroke.value,
         tooltip: {
           theme: dark.value ? "dark" : "light",
+          x: {
+            format: 'HH:mm:ss',
+          },
         },
         grid: {
           borderColor: dark.value ? '#333' : "#EEE",
@@ -197,8 +207,14 @@ export default {
           },
         },
         xaxis:{ 
+          type: "datetime",
           labels: {
-            show: false,
+            datetimeFormatter: {
+              year: 'yyyy',
+              month: 'MMM \'yy',
+              day: 'dd MMM',
+              hour: 'HH:mm'
+            }
           },
           axisBorder: {
             show: false,
