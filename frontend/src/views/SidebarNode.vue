@@ -17,7 +17,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     </shell-menu-item>
     <shell-menu-item :link="{name: 'Services', query: { cluster: $route.query.cluster, namespace: $route.query.namespace, uid: $route.query.uid }, params: { node: $route.params.node } }" name="Services">
       <template v-slot:icon>
-        <server-icon class="w-6 h-6"/>
+        <cube-transparent-icon class="w-6 h-6"/>
+      </template>
+    </shell-menu-item>
+    <shell-menu-item name="Dmesg" :link="{name: 'Logs', query: { cluster: $route.query.cluster, namespace: $route.query.namespace, uid: $route.query.uid }, params: { node: $route.params.node, service: 'dmesg' } }">
+      <template v-slot:icon>
+        <document-text-icon class="w-6 h-6"/>
       </template>
     </shell-menu-item>
     <disclosure as="template" defaultOpen v-slot="{ open }" v-if="services.length > 0">
@@ -42,7 +47,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import { ref, onMounted, Ref } from 'vue';
 import ShellMenuItem from '../components/ShellMenuItem.vue';
 import {
-  ServerIcon,
+  CubeTransparentIcon,
   ArrowSmLeftIcon,
   ChevronUpIcon,
   PresentationChartLineIcon,
@@ -56,7 +61,7 @@ import { useRoute } from 'vue-router';
 export default {
   components: {
     ShellMenuItem,
-    ServerIcon,
+    CubeTransparentIcon,
     ArrowSmLeftIcon,
     Disclosure,
     DisclosureButton,

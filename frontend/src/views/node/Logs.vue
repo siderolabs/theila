@@ -58,12 +58,14 @@ export default {
     const follow = ref(true);
     const logView = ref(null);
 
-    let line = 0;
     let stream = ref(null);
+    let buffer = "";
+    let flush = null;
 
     const reset = () => {
-      line = 0;
-      logs.value = [""];
+      logs.value = [];
+      buffer = "";
+      clearTimeout(flush);
     };
 
     const scrollToBottom = () => {
@@ -84,31 +86,39 @@ export default {
 
       reset();
 
-      stream.value = subscribe(MachineService.Logs, {
-        namespace: "system",
-        id: route.params.service,
-        follow: true,
-        tailLines: 250,
-      }, (resp) => {
+      const method = route.params.service == "dmesg" ? MachineService.Dmesg : MachineService.Logs;
+      let params = {};
+
+      if(route.params.service == "dmesg") {
+        params = {
+          follow: true,
+        }
+      } else {
+        params = {
+          namespace: "system",
+          id: route.params.service,
+          follow: true,
+          tailLines: -1,
+        }
+      }
+
+      stream.value = subscribe(method, params, (resp) => {
+        clearTimeout(flush);
+
         if(resp.error) {
           reset();
           return;
         }
 
-        const chunk = atob(resp.bytes);
+        buffer += atob(resp.bytes);
 
-        for(const s of chunk) {
-          if(s === "\n") {
-            logs.value.push("");
-            line++;
-
-            continue;
-          }
-
-          logs.value[line] += s;
-        }
-
-        scrollToBottom();
+        // accumulate frequent updates and then flush them in a single call
+        flush = setTimeout(() => {
+          const splitPoint = buffer.lastIndexOf("\n");
+          logs.value = logs.value.concat(buffer.slice(0, splitPoint).split("\n"))
+          buffer = buffer.slice(splitPoint + 1, buffer.length);
+          scrollToBottom();
+        }, 50);
       }, {
         source: Source.Talos, 
         metadata: {
