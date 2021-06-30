@@ -11,7 +11,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           <chevron-up-icon class="w-5 h-5"/>
         </div>
       </button>
-      <div class="flex-1 block">
+      <div class="flex-1 block truncate overflow-hidden">
         <p
           class="text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100"
           >

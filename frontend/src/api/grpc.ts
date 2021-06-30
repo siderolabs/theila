@@ -100,17 +100,23 @@ export class Stream {
       try {
         this.err.value = null;
 
-        await method(params, handler, this.options);
+        await method(params, (resp) => {
+          if(resp.metadata && resp.metadata.error) {
+            throw new Error(resp.metadata.error);
+          } else {
+            handler(resp);
+          }
+        }, this.options);
       } catch(e) {
         handler({
           error: e,
         });
 
-        this.err.value = e;
+        this.err.value = e.toString();
         throw e;
       }
     }, backoffOptions).catch((e) => {
-      this.err.value = e;
+      this.err.value = e.toString();
     });
   }
 

@@ -4,9 +4,9 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <template>
-  <button type="button" 
-          class="focus:outline-none focus:shadow-outline"
-          :class="{primary: primary, secondary: !primary, small: small, xs: xs}">
+  <button type="button" :disabled="disabled"
+          class="focus:outline-none focus:shadow-outline disabled:opacity-50"
+          :class="{primary: primary, secondary: !primary, small: small, xs: xs, 'cursor-pointer': !disabled, 'pointer-events-none': disabled}">
     <div class="container space-x-1">
       <slot></slot>
     </div>
@@ -21,6 +21,7 @@ import { Options, Vue } from 'vue-class-component';
     primary: Boolean,
     small: Boolean,
     xs: Boolean,
+    disabled: Boolean,
   },
 
   data() {

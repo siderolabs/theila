@@ -5,55 +5,62 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <template>
   <div class="container-modal" v-if="view" @click.self="close">
-    <div class="py-5">
-      <div class="px-5">
-        <h3 class="mb-2 text-lg leading-6 font-medium text-talos-gray-900 dark:text-talos-gray-100" id="modal-title">{{ view.title }}</h3>
-      </div>
-      <component :is="view.component"/>
+    <div>
+      <component :is="view" v-bind="props"/>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { Options, Vue } from 'vue-class-component';
+import { watch, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { modals } from '../router';
+import { modal } from '../modal';
 
-@Options({
-  data() {
-    return {
-      view: null,
-    }
-  },
+export default {
+  setup() {
+    const route = useRoute();
+    const router = useRouter();
+    const view = ref(null);
+    const props = ref({});
 
-  mounted() {
-    this.updateState();
-  },
+    const updateState = () => {
+      if(modal.value) {
+        view.value = modal.value.component;
+        props.value = modal.value.props || {};
 
-  watch: {
-    '$route'() {
-      this.updateState();
-    }
-  },
-
-  methods: {
-    updateState() {
-      const modal = this.$route.query.modal ? modals[this.$route.query.modal] : null;
-
-      if(modal) {
-        this.view = modal;
-      } else {
-        this.view = null;
+        return;
       }
-    },
 
-    close() {
-      this.$router.replace({ query: {
-        modal: undefined,
-      }});
+      props.value = {};
+      view.value = route.query.modal ? modals[route.query.modal as string] : null;
+    }
+
+    watch(() => route.query.modal, () => {
+      if(route.query.modal)
+        modal.value = null;
+
+      updateState();
+    });
+
+    // modals which do not need to be tied to the URI
+    watch(modal, () => {
+      updateState();
+    });
+
+    updateState();
+
+    return {
+      view,
+      props,
+      close() {
+        router.replace({ query: {
+          modal: undefined,
+        }});
+      }
     }
   }
-})
-export default class TModal extends Vue {}
+};
 </script>
 
 <style scoped>
@@ -62,6 +69,6 @@ export default class TModal extends Vue {}
 }
 
 .container-modal > * {
-  @apply align-middle w-full max-w-3xl bg-white dark:bg-talos-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform;
+  @apply align-middle bg-white dark:bg-talos-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform;
 }
 </style>
