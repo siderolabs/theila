@@ -6,8 +6,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 <template>
   <div>
     <Menu as="div" class="relative">
-      <menu-button as="template">
-        <t-button :xs="xs" :small="small">
+      <menu-button as="template" :disabled="disabled">
+        <t-button :xs="xs" :small="small" :disabled="disabled">
           {{ title }}
           <slot name="icon" v-if="$slots.icon"></slot>
           <chevron-down-icon v-else class="w-5 h-5 ml-2 -mr-1" aria-hidden="true"/>
@@ -52,6 +52,7 @@ export default {
     icon: Object,
     small: Boolean,
     xs: Boolean,
+    disabled: Boolean,
   }
 };
 </script>

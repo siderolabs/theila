@@ -8,10 +8,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <div class="flex-0 px-3 py-2 mb-2">
       <t-breadcrumbs>{{ $route.params.node }} {{ $route.params.service }} Logs</t-breadcrumbs>
     </div>
-    <t-alert v-if="err" title="Failed to Fetch Logs" type="error">
+    <t-alert v-if="err" :title="logs ? 'Disconnected' : 'Failed to Fetch Logs'" type="error" class="mb-2">
       {{ err }}.
     </t-alert>
-    <div v-else class="flex-1 pb-3 logs">
+    <div v-if="logs.length > 0" class="flex-1 pb-3 logs">
       <div class="flex border-b border-talos-gray-300 dark:border-talos-gray-600 p-4 gap-1">
         <div class="flex-1">{{ logs.length }} lines</div>
         <div class="flex items-center justify-center gap-2 text-talos-gray-800 hover:text-talos-gray-600 dark:text-talos-gray-400 dark:hover:text-talos-gray-300">
@@ -102,13 +102,20 @@ export default {
         }
       }
 
+      let clearLogs = false;
+
       stream.value = subscribe(method, params, (resp) => {
         clearTimeout(flush);
 
         if(resp.error) {
-          reset();
+          clearLogs = true;
           return;
         }
+
+        if(clearLogs)
+          reset();
+
+        clearLogs = false;
 
         buffer += atob(resp.bytes);
 

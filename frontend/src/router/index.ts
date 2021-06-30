@@ -14,6 +14,7 @@ import SidebarRoot from "../views/SidebarRoot.vue";
 import SidebarCluster from "../views/SidebarCluster.vue";
 import SidebarNode from "../views/SidebarNode.vue";
 import Settings from "../views/Settings.vue";
+import Reboot from "../views/Reboot.vue";
 import { useRoute } from 'vue-router';
 import { context } from '../context';
 
@@ -134,10 +135,8 @@ const router = createRouter({
 });
 
 const modals = {
-  settings: {
-    title: "Settings",
-    component: Settings,
-  }
+  settings: Settings,
+  reboot: Reboot,
 };
 
 export { modals };

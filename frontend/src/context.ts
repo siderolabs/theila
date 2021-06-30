@@ -2,12 +2,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import { ref } from 'vue';
+import { ref, Ref } from 'vue';
 import { Client } from "./api/client";
 import { ResourceService } from './api/grpc';
 
-// create a singleton.
 export namespace context {
+  // create a singleton for the api.
   export const api:Client = new Client();
 
   export const current:any = ref(localStorage.context ? JSON.parse(localStorage.context) : null);

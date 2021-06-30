@@ -31,7 +31,7 @@ export default class ShellMenuItem extends Vue {}
 
 <style>
 .shell-menu-link {
-  @apply flex flex-row items-center justify-between w-full px-3 py-2 rounded-md dark:text-talos-gray-50 text-talos-gray-900 hover:bg-talos-gray-50 dark:hover:bg-talos-gray-700;
+  @apply flex flex-row items-center justify-between w-full px-3 py-2 rounded-md dark:text-talos-gray-50 text-talos-gray-900 hover:bg-talos-gray-50 dark:hover:bg-talos-gray-700 transition-colors duration-200;
 }
 
 .shell-menu-link.router-link-active {

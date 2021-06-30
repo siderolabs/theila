@@ -20,118 +20,47 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         search="Search node by name"
         :context="getContext()">
       <template v-slot:header>
-        <div class="flex items-center md:grid md:grid-cols-5">
-          <div class="col-span-2 block">
+        <div class="flex items-center md:grid md:grid-cols-7">
+          <div class="block justify-self-left">
             Name
           </div>
-          <div class="block">
+          <div class="block justify-self-center">
             IP
           </div>
-          <div class="col-span-2 block">
+          <div class="justify-self-center">
+            OS
+          </div>
+          <div class="col-span-2 block justify-self-center">
             Roles
+          </div>
+          <div class="justify-self-center">
+            Status
           </div>
         </div>
       </template>
       <template v-slot:default="slot">
-        <router-link
-          :to="{name: 'Overview', params: { node: getIP(slot.item) }, query: getQuery() }"
-          class="block hover:bg-talos-gray-50 dark:hover:bg-talos-gray-800"
-          >
-          <div class="flex items-center px-4 py-4 sm:px-6 min-w-0 md:grid md:grid-cols-5 md:gap-4">
-            <div class="col-span-2 block">
-              <p
-                class="text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100"
-                >
-                {{ slot.item.metadata.name }}
-              </p>
-            </div>
-            <div class="block">
-              <p
-                class="text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100"
-                >
-                {{ getIP(slot.item) }}
-              </p>
-            </div>
-            <div class="col-span-2 block">
-              <p
-                class="text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100 space-x-1 space-y-1"
-                >
-                <span v-for="role in getRoles(slot.item)" v-bind:key="role">{{ role }}</span>
-              </p>
-            </div>
-          </div>
-        </router-link>
+        <node-list-item :item="slot.item"/>
       </template>
     </watch>
   </div>
 </template>
 
 <script type="ts">
-import { useRoute } from 'vue-router';
 import { getContext } from '../../router';
 import Watch from '../../components/Watch.vue';
 import TBreadcrumbs from '../../components/TBreadcrumbs.vue';
+import NodeListItem from '../../components/NodeListItem.vue';
 
 export default {
   components: {
     Watch,
     TBreadcrumbs,
+    NodeListItem,
   },
 
   setup() {
-    const route = useRoute();
-
-    const getIP = (item) => {
-      const status = item.status;
-      let addr = "unknown";
-
-      if (status == null) {
-        return addr;
-      }
-
-      for (const a of status.addresses) {
-        if (a.type == "InternalIP") {
-          addr = a.address;
-        }
-
-        if (a.type == "ExternalIP") {
-          addr = a.address;
-          break;
-        }
-      }
-
-      return addr;
-    };
-
-    const getRoles = (item) => {
-      const roles = [];
-
-      for (const label in item.metadata.labels) {
-        if (label.indexOf("node-role.kubernetes.io/") != -1) {
-          roles.push(label.split("/")[1]);
-        }
-      }
-
-      return roles;
-    };
-
-    const getQuery = () => {
-      const query = {};
-
-      if(route.query.cluster && route.query.namespace && route.query.uid) {
-        query.cluster = route.query.cluster;
-        query.namespace = route.query.namespace || "default";
-        query.uid = route.query.uid;
-      }
-
-      return query;
-    };
-
     return {
-      getIP,
-      getRoles,
       getContext,
-      getQuery,
     };
   },
 };
