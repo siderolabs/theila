@@ -15,14 +15,20 @@ pre_release = true
     description = """\
 This is the very first release of the UI for Talos and Sidero.
 
-The first iteration is only able to run against the management cluster with Sidero installed.
 Theila gets credentials from `~/.kube/config` or from the file defined in `KUBECONFIG`
-environment variable. The current context is always used.
+environment variable.
 
-For each Sidero Kubernetes cluster it is possible to:
-- get the kubeconfig and talosconfig.
-- get the list of nodes and pods.
+For each cluster it is possible to get the list of nodes and pods.
+
+If Sidero is deployed then the UI also provides a way to view:
+- the list of servers.
+- the list of clusters (for any CAPI provider).
+- allows getting kubeconfig and talosconfig for each Sidero cluster.
 
 For each node in the cluster it is possible to:
 - get the list of services and their health.
+- get node logs.
+- get performance metrics.
+- get each internal service logs (etcd, apid, machined and so on).
+- reboot the node.
 """
