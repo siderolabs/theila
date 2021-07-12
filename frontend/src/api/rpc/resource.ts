@@ -31,6 +31,13 @@ export interface ConfigResponse {
   data: string;
 }
 
+export interface UpgradeK8sSpec {
+  /** K8s version to upgrade to. */
+  version: string;
+  /** The list of nodes to perform upgrade on. */
+  nodes: string[];
+}
+
 const baseGetFromClusterRequest: object = {};
 
 export const GetFromClusterRequest = {
@@ -364,6 +371,85 @@ export const ConfigResponse = {
       message.data = object.data;
     } else {
       message.data = "";
+    }
+    return message;
+  },
+};
+
+const baseUpgradeK8sSpec: object = { version: "", nodes: "" };
+
+export const UpgradeK8sSpec = {
+  encode(message: UpgradeK8sSpec, writer: Writer = Writer.create()): Writer {
+    if (message.version !== "") {
+      writer.uint32(10).string(message.version);
+    }
+    for (const v of message.nodes) {
+      writer.uint32(18).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): UpgradeK8sSpec {
+    const reader = input instanceof Reader ? input : new Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseUpgradeK8sSpec } as UpgradeK8sSpec;
+    message.nodes = [];
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.version = reader.string();
+          break;
+        case 2:
+          message.nodes.push(reader.string());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpgradeK8sSpec {
+    const message = { ...baseUpgradeK8sSpec } as UpgradeK8sSpec;
+    message.nodes = [];
+    if (object.version !== undefined && object.version !== null) {
+      message.version = String(object.version);
+    } else {
+      message.version = "";
+    }
+    if (object.nodes !== undefined && object.nodes !== null) {
+      for (const e of object.nodes) {
+        message.nodes.push(String(e));
+      }
+    }
+    return message;
+  },
+
+  toJSON(message: UpgradeK8sSpec): unknown {
+    const obj: any = {};
+    message.version !== undefined && (obj.version = message.version);
+    if (message.nodes) {
+      obj.nodes = message.nodes.map((e) => e);
+    } else {
+      obj.nodes = [];
+    }
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<UpgradeK8sSpec>): UpgradeK8sSpec {
+    const message = { ...baseUpgradeK8sSpec } as UpgradeK8sSpec;
+    message.nodes = [];
+    if (object.version !== undefined && object.version !== null) {
+      message.version = object.version;
+    } else {
+      message.version = "";
+    }
+    if (object.nodes !== undefined && object.nodes !== null) {
+      for (const e of object.nodes) {
+        message.nodes.push(e);
+      }
     }
     return message;
   },

@@ -2,10 +2,10 @@
 import { util, configure, Writer, Reader } from "protobufjs/minimal";
 import * as Long from "long";
 import {
-  Source,
+  Runtime,
   Context,
-  sourceFromJSON,
-  sourceToJSON,
+  runtimeFromJSON,
+  runtimeToJSON,
 } from "../common/theila";
 import { WatchRequest } from "../talos/resource/resource";
 
@@ -116,7 +116,7 @@ export interface WatchSpec {
   /** Resource name to watch. */
   resource: WatchRequest | undefined;
   /** Source to get the watch data from. */
-  source: Source;
+  source: Runtime;
   /** Context settings to fetch the data from. */
   context: Context | undefined;
   /** Selector represents watch label selector. */
@@ -345,7 +345,7 @@ export const WatchSpec = {
       message.resource = undefined;
     }
     if (object.source !== undefined && object.source !== null) {
-      message.source = sourceFromJSON(object.source);
+      message.source = runtimeFromJSON(object.source);
     } else {
       message.source = 0;
     }
@@ -368,7 +368,8 @@ export const WatchSpec = {
       (obj.resource = message.resource
         ? WatchRequest.toJSON(message.resource)
         : undefined);
-    message.source !== undefined && (obj.source = sourceToJSON(message.source));
+    message.source !== undefined &&
+      (obj.source = runtimeToJSON(message.source));
     message.context !== undefined &&
       (obj.context = message.context
         ? Context.toJSON(message.context)

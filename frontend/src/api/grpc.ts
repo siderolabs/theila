@@ -1,11 +1,11 @@
-// This Source Code Form is subject to the terms of the Mozilla Public
+// This Runtime Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import { ClusterResourceService, GetFromClusterRequest, ListFromClusterRequest} from './rpc/resource.pb';
 import { ContextService as WrappedContextService, ListContextsRequest, ListContextsResponse } from './rpc/context.pb';
 import { MachineService as WrappedMachineService } from './talos/machine/machine.pb';
-import { Source, Context, Cluster } from './common/theila.pb';
+import { Runtime, Context, Cluster } from './common/theila.pb';
 import { context } from '../context';
 import { backOff, IBackOffOptions } from "exponential-backoff";
 import { ref, Ref } from 'vue';
@@ -15,7 +15,7 @@ const pathPrefix = "/api";
 const prefix = {pathPrefix: pathPrefix};
 
 type OptionsPartial = {
-  source?: Source
+  runtime?: Runtime
   metadata?: Object
 }
 
@@ -42,18 +42,18 @@ export class Options {
 
   private controller: AbortController = new AbortController()
 
-  constructor(source?: Source, metadata?: Object) {
+  constructor(runtime?: Runtime, metadata?: Object) {
     this.headers = new Headers();
     this.signal = this.controller.signal;
 
-    if(!source)
-      source = Source.Kubernetes;
+    if(!runtime)
+      runtime = Runtime.Kubernetes;
 
     const md = metadata ? metadata : {};
-    md["source"] = source.toString();
+    md["runtime"] = runtime.toString();
 
     if(context.current.value) {
-      md["context"] = md["context"] || source === Source.Talos ? context.current.value.cluster : context.current.value.name;
+      md["context"] = md["context"] || runtime === Runtime.Talos ? context.current.value.cluster : context.current.value.name;
     }
 
     for(const key in md) {
@@ -69,7 +69,7 @@ export class Options {
     if(!obj)
       return new Options();
 
-    return new Options(obj.source, obj.metadata);
+    return new Options(obj.runtime, obj.metadata);
   }
 }
 

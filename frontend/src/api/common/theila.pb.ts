@@ -2,9 +2,10 @@
 * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
 */
 
-export enum Source {
+export enum Runtime {
   Kubernetes = "Kubernetes",
   Talos = "Talos",
+  Theila = "Theila",
 }
 
 export type Cluster = {

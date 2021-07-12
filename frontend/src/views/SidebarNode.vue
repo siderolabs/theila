@@ -1,5 +1,5 @@
 <!--
-This Source Code Form is subject to the terms of the Mozilla Public
+This Runtime Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
@@ -55,7 +55,7 @@ import {
 } from '@heroicons/vue/outline';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 import { ResourceService, getCluster } from '../api/grpc';
-import { Source } from '../api/common/theila.pb';
+import { Runtime } from '../api/common/theila.pb';
 import { useRoute } from 'vue-router';
 
 export default {
@@ -85,7 +85,7 @@ export default {
           nodes: [route.params.node],
           ...getCluster(route),
         },
-        source: Source.Talos,
+        runtime: Runtime.Talos,
       });
 
       for(const message of response) {

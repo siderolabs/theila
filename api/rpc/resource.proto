@@ -31,6 +31,13 @@ message ConfigResponse {
   string data = 1;
 }
 
+message UpgradeK8sSpec {
+  // K8s version to upgrade to.
+  string version = 1;
+  // The list of nodes to perform upgrade on.
+  repeated string nodes = 2;
+}
+
 service ClusterResourceService {
   rpc Get(GetFromClusterRequest) returns (GetFromClusterResponse);
   rpc List(ListFromClusterRequest) returns (ListFromClusterResponse);

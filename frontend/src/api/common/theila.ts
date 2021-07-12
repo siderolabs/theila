@@ -5,35 +5,42 @@ import * as Long from "long";
 export const protobufPackage = "common";
 
 /** Data source. */
-export enum Source {
-  /** Kubernetes - Get the data from Kubernetes control planes. */
+export enum Runtime {
+  /** Kubernetes - Kubernetes control plane. */
   Kubernetes = 0,
-  /** Talos - Get the data from Talos apid. */
+  /** Talos - Talos apid. */
   Talos = 1,
+  /** Theila - Theila internal runtime. */
+  Theila = 2,
   UNRECOGNIZED = -1,
 }
 
-export function sourceFromJSON(object: any): Source {
+export function runtimeFromJSON(object: any): Runtime {
   switch (object) {
     case 0:
     case "Kubernetes":
-      return Source.Kubernetes;
+      return Runtime.Kubernetes;
     case 1:
     case "Talos":
-      return Source.Talos;
+      return Runtime.Talos;
+    case 2:
+    case "Theila":
+      return Runtime.Theila;
     case -1:
     case "UNRECOGNIZED":
     default:
-      return Source.UNRECOGNIZED;
+      return Runtime.UNRECOGNIZED;
   }
 }
 
-export function sourceToJSON(object: Source): string {
+export function runtimeToJSON(object: Runtime): string {
   switch (object) {
-    case Source.Kubernetes:
+    case Runtime.Kubernetes:
       return "Kubernetes";
-    case Source.Talos:
+    case Runtime.Talos:
       return "Talos";
+    case Runtime.Theila:
+      return "Theila";
     default:
       return "UNKNOWN";
   }

@@ -1,5 +1,5 @@
 <!--
-This Source Code Form is subject to the terms of the Mozilla Public
+This Runtime Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
@@ -87,7 +87,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import { Options, Vue } from 'vue-class-component';
 import TSpinner from '../components/TSpinner.vue';
 import { ResourceService } from '../api/grpc';
-import { Source } from '../api/common/theila.pb';
+import { Runtime } from '../api/common/theila.pb';
 import {
   CheckCircleIcon,
   DotsHorizontalIcon,
@@ -145,7 +145,7 @@ import pluralize from 'pluralize';
         uid: this.item.metadata.uid,
         namespace: this.item.metadata.namespace,
       }, {
-        source: Source.Talos,
+        runtime: Runtime.Talos,
       });
 
       this.link.href = `data:application/octet-stream;charset=utf-16le;base64,${btoa(response)}`;
@@ -159,7 +159,7 @@ import pluralize from 'pluralize';
         uid: this.item.metadata.uid,
         namespace: this.item.metadata.namespace,
       }, {
-        source: Source.Kubernetes,
+        runtime: Runtime.Kubernetes,
       });
 
       this.link.href = `data:application/octet-stream;charset=utf-16le;base64,${btoa(response)}`;

@@ -1,10 +1,10 @@
-// This Source Code Form is subject to the terms of the Mozilla Public
+// This Runtime Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import { reactive, ref, watch, Ref, onMounted, onUnmounted, toRefs } from 'vue';
 import { Client, Callback, ClientReconnected } from './client';
-import { Source, Context } from './common/theila';
+import { Runtime, Context } from './common/theila';
 import { Message, WatchSpec, UnsubscribeSpec, Kind } from './socket/message';
 import { v4 as uuidv4 } from 'uuid';
 import { context as ctx } from '../context';
@@ -22,7 +22,7 @@ export interface CompareFunc {
 
 export default class Watch {
   private client: Client;
-  private source: Source = Source.Kubernetes;
+  private source: Runtime = Runtime.Kubernetes;
   private resource?: Object;
   private uid!: string;
   private callback: Callback;
@@ -133,12 +133,12 @@ export default class Watch {
         return;
       }
 
-      let source:Source;
+      let source:Runtime;
 
       if(kubernetes.value) {
-        source = Source.Kubernetes;
+        source = Runtime.Kubernetes;
       } else if(talos.value) {
-        source = Source.Talos;
+        source = Runtime.Talos;
       } else {
         throw new Error("unknown source specified");
       }
@@ -153,7 +153,7 @@ export default class Watch {
       // override the context name by the current default one unless it's explicitly defined
       if(ctx.current.value) {
         if(!componentContext.context || !componentContext.context.name)
-          c["name"] = source == Source.Kubernetes ? ctx.current.value.name : ctx.current.value.cluster;
+          c["name"] = source == Runtime.Kubernetes ? ctx.current.value.name : ctx.current.value.cluster;
       }
 
       this.start(
@@ -187,7 +187,7 @@ export default class Watch {
     });
   }
 
-  public async start(source: Source, resource: Object, context?: Object, compare?: CompareFunc): Promise<Message> {
+  public async start(source: Runtime, resource: Object, context?: Object, compare?: CompareFunc): Promise<Message> {
     this.loading.value = true;
     this.err.value = "";
 
@@ -296,7 +296,7 @@ export default class Watch {
       return "";
     }
 
-    const name = this.source === Source.Kubernetes ? item["metadata"]["name"] : item["metadata"]["id"];
+    const name = this.source === Runtime.Kubernetes ? item["metadata"]["name"] : item["metadata"]["id"];
 
     return `${item["metadata"]["namespace"] || "default"}.${name}`;
   }

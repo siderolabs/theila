@@ -49,7 +49,7 @@ func (r *Router) Director(ctx context.Context, fullMethodName string) (proxy.Mod
 			return proxy.One2One, nil, fmt.Errorf("machine requests require metadata to be defined in the request")
 		}
 
-		if source := md.Get("source"); source != nil && source[0] == common.Source_Talos.String() {
+		if runtime := md.Get("runtime"); runtime != nil && runtime[0] == common.Runtime_Talos.String() {
 			backends, err := r.getTalosBackend(ctx, md)
 			if err != nil {
 				return proxy.One2One, nil, err
