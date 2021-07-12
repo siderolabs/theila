@@ -46,6 +46,7 @@ export enum MachineConfigMachineType {
   TYPE_UNKNOWN = "TYPE_UNKNOWN",
   TYPE_INIT = "TYPE_INIT",
   TYPE_CONTROL_PLANE = "TYPE_CONTROL_PLANE",
+  TYPE_WORKER = "TYPE_WORKER",
   TYPE_JOIN = "TYPE_JOIN",
 }
 
@@ -313,6 +314,7 @@ export type Version = {
   metadata?: CommonCommon.Metadata
   version?: VersionInfo
   platform?: PlatformInfo
+  features?: FeaturesInfo
 }
 
 export type VersionResponse = {
@@ -331,6 +333,10 @@ export type VersionInfo = {
 export type PlatformInfo = {
   name?: string
   mode?: string
+}
+
+export type FeaturesInfo = {
+  rbac?: boolean
 }
 
 export type LogsRequest = {

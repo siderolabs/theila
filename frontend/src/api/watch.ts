@@ -4,8 +4,8 @@
 
 import { reactive, ref, watch, Ref, onMounted, onUnmounted, toRefs } from 'vue';
 import { Client, Callback, ClientReconnected } from './client';
-import { Source, Context } from '../common/theila';
-import { Message, WatchSpec, UnsubscribeSpec, Kind } from './message';
+import { Source, Context } from './common/theila';
+import { Message, WatchSpec, UnsubscribeSpec, Kind } from './socket/message';
 import { v4 as uuidv4 } from 'uuid';
 import { context as ctx } from '../context';
 

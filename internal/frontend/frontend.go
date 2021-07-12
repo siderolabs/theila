@@ -4,7 +4,7 @@
 
 // THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 //
-// Generated on 2021-06-22T21:17:31Z by kres a97e980-dirty.
+// Generated on 2021-07-12T13:05:14Z by kres de590dd-dirty.
 
 package frontend
 

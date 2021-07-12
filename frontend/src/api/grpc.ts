@@ -2,10 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import { ClusterResourceService, GetFromClusterRequest, ListFromClusterRequest} from './resource.pb';
-import { ContextService as WrappedContextService, ListContextsRequest, ListContextsResponse } from './context.pb';
-import { MachineService as WrappedMachineService } from '../talos/machine/machine.pb';
-import { Source, Context, Cluster } from '../common/theila.pb';
+import { ClusterResourceService, GetFromClusterRequest, ListFromClusterRequest} from './rpc/resource.pb';
+import { ContextService as WrappedContextService, ListContextsRequest, ListContextsResponse } from './rpc/context.pb';
+import { MachineService as WrappedMachineService } from './talos/machine/machine.pb';
+import { Source, Context, Cluster } from './common/theila.pb';
 import { context } from '../context';
 import { backOff, IBackOffOptions } from "exponential-backoff";
 import { ref, Ref } from 'vue';
