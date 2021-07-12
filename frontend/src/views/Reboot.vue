@@ -1,5 +1,5 @@
 <!--
-This Source Code Form is subject to the terms of the Mozilla Public
+This Runtime Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
@@ -26,7 +26,7 @@ import TButton from '../components/TButton.vue';
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { MachineService, getCluster } from '../api/grpc';
-import { Source } from '../api/common/theila.pb';
+import { Runtime } from '../api/common/theila.pb';
 import {
   ExclamationIcon,
 } from '@heroicons/vue/outline';
@@ -59,7 +59,7 @@ export default {
 
         try {
           const res = await MachineService.Reboot({}, {
-            source: Source.Talos,
+            runtime: Runtime.Talos,
             metadata: {
               nodes: [route.query.node],
               ...getCluster(route),

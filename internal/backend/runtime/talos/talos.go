@@ -10,16 +10,14 @@ import (
 	"fmt"
 	"io"
 	"sort"
-	"strings"
 	"sync"
 
-	noderesource "github.com/cosi-project/runtime/pkg/resource"
+	cosiresource "github.com/cosi-project/runtime/pkg/resource"
 	"github.com/cosi-project/runtime/pkg/state"
 	cabpt "github.com/talos-systems/cluster-api-bootstrap-provider-talos/api/v1alpha3"
 	cacpt "github.com/talos-systems/cluster-api-control-plane-provider-talos/api/v1alpha3"
 	sidero "github.com/talos-systems/sidero/app/cluster-api-provider-sidero/api/v1alpha3"
 	metal "github.com/talos-systems/sidero/app/metal-controller-manager/api/v1alpha1"
-	nodecommon "github.com/talos-systems/talos/pkg/machinery/api/common"
 	"github.com/talos-systems/talos/pkg/machinery/api/resource"
 	"github.com/talos-systems/talos/pkg/machinery/client"
 	clientconfig "github.com/talos-systems/talos/pkg/machinery/client/config"
@@ -28,7 +26,6 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/cluster-api/api/v1alpha3"
 
@@ -40,51 +37,7 @@ import (
 )
 
 // Name talos runtime string id.
-var Name = common.Source_Talos.String()
-
-// ResourceList wraps multiple items responses from Talos resource API into a struct which is similar to what we have in Kubernetes.
-type ResourceList struct {
-	Items []*Resource `json:"items"`
-}
-
-// Resource wraps Talos resource response to be encoded as JSON.
-type Resource struct {
-	Metadata map[string]interface{} `yaml:"metadata" json:"metadata"`
-	Spec     map[string]interface{} `yaml:"spec" json:"spec"`
-	ID       string                 `yaml:"-" json:"-"`
-}
-
-func newResource(m *nodecommon.Metadata, r noderesource.Resource) (*Resource, error) {
-	s, err := noderesource.MarshalYAML(r)
-	if err != nil {
-		return nil, err
-	}
-
-	data, err := yaml.Marshal(s)
-	if err != nil {
-		return nil, err
-	}
-
-	parts := []string{}
-	if m != nil {
-		parts = append(parts, m.Hostname)
-	}
-
-	parts = append(parts, r.Metadata().Namespace(), r.Metadata().ID())
-
-	res := &Resource{
-		ID: strings.Join(parts, "/"),
-	}
-	if err = yaml.Unmarshal(data, &res); err != nil {
-		return nil, err
-	}
-
-	if m != nil {
-		res.Metadata["node"] = m.GetHostname()
-	}
-
-	return res, nil
-}
+var Name = common.Runtime_Talos.String()
 
 // Runtime implements runtime.Runtime for Talos resources.
 type Runtime struct {
@@ -95,7 +48,7 @@ type Runtime struct {
 	clientsMu sync.RWMutex
 }
 
-// New creates new Talos runtime.
+// New creates a new Talos runtime.
 func New() *Runtime {
 	return &Runtime{
 		clients: map[string]*client.Client{},
@@ -137,7 +90,7 @@ func (r *Runtime) Watch(ctx context.Context, request *message.WatchSpec, events 
 			zap.String("namespace", request.Resource.Namespace),
 			zap.String("name", request.Resource.Id),
 		),
-		items: []*Resource{},
+		items: []*runtime.Resource{},
 	}
 
 	if err := w.run(ctx); err != nil {
@@ -166,20 +119,22 @@ func (r *Runtime) Get(ctx context.Context, setters ...runtime.QueryOption) (inte
 	}
 
 	if len(resources) == 1 {
-		return newResource(resources[0].Metadata, resources[0].Resource)
+		return runtime.NewResource(resources[0].Metadata, resources[0].Resource)
 	}
 
-	l := &ResourceList{
-		Items: make([]*Resource, len(resources)),
-	}
+	l := runtime.NewResourceList()
 
-	for i, r := range resources {
-		r := r
+	for _, r := range resources {
+		if r.Resource == nil {
+			continue
+		}
 
-		l.Items[i], err = newResource(r.Metadata, r.Resource)
+		res, err := runtime.NewResource(r.Metadata, r.Resource)
 		if err != nil {
 			return nil, err
 		}
+
+		l.Items = append(l.Items, res)
 	}
 
 	return l, nil
@@ -201,9 +156,7 @@ func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) (int
 		return nil, err
 	}
 
-	res := &ResourceList{
-		Items: []*Resource{},
-	}
+	response := runtime.NewResourceList()
 
 	for {
 		info, err := listClient.Recv()
@@ -223,15 +176,30 @@ func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) (int
 			return nil, fmt.Errorf(info.Metadata.Error)
 		}
 
-		r, err := newResource(info.Metadata, info.Resource)
+		r, err := runtime.NewResource(info.Metadata, info.Resource)
 		if err != nil {
 			return nil, err
 		}
 
-		res.Items = append(res.Items, r)
+		response.Items = append(response.Items, r)
 	}
 
-	return res, nil
+	return response, nil
+}
+
+// Create implements runtime.Runtime.
+func (r *Runtime) Create(ctx context.Context, resource cosiresource.Resource, setters ...runtime.QueryOption) error {
+	return fmt.Errorf("not implemented")
+}
+
+// Update implements runtime.Runtime.
+func (r *Runtime) Update(ctx context.Context, resource cosiresource.Resource, setters ...runtime.QueryOption) error {
+	return fmt.Errorf("not implemented")
+}
+
+// Delete implements runtime.Runtime.
+func (r *Runtime) Delete(ctx context.Context, setters ...runtime.QueryOption) error {
+	return fmt.Errorf("not implemented")
 }
 
 // AddContext implements runtime.Runtime.
@@ -360,6 +328,15 @@ func (r *Runtime) getConfig() (*clientconfig.Config, error) {
 
 //nolint:gocognit,gocyclo,cyclop
 func (r *Runtime) fetchTalosconfig(ctx context.Context, name string, clusterCtx *common.Cluster) error {
+	var (
+		controlplane = cacpt.TalosControlPlane{}
+		machines     = v1alpha3.MachineList{}
+		cluster      = v1alpha3.Cluster{}
+		metalMachine = sidero.MetalMachine{}
+		server       = metal.Server{}
+		talosConfig  = cabpt.TalosConfig{}
+	)
+
 	k8s, err := runtime.Get(kubernetes.Name)
 	if err != nil {
 		return err
@@ -378,8 +355,8 @@ func (r *Runtime) fetchTalosconfig(ctx context.Context, name string, clusterCtx 
 		return nil
 	}
 
-	res, err := k8s.Get(ctx,
-		runtime.WithType(v1alpha3.Cluster{}),
+	_, err = k8s.Get(ctx,
+		runtime.WithType(&cluster),
 		runtime.WithName(clusterCtx.Name),
 		runtime.WithNamespace(clusterCtx.Namespace),
 	)
@@ -387,41 +364,26 @@ func (r *Runtime) fetchTalosconfig(ctx context.Context, name string, clusterCtx 
 		return fmt.Errorf("failed to get cluster %w", err)
 	}
 
-	cluster, ok := res.(*v1alpha3.Cluster)
-	if !ok {
-		return fmt.Errorf("failed to convert the response to v1alpha3.Cluster")
-	}
-
 	id := string(cluster.UID)
-	if _, ok = cfg.Contexts[id]; ok {
+	if _, ok := cfg.Contexts[id]; ok {
 		return nil
 	}
 
-	res, err = k8s.Get(ctx,
+	_, err = k8s.Get(ctx,
 		runtime.WithNamespace(cluster.Spec.ControlPlaneRef.Namespace),
 		runtime.WithName(cluster.Spec.ControlPlaneRef.Name),
-		runtime.WithType(cacpt.TalosControlPlane{}),
+		runtime.WithType(&controlplane),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to controlplane %w", err)
 	}
 
-	controlplane, ok := res.(*cacpt.TalosControlPlane)
-	if !ok {
-		return fmt.Errorf("failed to convert the response to cacpt.TalosControlPlane")
-	}
-
-	res, err = k8s.List(ctx,
+	_, err = k8s.List(ctx,
 		runtime.WithLabelSelector(controlplane.Status.Selector),
-		runtime.WithType(v1alpha3.MachineList{}),
+		runtime.WithType(&machines),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to get talos control plane %w", err)
-	}
-
-	machines, ok := res.(*v1alpha3.MachineList)
-	if !ok {
-		return fmt.Errorf("failed to convert the response to v1alpha3.MachineList")
 	}
 
 	if len(machines.Items) < 1 {
@@ -442,20 +404,13 @@ func (r *Runtime) fetchTalosconfig(ctx context.Context, name string, clusterCtx 
 				continue
 			}
 
-			var metalMachine *sidero.MetalMachine
-
-			r, e := k8s.Get(ctx,
+			_, err = k8s.Get(ctx,
 				runtime.WithNamespace(machine.Spec.InfrastructureRef.Namespace),
 				runtime.WithName(machine.Spec.InfrastructureRef.Name),
-				runtime.WithType(sidero.MetalMachine{}),
+				runtime.WithType(&metalMachine),
 			)
-			if e != nil {
-				return nil, e
-			}
-
-			metalMachine, ok = r.(*sidero.MetalMachine)
-			if !ok {
-				return nil, fmt.Errorf("failed to convert the response to sidero.MetalMachine")
+			if err != nil {
+				return nil, err
 			}
 
 			if metalMachine.Spec.ServerRef == nil {
@@ -466,20 +421,13 @@ func (r *Runtime) fetchTalosconfig(ctx context.Context, name string, clusterCtx 
 				continue
 			}
 
-			var server *metal.Server
-
-			r, e = k8s.Get(ctx,
+			_, err = k8s.Get(ctx,
 				runtime.WithNamespace(metalMachine.Spec.ServerRef.Namespace),
 				runtime.WithName(metalMachine.Spec.ServerRef.Name),
-				runtime.WithType(metal.Server{}),
+				runtime.WithType(&server),
 			)
-			if e != nil {
-				return nil, e
-			}
-
-			server, ok = r.(*metal.Server)
-			if !ok {
-				return nil, fmt.Errorf("failed to convert the response to metal.Server")
+			if err != nil {
+				return nil, err
 			}
 
 			for _, address := range server.Status.Addresses {
@@ -492,7 +440,7 @@ func (r *Runtime) fetchTalosconfig(ctx context.Context, name string, clusterCtx 
 		return endpoints, nil
 	}
 
-	controlPlaneNodes, err := resolveMachinesToIPs(machines)
+	controlPlaneNodes, err := resolveMachinesToIPs(&machines)
 	if err != nil {
 		return fmt.Errorf("failed to resolve machines to IPs %w", err)
 	}
@@ -501,18 +449,13 @@ func (r *Runtime) fetchTalosconfig(ctx context.Context, name string, clusterCtx 
 		return fmt.Errorf("failed to find control plane nodes")
 	}
 
-	res, err = k8s.Get(ctx,
+	_, err = k8s.Get(ctx,
 		runtime.WithNamespace(configRef.Namespace),
 		runtime.WithName(configRef.Name),
-		runtime.WithType(cabpt.TalosConfig{}),
+		runtime.WithType(&talosConfig),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to get machines list %w", err)
-	}
-
-	talosConfig, ok := res.(*cabpt.TalosConfig)
-	if !ok {
-		return fmt.Errorf("failed to convert the response to cabpt.TalosConfig")
 	}
 
 	var (
@@ -580,7 +523,7 @@ type Watch struct {
 	resource *resource.WatchRequest
 	client   *client.Client
 	logger   *zap.Logger
-	items    []*Resource
+	items    []*runtime.Resource
 }
 
 //nolint:gocognit
@@ -619,7 +562,7 @@ func (w *Watch) run(ctx context.Context) error {
 				continue
 			}
 
-			r, err := newResource(msg.Metadata, msg.Resource)
+			r, err := runtime.NewResource(msg.Metadata, msg.Resource)
 			if err != nil {
 				w.logger.Error("failed to create resource", zap.Error(err))
 

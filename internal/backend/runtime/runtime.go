@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"sync"
 
+	cosiresource "github.com/cosi-project/runtime/pkg/resource"
+
 	"github.com/talos-systems/theila/api/common"
 	"github.com/talos-systems/theila/api/socket/message"
 )
@@ -34,6 +36,9 @@ type Runtime interface {
 	Watch(context.Context, *message.WatchSpec, chan Event) error
 	Get(context.Context, ...QueryOption) (interface{}, error)
 	List(context.Context, ...QueryOption) (interface{}, error)
+	Create(context.Context, cosiresource.Resource, ...QueryOption) error
+	Update(context.Context, cosiresource.Resource, ...QueryOption) error
+	Delete(context.Context, ...QueryOption) error
 	AddContext(string, []byte) error
 	GetContext(context.Context, *common.Context, *common.Cluster) ([]byte, error)
 }

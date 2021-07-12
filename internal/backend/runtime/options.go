@@ -10,14 +10,15 @@ import (
 
 // QueryOptions List and Get query options.
 type QueryOptions struct {
-	Cluster       *common.Cluster
-	Type          interface{}
-	Namespace     string
-	Name          string
-	Context       string
-	Resource      string
-	LabelSelector string
-	Nodes         []string
+	Cluster        *common.Cluster
+	Type           interface{}
+	Namespace      string
+	Name           string
+	Context        string
+	Resource       string
+	LabelSelector  string
+	CurrentVersion string
+	Nodes          []string
 }
 
 // NewQueryOptions creates new QueryOptions.
@@ -87,5 +88,12 @@ func WithType(t interface{}) QueryOption {
 func WithNodes(nodes ...string) QueryOption {
 	return func(o *QueryOptions) {
 		o.Nodes = nodes
+	}
+}
+
+// WithCurrentVersion pass current version to the update call to avoid conflicts (only for update, Theila only).
+func WithCurrentVersion(version string) QueryOption {
+	return func(o *QueryOptions) {
+		o.CurrentVersion = version
 	}
 }

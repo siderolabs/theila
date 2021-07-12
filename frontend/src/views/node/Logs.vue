@@ -1,5 +1,5 @@
 <!--
-This Source Code Form is subject to the terms of the Mozilla Public
+This Runtime Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
@@ -40,7 +40,7 @@ import TBreadcrumbs from '../../components/TBreadcrumbs.vue';
 import TAlert from '../../components/TAlert.vue';
 import { ref, watch, onUnmounted, onUpdated, computed } from 'vue';
 import { MachineService, subscribe, getCluster } from '../../api/grpc';
-import { Source } from '../../api/common/theila.pb';
+import { Runtime } from '../../api/common/theila.pb';
 import { Switch } from '@headlessui/vue';
 import { CheckIcon } from '@heroicons/vue/solid';
 
@@ -127,7 +127,7 @@ export default {
           scrollToBottom();
         }, 50);
       }, {
-        source: Source.Talos, 
+        runtime: Runtime.Talos,
         metadata: {
           nodes: [route.params.node],
           ...getCluster(route),

@@ -132,17 +132,17 @@ func (s *resourceServer) GetConfig(ctx context.Context, cluster *common.Cluster)
 	}, nil
 }
 
-func getSource(ctx context.Context) common.Source {
+func getSource(ctx context.Context) common.Runtime {
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		source := md.Get("source")
+		source := md.Get("runtime")
 		if source != nil {
-			if res, ok := common.Source_value[source[0]]; ok {
-				return common.Source(res)
+			if res, ok := common.Runtime_value[source[0]]; ok {
+				return common.Runtime(res)
 			}
 		}
 	}
 
-	return common.Source_Kubernetes
+	return common.Runtime_Kubernetes
 }
 
 type resource interface {

@@ -8,10 +8,10 @@ package kubernetes
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"strings"
 	"sync"
 
+	cosiresource "github.com/cosi-project/runtime/pkg/resource"
 	"github.com/gertd/go-pluralize"
 	"github.com/talos-systems/talos/pkg/machinery/api/resource"
 	v1 "k8s.io/api/core/v1"
@@ -34,7 +34,7 @@ import (
 )
 
 // Name kubernetes runtime string id.
-var Name = common.Source_Kubernetes.String()
+var Name = common.Runtime_Kubernetes.String()
 
 // New creates new Runtime.
 func New() (*Runtime, error) {
@@ -146,12 +146,14 @@ func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) (int
 		return nil, err
 	}
 
-	// unsafe guess list type
-	parts := strings.Split(opts.Resource, ".")
-	if !strings.HasSuffix(strings.ToLower(parts[0]), "list") {
-		parts[0] = r.pluralize.Singular(parts[0])
-		parts[0] += "list"
-		opts.Resource = strings.Join(parts, ".")
+	if opts.Type == nil {
+		// unsafe guess list type
+		parts := strings.Split(opts.Resource, ".")
+		if !strings.HasSuffix(strings.ToLower(parts[0]), "list") {
+			parts[0] = r.pluralize.Singular(parts[0])
+			parts[0] += "list"
+			opts.Resource = strings.Join(parts, ".")
+		}
 	}
 
 	object, err := r.createObject(client, opts)
@@ -182,6 +184,37 @@ func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) (int
 	return object, nil
 }
 
+// Create implements runtime.Runtime.
+func (r *Runtime) Create(ctx context.Context, resource cosiresource.Resource, setters ...runtime.QueryOption) error {
+	return fmt.Errorf("not implemented")
+}
+
+// Update implements runtime.Runtime.
+func (r *Runtime) Update(ctx context.Context, resource cosiresource.Resource, setters ...runtime.QueryOption) error {
+	return fmt.Errorf("not implemented")
+}
+
+// Delete implements runtime.Runtime.
+func (r *Runtime) Delete(ctx context.Context, setters ...runtime.QueryOption) error {
+	opts := runtime.NewQueryOptions(setters...)
+
+	client, err := r.getOrCreateClient(ctx, opts)
+	if err != nil {
+		return err
+	}
+
+	object, err := r.Get(ctx, setters...)
+	if err != nil {
+		return err
+	}
+
+	if o, ok := object.(k8sruntime.Object); ok {
+		return client.Delete(ctx, o)
+	}
+
+	return fmt.Errorf("failed to convert object to runtime.Object")
+}
+
 // AddContext implements runtime.Runtime.
 func (r *Runtime) AddContext(id string, data []byte) error {
 	c, err := clientcmd.RESTConfigFromKubeConfig(data)
@@ -198,13 +231,16 @@ func (r *Runtime) AddContext(id string, data []byte) error {
 
 // GetContext implements runtime.Runtime.
 func (r *Runtime) GetContext(ctx context.Context, context *common.Context, cluster *common.Cluster) ([]byte, error) {
-	var err error
+	var (
+		err    error
+		secret v1.Secret
+	)
 
 	opts := []runtime.QueryOption{
 		runtime.WithName(
 			fmt.Sprintf("%s-kubeconfig", cluster.Name),
 		),
-		runtime.WithType(v1.Secret{}),
+		runtime.WithType(&secret),
 	}
 
 	if context != nil {
@@ -215,17 +251,12 @@ func (r *Runtime) GetContext(ctx context.Context, context *common.Context, clust
 		opts = append(opts, runtime.WithNamespace(cluster.Namespace))
 	}
 
-	s, err := r.Get(
+	_, err = r.Get(
 		ctx,
 		opts...,
 	)
 	if err != nil {
 		return nil, err
-	}
-
-	secret, ok := s.(*v1.Secret)
-	if !ok {
-		return nil, fmt.Errorf("failed to convert the response to v1.Secret")
 	}
 
 	raw, ok := secret.Data["value"]
@@ -357,13 +388,8 @@ func (r *Runtime) createObject(c *client, opts *runtime.QueryOptions) (k8sruntim
 			if err != nil {
 				return nil, err
 			}
-		} else {
-			val := reflect.New(reflect.TypeOf(opts.Type))
-			object, ok = val.Interface().(k8sruntime.Object)
-
-			if !ok {
-				return nil, fmt.Errorf("defined type is not runtime.Object")
-			}
+		} else if o, ok := opts.Type.(k8sruntime.Object); ok {
+			return o, nil
 		}
 	case opts.Resource != "":
 		gvr, err := parseResource(opts.Resource)
@@ -459,8 +485,6 @@ func (w *Watch) run(ctx context.Context) error {
 
 	go func() {
 		dynamicInformer.Start(ctx.Done())
-
-		<-ctx.Done()
 	}()
 
 	dynamicInformer.WaitForCacheSync(ctx.Done())

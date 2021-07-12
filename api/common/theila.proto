@@ -5,11 +5,13 @@ package common;
 option go_package = "github.com/talos-systems/theila/api/common";
 
 // Data source.
-enum Source {
-  // Get the data from Kubernetes control planes.
+enum Runtime {
+  // Kubernetes control plane.
   Kubernetes = 0;
-  // Get the data from Talos apid.
+  // Talos apid.
   Talos = 1;
+  // Theila internal runtime.
+  Theila = 2;
 }
 // Cluster contains settings for fetching the config from cluster resource in Kubernetes.
 message Cluster {

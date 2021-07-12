@@ -37,7 +37,7 @@ message WatchSpec {
   // Resource name to watch.
   resource.WatchRequest resource = 1;
   // Source to get the watch data from.
-  common.Source source = 2;
+  common.Runtime source = 2;
   // Context settings to fetch the data from.
   common.Context context = 3;
   // Selector represents watch label selector.

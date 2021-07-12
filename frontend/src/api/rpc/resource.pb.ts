@@ -26,6 +26,11 @@ export type ConfigResponse = {
   data?: string
 }
 
+export type UpgradeK8sSpec = {
+  version?: string
+  nodes?: string[]
+}
+
 export class ClusterResourceService {
   static Get(req: GetFromClusterRequest, initReq?: fm.InitReq): Promise<GetFromClusterResponse> {
     return fm.fetchReq<GetFromClusterRequest, GetFromClusterResponse>(`/resource.ClusterResourceService/Get`, {...initReq, method: "POST", body: JSON.stringify(req)})

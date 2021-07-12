@@ -16,6 +16,7 @@ import (
 	"testing"
 	"time"
 
+	cosiresource "github.com/cosi-project/runtime/pkg/resource"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/suite"
@@ -60,6 +61,18 @@ func (t *testRuntime) Get(ctx context.Context, setters ...runtime.QueryOption) (
 
 func (t *testRuntime) List(ctx context.Context, setters ...runtime.QueryOption) (interface{}, error) {
 	return nil, nil
+}
+
+func (t *testRuntime) Create(ctx context.Context, resource cosiresource.Resource, setters ...runtime.QueryOption) error {
+	return fmt.Errorf("not implemented")
+}
+
+func (t *testRuntime) Update(ctx context.Context, resource cosiresource.Resource, setters ...runtime.QueryOption) error {
+	return fmt.Errorf("not implemented")
+}
+
+func (t *testRuntime) Delete(ctx context.Context, setters ...runtime.QueryOption) error {
+	return fmt.Errorf("not implemented")
 }
 
 type ServerSuite struct {
@@ -212,7 +225,7 @@ func (s *ServerSuite) TestSubscription() {
 		Resource: &resource.WatchRequest{
 			Type: "node",
 		},
-		Source: common.Source_Talos,
+		Source: common.Runtime_Talos,
 	})
 
 	s.Require().NoError(err)
@@ -314,7 +327,7 @@ func (s *ServerSuite) TestSubscribeUnsubscribe() {
 		Resource: &resource.WatchRequest{
 			Type: "nope",
 		},
-		Source: common.Source_Talos,
+		Source: common.Runtime_Talos,
 	})
 
 	s.Require().NoError(err)
@@ -342,7 +355,7 @@ func (s *ServerSuite) TestBadInputs() {
 		Resource: &resource.WatchRequest{
 			Type: "boom",
 		},
-		Source: common.Source_Talos,
+		Source: common.Runtime_Talos,
 	})
 	s.Require().Error(err)
 
