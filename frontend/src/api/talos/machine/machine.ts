@@ -600,6 +600,8 @@ export interface Version {
   metadata: Metadata | undefined;
   version: VersionInfo | undefined;
   platform: PlatformInfo | undefined;
+  /** Features describe individual Talos features that can be switched on or off. */
+  features: FeaturesInfo | undefined;
 }
 
 export interface VersionResponse {
@@ -618,6 +620,12 @@ export interface VersionInfo {
 export interface PlatformInfo {
   name: string;
   mode: string;
+}
+
+/** FeaturesInfo describes individual Talos features that can be switched on or off. */
+export interface FeaturesInfo {
+  /** RBAC is true if role-based access control is enabled. */
+  rbac: boolean;
 }
 
 /**
@@ -1086,6 +1094,12 @@ export enum MachineConfig_MachineType {
   TYPE_UNKNOWN = 0,
   TYPE_INIT = 1,
   TYPE_CONTROL_PLANE = 2,
+  TYPE_WORKER = 3,
+  /**
+   * TYPE_JOIN - Alias for TYPE_WORKER.
+   *
+   * @deprecated
+   */
   TYPE_JOIN = 3,
   UNRECOGNIZED = -1,
 }
@@ -1103,6 +1117,9 @@ export function machineConfig_MachineTypeFromJSON(
     case 2:
     case "TYPE_CONTROL_PLANE":
       return MachineConfig_MachineType.TYPE_CONTROL_PLANE;
+    case 3:
+    case "TYPE_WORKER":
+      return MachineConfig_MachineType.TYPE_WORKER;
     case 3:
     case "TYPE_JOIN":
       return MachineConfig_MachineType.TYPE_JOIN;
@@ -1123,6 +1140,8 @@ export function machineConfig_MachineTypeToJSON(
       return "TYPE_INIT";
     case MachineConfig_MachineType.TYPE_CONTROL_PLANE:
       return "TYPE_CONTROL_PLANE";
+    case MachineConfig_MachineType.TYPE_WORKER:
+      return "TYPE_WORKER";
     case MachineConfig_MachineType.TYPE_JOIN:
       return "TYPE_JOIN";
     default:
@@ -5355,6 +5374,9 @@ export const Version = {
     if (message.platform !== undefined) {
       PlatformInfo.encode(message.platform, writer.uint32(26).fork()).ldelim();
     }
+    if (message.features !== undefined) {
+      FeaturesInfo.encode(message.features, writer.uint32(34).fork()).ldelim();
+    }
     return writer;
   },
 
@@ -5373,6 +5395,9 @@ export const Version = {
           break;
         case 3:
           message.platform = PlatformInfo.decode(reader, reader.uint32());
+          break;
+        case 4:
+          message.features = FeaturesInfo.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -5399,6 +5424,11 @@ export const Version = {
     } else {
       message.platform = undefined;
     }
+    if (object.features !== undefined && object.features !== null) {
+      message.features = FeaturesInfo.fromJSON(object.features);
+    } else {
+      message.features = undefined;
+    }
     return message;
   },
 
@@ -5415,6 +5445,10 @@ export const Version = {
     message.platform !== undefined &&
       (obj.platform = message.platform
         ? PlatformInfo.toJSON(message.platform)
+        : undefined);
+    message.features !== undefined &&
+      (obj.features = message.features
+        ? FeaturesInfo.toJSON(message.features)
         : undefined);
     return obj;
   },
@@ -5435,6 +5469,11 @@ export const Version = {
       message.platform = PlatformInfo.fromPartial(object.platform);
     } else {
       message.platform = undefined;
+    }
+    if (object.features !== undefined && object.features !== null) {
+      message.features = FeaturesInfo.fromPartial(object.features);
+    } else {
+      message.features = undefined;
     }
     return message;
   },
@@ -5718,6 +5757,61 @@ export const PlatformInfo = {
       message.mode = object.mode;
     } else {
       message.mode = "";
+    }
+    return message;
+  },
+};
+
+const baseFeaturesInfo: object = { rbac: false };
+
+export const FeaturesInfo = {
+  encode(message: FeaturesInfo, writer: Writer = Writer.create()): Writer {
+    if (message.rbac === true) {
+      writer.uint32(8).bool(message.rbac);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): FeaturesInfo {
+    const reader = input instanceof Reader ? input : new Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseFeaturesInfo } as FeaturesInfo;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.rbac = reader.bool();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): FeaturesInfo {
+    const message = { ...baseFeaturesInfo } as FeaturesInfo;
+    if (object.rbac !== undefined && object.rbac !== null) {
+      message.rbac = Boolean(object.rbac);
+    } else {
+      message.rbac = false;
+    }
+    return message;
+  },
+
+  toJSON(message: FeaturesInfo): unknown {
+    const obj: any = {};
+    message.rbac !== undefined && (obj.rbac = message.rbac);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<FeaturesInfo>): FeaturesInfo {
+    const message = { ...baseFeaturesInfo } as FeaturesInfo;
+    if (object.rbac !== undefined && object.rbac !== null) {
+      message.rbac = object.rbac;
+    } else {
+      message.rbac = false;
     }
     return message;
   },

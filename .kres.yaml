@@ -55,51 +55,41 @@ spec:
 ---
 kind: js.Protobuf
 spec:
+  destinationRoot: src/api
   specs:
     - source: api/common/theila.proto
       subdirectory: common
-      destinationRoot: src
       genGateway: true
     - source: api/socket/message.proto
-      subdirectory: api
-      destinationRoot: src
+      subdirectory: socket
+      destinationRoot: src/api
     - source: api/rpc/resource.proto
-      subdirectory: api
-      destinationRoot: src
+      subdirectory: rpc
       genGateway: true
     - source: api/rpc/context.proto
-      subdirectory: api
-      destinationRoot: src
+      subdirectory: rpc
       genGateway: true
     - source: https://raw.githubusercontent.com/googleapis/googleapis/master/google/rpc/status.proto
-      destinationRoot: src
       subdirectory: google/rpc/
       genGateway: true
     - source: https://raw.githubusercontent.com/talos-systems/talos/master/api/resource/resource.proto
-      destinationRoot: src
       subdirectory: talos/resource
       genGateway: true
     - source: https://raw.githubusercontent.com/talos-systems/talos/master/api/machine/machine.proto
-      destinationRoot: src
       subdirectory: talos/machine
       genGateway: true
     - source: https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/any.proto
-      destinationRoot: src
       subdirectory: google/protobuf/
       genGateway: true
     - source: https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/duration.proto
-      destinationRoot: src
       subdirectory: google/protobuf/
       genGateway: true
     - source: https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/empty.proto
-      destinationRoot: src
       subdirectory: google/protobuf/
       genGateway: true
     - source: https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/timestamp.proto
-      destinationRoot: src
       subdirectory: google/protobuf/
       genGateway: true
     - source: https://raw.githubusercontent.com/talos-systems/talos/master/api/common/common.proto
-      destinationRoot: src
       subdirectory: common/
       genGateway: true

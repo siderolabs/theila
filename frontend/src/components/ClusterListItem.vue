@@ -87,7 +87,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import { Options, Vue } from 'vue-class-component';
 import TSpinner from '../components/TSpinner.vue';
 import { ResourceService } from '../api/grpc';
-import { Source } from '../common/theila.pb';
+import { Source } from '../api/common/theila.pb';
 import {
   CheckCircleIcon,
   DotsHorizontalIcon,

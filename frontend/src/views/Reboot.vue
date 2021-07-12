@@ -26,7 +26,7 @@ import TButton from '../components/TButton.vue';
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { MachineService, getCluster } from '../api/grpc';
-import { Source } from '../common/theila.pb';
+import { Source } from '../api/common/theila.pb';
 import {
   ExclamationIcon,
 } from '@heroicons/vue/outline';

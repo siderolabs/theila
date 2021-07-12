@@ -40,7 +40,7 @@ import TBreadcrumbs from '../../components/TBreadcrumbs.vue';
 import TAlert from '../../components/TAlert.vue';
 import { ref, watch, onUnmounted, onUpdated, computed } from 'vue';
 import { MachineService, subscribe, getCluster } from '../../api/grpc';
-import { Source } from '../../common/theila.pb';
+import { Source } from '../../api/common/theila.pb';
 import { Switch } from '@headlessui/vue';
 import { CheckIcon } from '@heroicons/vue/solid';
 

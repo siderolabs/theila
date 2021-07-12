@@ -34,7 +34,7 @@ import { theme, systemTheme, isDark } from '../theme';
 import VueApexCharts from "vue3-apexcharts";
 import Watch from "../api/watch";
 import TSpinner from "./TSpinner.vue";
-import { Kind } from "../api/message";
+import { Kind } from "../api/socket/message";
 import { context as ctx } from "../context";
 import {
   ExclamationIcon

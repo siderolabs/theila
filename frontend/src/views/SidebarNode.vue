@@ -55,7 +55,7 @@ import {
 } from '@heroicons/vue/outline';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 import { ResourceService, getCluster } from '../api/grpc';
-import { Source } from '../common/theila.pb';
+import { Source } from '../api/common/theila.pb';
 import { useRoute } from 'vue-router';
 
 export default {

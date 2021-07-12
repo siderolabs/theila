@@ -36,7 +36,7 @@ import TSpinner from './components/TSpinner.vue';
 import { context, changeContext, detectCapabilities } from './context';
 import { theme, systemTheme, isDark } from './theme';
 import { ContextService } from './api/grpc';
-import { Context } from './api/context.pb';
+import { Context } from './api/rpc/context.pb';
 
 export default {
   components: {

@@ -2,8 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import { Source } from '../common/theila';
-import { Message, Kind } from './message';
+import { Source } from './common/theila';
+import { Message, Kind } from './socket/message';
 import { backOff, IBackOffOptions } from "exponential-backoff";
 import { EventEmitter } from 'events';
 import { DateTime, Duration } from 'luxon';
