@@ -114,10 +114,9 @@ import pluralize from 'pluralize';
 
   async created() {
     const response = await ResourceService.List({
-      resource: {
-        namespace: this.item.metadata.namespace,
-        type: "machinelist.v1alpha3.cluster.x-k8s.io",
-      },
+      namespace: this.item.metadata.namespace,
+      type: "machinelist.v1alpha3.cluster.x-k8s.io",
+    }, {
       selectors: [
         `cluster.x-k8s.io/cluster-name=${this.item.metadata.name}`
       ]

@@ -77,9 +77,7 @@ export default {
 
     onMounted(async () => {
       const response = await ResourceService.List({
-        resource: {
-          type: 'services',
-        },
+        type: 'services',
       }, {
         metadata: {
           nodes: [route.params.node],

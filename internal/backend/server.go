@@ -20,18 +20,20 @@ import (
 	"github.com/talos-systems/theila/internal/backend/runtime"
 	"github.com/talos-systems/theila/internal/backend/runtime/kubernetes"
 	"github.com/talos-systems/theila/internal/backend/runtime/talos"
+	"github.com/talos-systems/theila/internal/backend/runtime/theila"
 	"github.com/talos-systems/theila/internal/backend/ws"
 	"github.com/talos-systems/theila/internal/frontend"
 )
 
 // Server is main backend entrypoint that starts REST API, WebSocket and Serves static contents.
 type Server struct {
-	ctx     context.Context
-	logger  *zap.Logger
-	ws      *ws.Server
-	grpc    *grpc.Server
-	address string
-	port    int
+	ctx               context.Context
+	controllerRuntime *theila.Runtime
+	logger            *zap.Logger
+	ws                *ws.Server
+	grpc              *grpc.Server
+	address           string
+	port              int
 }
 
 // NewServer creates new HTTP server.
@@ -49,8 +51,14 @@ func NewServer(address string, port int) (*Server, error) {
 		return nil, err
 	}
 
+	s.controllerRuntime, err = theila.New()
+	if err != nil {
+		return nil, err
+	}
+
 	runtime.Install(kubernetes.Name, k8sruntime)
 	runtime.Install(talos.Name, talos.New())
+	runtime.Install(theila.Name, s.controllerRuntime)
 
 	return s, nil
 }
@@ -63,6 +71,17 @@ func (s *Server) RegisterRuntime(name string, r runtime.Runtime) {
 // Run runs HTTP server.
 func (s *Server) Run(ctx context.Context) error {
 	s.ctx = ctx
+
+	var err error
+
+	s.controllerRuntime.Run(ctx)
+
+	defer func() {
+		err = s.controllerRuntime.Shutdown()
+		if err != nil {
+			s.logger.Error("failed to gracefully stop controller runtime", zap.Error(err))
+		}
+	}()
 
 	mux := http.NewServeMux()
 

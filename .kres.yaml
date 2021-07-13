@@ -52,6 +52,12 @@ spec:
     - source: https://raw.githubusercontent.com/talos-systems/talos/master/api/machine/machine.proto
       subdirectory: talos/machine/
       genGateway: true
+    - source: https://raw.githubusercontent.com/cosi-project/runtime/master/api/v1alpha1/state.proto
+      subdirectory: v1alpha1
+      genGateway: true
+    - source: https://raw.githubusercontent.com/cosi-project/runtime/master/api/v1alpha1/resource.proto
+      subdirectory: v1alpha1
+      genGateway: true
 ---
 kind: js.Protobuf
 spec:
@@ -62,7 +68,6 @@ spec:
       genGateway: true
     - source: api/socket/message.proto
       subdirectory: socket
-      destinationRoot: src/api
     - source: api/rpc/resource.proto
       subdirectory: rpc
       genGateway: true
@@ -92,4 +97,7 @@ spec:
       genGateway: true
     - source: https://raw.githubusercontent.com/talos-systems/talos/master/api/common/common.proto
       subdirectory: common/
+      genGateway: true
+    - source: https://raw.githubusercontent.com/cosi-project/runtime/master/api/v1alpha1/resource.proto
+      subdirectory: v1alpha1
       genGateway: true

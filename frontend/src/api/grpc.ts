@@ -2,10 +2,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import { ClusterResourceService, GetFromClusterRequest, ListFromClusterRequest} from './rpc/resource.pb';
+import { ResourceService as WrappedResourceService, CreateRequest } from './rpc/resource.pb';
 import { ContextService as WrappedContextService, ListContextsRequest, ListContextsResponse } from './rpc/context.pb';
-import { MachineService as WrappedMachineService } from './talos/machine/machine.pb';
 import { Runtime, Context, Cluster } from './common/theila.pb';
+import { MachineService as WrappedMachineService } from './talos/machine/machine.pb';
+import { GetRequest, ListRequest, Metadata, Spec } from './talos/resource/resource.pb';
 import { context } from '../context';
 import { backOff, IBackOffOptions } from "exponential-backoff";
 import { ref, Ref } from 'vue';
@@ -126,10 +127,20 @@ export class Stream {
   }
 }
 
+export class Resource {
+  public metadata?: Metadata;
+  public spec: Spec;
+
+  constructor(spec: any, metadata?: Object) {
+    this.metadata = metadata;
+    this.spec = {};
+  }
+}
+
 // define a wrapper for grpc resource service.
 export class ResourceService {
-  static async Get(request: GetFromClusterRequest, options?: Partial<OptionsPartial>): Promise<Object> {
-    const res = await ClusterResourceService.Get(request, Options.fromPartial(options));
+  static async Get(request: GetRequest, options?: Partial<OptionsPartial>): Promise<Object> {
+    const res = await WrappedResourceService.Get(request, Options.fromPartial(options));
     if (res.body == null) {
       throw new Error("empty body in the response");
     }
@@ -137,8 +148,8 @@ export class ResourceService {
     return JSON.parse(res.body);
   }
 
-  static async List(request: ListFromClusterRequest, options?: Partial<OptionsPartial>): Promise<Object[]> {
-    const res = await ClusterResourceService.List(request, Options.fromPartial(options));
+  static async List(request: ListRequest, options?: Partial<OptionsPartial>): Promise<Object[]> {
+    const res = await WrappedResourceService.List(request, Options.fromPartial(options));
     if (res.messages == null) {
       throw new Error("empty body in the response");
     }
@@ -151,9 +162,15 @@ export class ResourceService {
 
     return results;
   }
+
+  static async Create(request: CreateRequest, options?: Partial<OptionsPartial>): Promise<void> {
+    monkeyPatchUint8Array(request);
+
+    await WrappedResourceService.Create(request, Options.fromPartial(options));
+  }
   
   static async GetConfig(cluster: Cluster, options?: Partial<OptionsPartial>): Promise<string> {
-    const res = await ClusterResourceService.GetConfig(cluster, Options.fromPartial(options));
+    const res = await WrappedResourceService.GetConfig(cluster, Options.fromPartial(options));
 
     if(!res.data) {
       return "";
@@ -165,6 +182,22 @@ export class ResourceService {
 
 export const MachineService = createProxy(WrappedMachineService);
 export const ContextService = createProxy(WrappedContextService);
+
+// TODO: workaround for https://github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts/issues/22
+// remove when the PR is merged to upstream
+function monkeyPatchUint8Array(data: any) {
+  for(const key in data) {
+    if(typeof data[key] === 'object') {
+      monkeyPatchUint8Array(data[key]);
+    }
+
+    if(data[key].constructor === Uint8Array) {
+      data[key].toJSON = () => {
+        return btoa(new TextDecoder().decode(data[key]));
+      }
+    }
+  }
+}
 
 function createProxy(service: any): any {
   const handler = {
