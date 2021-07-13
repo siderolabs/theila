@@ -5,21 +5,37 @@
 import * as CommonTheila from "../common/theila.pb"
 import * as fm from "../fetch.pb"
 import * as ResourceResource from "../talos/resource/resource.pb"
-export type GetFromClusterRequest = {
-  resource?: ResourceResource.GetRequest
-}
-
-export type GetFromClusterResponse = {
+import * as CosiResourceResource from "../v1alpha1/resource.pb"
+export type GetResponse = {
   body?: string
 }
 
-export type ListFromClusterRequest = {
-  resource?: ResourceResource.ListRequest
-  selectors?: string[]
+export type ListResponse = {
+  messages?: string[]
 }
 
-export type ListFromClusterResponse = {
-  messages?: string[]
+export type CreateRequest = {
+  resource?: CosiResourceResource.Resource
+}
+
+export type CreateResponse = {
+}
+
+export type UpdateRequest = {
+  currentVersion?: string
+  resource?: CosiResourceResource.Resource
+}
+
+export type UpdateResponse = {
+}
+
+export type DeleteRequest = {
+  namespace?: string
+  type?: string
+  id?: string
+}
+
+export type DeleteResponse = {
 }
 
 export type ConfigResponse = {
@@ -31,14 +47,23 @@ export type UpgradeK8sSpec = {
   nodes?: string[]
 }
 
-export class ClusterResourceService {
-  static Get(req: GetFromClusterRequest, initReq?: fm.InitReq): Promise<GetFromClusterResponse> {
-    return fm.fetchReq<GetFromClusterRequest, GetFromClusterResponse>(`/resource.ClusterResourceService/Get`, {...initReq, method: "POST", body: JSON.stringify(req)})
+export class ResourceService {
+  static Get(req: ResourceResource.GetRequest, initReq?: fm.InitReq): Promise<GetResponse> {
+    return fm.fetchReq<ResourceResource.GetRequest, GetResponse>(`/theila.resource.ResourceService/Get`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
-  static List(req: ListFromClusterRequest, initReq?: fm.InitReq): Promise<ListFromClusterResponse> {
-    return fm.fetchReq<ListFromClusterRequest, ListFromClusterResponse>(`/resource.ClusterResourceService/List`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  static List(req: ResourceResource.ListRequest, initReq?: fm.InitReq): Promise<ListResponse> {
+    return fm.fetchReq<ResourceResource.ListRequest, ListResponse>(`/theila.resource.ResourceService/List`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static Create(req: CreateRequest, initReq?: fm.InitReq): Promise<CreateResponse> {
+    return fm.fetchReq<CreateRequest, CreateResponse>(`/theila.resource.ResourceService/Create`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static Update(req: UpdateRequest, initReq?: fm.InitReq): Promise<UpdateResponse> {
+    return fm.fetchReq<UpdateRequest, UpdateResponse>(`/theila.resource.ResourceService/Update`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static Delete(req: DeleteRequest, initReq?: fm.InitReq): Promise<DeleteResponse> {
+    return fm.fetchReq<DeleteRequest, DeleteResponse>(`/theila.resource.ResourceService/Delete`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static GetConfig(req: CommonTheila.Cluster, initReq?: fm.InitReq): Promise<ConfigResponse> {
-    return fm.fetchReq<CommonTheila.Cluster, ConfigResponse>(`/resource.ClusterResourceService/GetConfig`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<CommonTheila.Cluster, ConfigResponse>(`/theila.resource.ResourceService/GetConfig`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }

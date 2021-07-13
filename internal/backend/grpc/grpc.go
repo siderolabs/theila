@@ -18,7 +18,6 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	"github.com/talos-systems/theila/api/rpc"
 	"github.com/talos-systems/theila/api/talos/machine"
 	"github.com/talos-systems/theila/internal/backend/grpc/router"
 	"github.com/talos-systems/theila/internal/backend/logging"
@@ -26,7 +25,6 @@ import (
 
 // Server implements grpc server.
 type Server struct {
-	rpc.UnimplementedClusterResourceServiceServer
 	logger  *zap.Logger
 	ctx     context.Context
 	cancel  context.CancelFunc

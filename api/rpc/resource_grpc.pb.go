@@ -4,6 +4,7 @@ package rpc
 
 import (
 	context "context"
+	resource "github.com/talos-systems/talos/pkg/machinery/api/resource"
 	common "github.com/talos-systems/theila/api/common"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
@@ -15,159 +16,266 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// ClusterResourceServiceClient is the client API for ClusterResourceService service.
+// ResourceServiceClient is the client API for ResourceService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ClusterResourceServiceClient interface {
-	Get(ctx context.Context, in *GetFromClusterRequest, opts ...grpc.CallOption) (*GetFromClusterResponse, error)
-	List(ctx context.Context, in *ListFromClusterRequest, opts ...grpc.CallOption) (*ListFromClusterResponse, error)
+type ResourceServiceClient interface {
+	Get(ctx context.Context, in *resource.GetRequest, opts ...grpc.CallOption) (*GetResponse, error)
+	List(ctx context.Context, in *resource.ListRequest, opts ...grpc.CallOption) (*ListResponse, error)
+	Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error)
+	Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error)
+	Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteResponse, error)
 	GetConfig(ctx context.Context, in *common.Cluster, opts ...grpc.CallOption) (*ConfigResponse, error)
 }
 
-type clusterResourceServiceClient struct {
+type resourceServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewClusterResourceServiceClient(cc grpc.ClientConnInterface) ClusterResourceServiceClient {
-	return &clusterResourceServiceClient{cc}
+func NewResourceServiceClient(cc grpc.ClientConnInterface) ResourceServiceClient {
+	return &resourceServiceClient{cc}
 }
 
-func (c *clusterResourceServiceClient) Get(ctx context.Context, in *GetFromClusterRequest, opts ...grpc.CallOption) (*GetFromClusterResponse, error) {
-	out := new(GetFromClusterResponse)
-	err := c.cc.Invoke(ctx, "/resource.ClusterResourceService/Get", in, out, opts...)
+func (c *resourceServiceClient) Get(ctx context.Context, in *resource.GetRequest, opts ...grpc.CallOption) (*GetResponse, error) {
+	out := new(GetResponse)
+	err := c.cc.Invoke(ctx, "/theila.resource.ResourceService/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *clusterResourceServiceClient) List(ctx context.Context, in *ListFromClusterRequest, opts ...grpc.CallOption) (*ListFromClusterResponse, error) {
-	out := new(ListFromClusterResponse)
-	err := c.cc.Invoke(ctx, "/resource.ClusterResourceService/List", in, out, opts...)
+func (c *resourceServiceClient) List(ctx context.Context, in *resource.ListRequest, opts ...grpc.CallOption) (*ListResponse, error) {
+	out := new(ListResponse)
+	err := c.cc.Invoke(ctx, "/theila.resource.ResourceService/List", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *clusterResourceServiceClient) GetConfig(ctx context.Context, in *common.Cluster, opts ...grpc.CallOption) (*ConfigResponse, error) {
+func (c *resourceServiceClient) Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error) {
+	out := new(CreateResponse)
+	err := c.cc.Invoke(ctx, "/theila.resource.ResourceService/Create", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceServiceClient) Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error) {
+	out := new(UpdateResponse)
+	err := c.cc.Invoke(ctx, "/theila.resource.ResourceService/Update", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceServiceClient) Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteResponse, error) {
+	out := new(DeleteResponse)
+	err := c.cc.Invoke(ctx, "/theila.resource.ResourceService/Delete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceServiceClient) GetConfig(ctx context.Context, in *common.Cluster, opts ...grpc.CallOption) (*ConfigResponse, error) {
 	out := new(ConfigResponse)
-	err := c.cc.Invoke(ctx, "/resource.ClusterResourceService/GetConfig", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/theila.resource.ResourceService/GetConfig", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ClusterResourceServiceServer is the server API for ClusterResourceService service.
-// All implementations must embed UnimplementedClusterResourceServiceServer
+// ResourceServiceServer is the server API for ResourceService service.
+// All implementations must embed UnimplementedResourceServiceServer
 // for forward compatibility
-type ClusterResourceServiceServer interface {
-	Get(context.Context, *GetFromClusterRequest) (*GetFromClusterResponse, error)
-	List(context.Context, *ListFromClusterRequest) (*ListFromClusterResponse, error)
+type ResourceServiceServer interface {
+	Get(context.Context, *resource.GetRequest) (*GetResponse, error)
+	List(context.Context, *resource.ListRequest) (*ListResponse, error)
+	Create(context.Context, *CreateRequest) (*CreateResponse, error)
+	Update(context.Context, *UpdateRequest) (*UpdateResponse, error)
+	Delete(context.Context, *DeleteRequest) (*DeleteResponse, error)
 	GetConfig(context.Context, *common.Cluster) (*ConfigResponse, error)
-	mustEmbedUnimplementedClusterResourceServiceServer()
+	mustEmbedUnimplementedResourceServiceServer()
 }
 
-// UnimplementedClusterResourceServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedClusterResourceServiceServer struct {
+// UnimplementedResourceServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedResourceServiceServer struct {
 }
 
-func (UnimplementedClusterResourceServiceServer) Get(context.Context, *GetFromClusterRequest) (*GetFromClusterResponse, error) {
+func (UnimplementedResourceServiceServer) Get(context.Context, *resource.GetRequest) (*GetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
-func (UnimplementedClusterResourceServiceServer) List(context.Context, *ListFromClusterRequest) (*ListFromClusterResponse, error) {
+func (UnimplementedResourceServiceServer) List(context.Context, *resource.ListRequest) (*ListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
-func (UnimplementedClusterResourceServiceServer) GetConfig(context.Context, *common.Cluster) (*ConfigResponse, error) {
+func (UnimplementedResourceServiceServer) Create(context.Context, *CreateRequest) (*CreateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (UnimplementedResourceServiceServer) Update(context.Context, *UpdateRequest) (*UpdateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (UnimplementedResourceServiceServer) Delete(context.Context, *DeleteRequest) (*DeleteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedResourceServiceServer) GetConfig(context.Context, *common.Cluster) (*ConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetConfig not implemented")
 }
-func (UnimplementedClusterResourceServiceServer) mustEmbedUnimplementedClusterResourceServiceServer() {
-}
+func (UnimplementedResourceServiceServer) mustEmbedUnimplementedResourceServiceServer() {}
 
-// UnsafeClusterResourceServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ClusterResourceServiceServer will
+// UnsafeResourceServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ResourceServiceServer will
 // result in compilation errors.
-type UnsafeClusterResourceServiceServer interface {
-	mustEmbedUnimplementedClusterResourceServiceServer()
+type UnsafeResourceServiceServer interface {
+	mustEmbedUnimplementedResourceServiceServer()
 }
 
-func RegisterClusterResourceServiceServer(s grpc.ServiceRegistrar, srv ClusterResourceServiceServer) {
-	s.RegisterService(&ClusterResourceService_ServiceDesc, srv)
+func RegisterResourceServiceServer(s grpc.ServiceRegistrar, srv ResourceServiceServer) {
+	s.RegisterService(&ResourceService_ServiceDesc, srv)
 }
 
-func _ClusterResourceService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetFromClusterRequest)
+func _ResourceService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(resource.GetRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ClusterResourceServiceServer).Get(ctx, in)
+		return srv.(ResourceServiceServer).Get(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/resource.ClusterResourceService/Get",
+		FullMethod: "/theila.resource.ResourceService/Get",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClusterResourceServiceServer).Get(ctx, req.(*GetFromClusterRequest))
+		return srv.(ResourceServiceServer).Get(ctx, req.(*resource.GetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ClusterResourceService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListFromClusterRequest)
+func _ResourceService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(resource.ListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ClusterResourceServiceServer).List(ctx, in)
+		return srv.(ResourceServiceServer).List(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/resource.ClusterResourceService/List",
+		FullMethod: "/theila.resource.ResourceService/List",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClusterResourceServiceServer).List(ctx, req.(*ListFromClusterRequest))
+		return srv.(ResourceServiceServer).List(ctx, req.(*resource.ListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ClusterResourceService_GetConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ResourceService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceServiceServer).Create(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/theila.resource.ResourceService/Create",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceServiceServer).Create(ctx, req.(*CreateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ResourceService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceServiceServer).Update(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/theila.resource.ResourceService/Update",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceServiceServer).Update(ctx, req.(*UpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ResourceService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceServiceServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/theila.resource.ResourceService/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceServiceServer).Delete(ctx, req.(*DeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ResourceService_GetConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(common.Cluster)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ClusterResourceServiceServer).GetConfig(ctx, in)
+		return srv.(ResourceServiceServer).GetConfig(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/resource.ClusterResourceService/GetConfig",
+		FullMethod: "/theila.resource.ResourceService/GetConfig",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClusterResourceServiceServer).GetConfig(ctx, req.(*common.Cluster))
+		return srv.(ResourceServiceServer).GetConfig(ctx, req.(*common.Cluster))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// ClusterResourceService_ServiceDesc is the grpc.ServiceDesc for ClusterResourceService service.
+// ResourceService_ServiceDesc is the grpc.ServiceDesc for ResourceService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var ClusterResourceService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "resource.ClusterResourceService",
-	HandlerType: (*ClusterResourceServiceServer)(nil),
+var ResourceService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "theila.resource.ResourceService",
+	HandlerType: (*ResourceServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Get",
-			Handler:    _ClusterResourceService_Get_Handler,
+			Handler:    _ResourceService_Get_Handler,
 		},
 		{
 			MethodName: "List",
-			Handler:    _ClusterResourceService_List_Handler,
+			Handler:    _ResourceService_List_Handler,
+		},
+		{
+			MethodName: "Create",
+			Handler:    _ResourceService_Create_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _ResourceService_Update_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _ResourceService_Delete_Handler,
 		},
 		{
 			MethodName: "GetConfig",
-			Handler:    _ClusterResourceService_GetConfig_Handler,
+			Handler:    _ResourceService_GetConfig_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

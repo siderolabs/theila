@@ -8,8 +8,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
+	"github.com/cosi-project/runtime/pkg/resource/protobuf"
 	gateway "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/talos-systems/talos/pkg/machinery/api/resource"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
@@ -20,19 +23,19 @@ import (
 )
 
 type resourceServer struct {
-	rpc.UnimplementedClusterResourceServiceServer
+	rpc.UnimplementedResourceServiceServer
 }
 
 func (s *resourceServer) register(server grpc.ServiceRegistrar) {
-	rpc.RegisterClusterResourceServiceServer(server, s)
+	rpc.RegisterResourceServiceServer(server, s)
 }
 
 func (s *resourceServer) gateway(ctx context.Context, mux *gateway.ServeMux, address string, opts []grpc.DialOption) error {
-	return rpc.RegisterClusterResourceServiceHandlerFromEndpoint(ctx, mux, address, opts)
+	return rpc.RegisterResourceServiceHandlerFromEndpoint(ctx, mux, address, opts)
 }
 
 // Get returns resource from cluster using Talos or Kubernetes.
-func (s *resourceServer) Get(ctx context.Context, in *rpc.GetFromClusterRequest) (*rpc.GetFromClusterResponse, error) {
+func (s *resourceServer) Get(ctx context.Context, in *resource.GetRequest) (*rpc.GetResponse, error) {
 	r, err := runtime.Get(getSource(ctx).String())
 	if err != nil {
 		return nil, err
@@ -40,13 +43,13 @@ func (s *resourceServer) Get(ctx context.Context, in *rpc.GetFromClusterRequest)
 
 	opts := withContext(router.ExtractContext(ctx))
 
-	opts = append(opts, withResource(in.Resource)...)
+	opts = append(opts, withResource(in)...)
 
-	if in.Resource.Id != "" {
-		opts = append(opts, runtime.WithName(in.Resource.Id))
+	if in.Id != "" {
+		opts = append(opts, runtime.WithName(in.Id))
 	}
 
-	res := &rpc.GetFromClusterResponse{}
+	res := &rpc.GetResponse{}
 
 	md, _ := metadata.FromIncomingContext(ctx)
 
@@ -70,7 +73,7 @@ func (s *resourceServer) Get(ctx context.Context, in *rpc.GetFromClusterRequest)
 }
 
 // List returns resources from cluster using Talos or Kubernetes.
-func (s *resourceServer) List(ctx context.Context, in *rpc.ListFromClusterRequest) (*rpc.ListFromClusterResponse, error) {
+func (s *resourceServer) List(ctx context.Context, in *resource.ListRequest) (*rpc.ListResponse, error) {
 	r, err := runtime.Get(getSource(ctx).String())
 	if err != nil {
 		return nil, err
@@ -78,15 +81,17 @@ func (s *resourceServer) List(ctx context.Context, in *rpc.ListFromClusterReques
 
 	opts := withContext(router.ExtractContext(ctx))
 
-	opts = append(opts, withResource(in.Resource)...)
-
-	for _, s := range in.Selectors {
-		opts = append(opts, runtime.WithLabelSelector(s))
-	}
-
-	res := &rpc.ListFromClusterResponse{}
+	opts = append(opts, withResource(in)...)
 
 	md, _ := metadata.FromIncomingContext(ctx)
+
+	for _, s := range md.Get("selectors") {
+		for _, condition := range strings.Split(s, ",") {
+			opts = append(opts, runtime.WithLabelSelector(condition))
+		}
+	}
+
+	res := &rpc.ListResponse{}
 
 	if nodes := md.Get("nodes"); nodes != nil {
 		opts = append(opts, runtime.WithNodes(nodes...))
@@ -107,6 +112,84 @@ func (s *resourceServer) List(ctx context.Context, in *rpc.ListFromClusterReques
 	}
 
 	return res, nil
+}
+
+// Create a new resource in Theila runtime or Kubernetes.
+func (s *resourceServer) Create(ctx context.Context, in *rpc.CreateRequest) (*rpc.CreateResponse, error) {
+	r, err := runtime.Get(getSource(ctx).String())
+	if err != nil {
+		return nil, err
+	}
+
+	opts := withContext(router.ExtractContext(ctx))
+
+	protoR, err := protobuf.Unmarshal(in.Resource)
+	if err != nil {
+		return nil, err
+	}
+
+	obj, err := protobuf.UnmarshalResource(protoR)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = r.Create(ctx, obj, opts...); err != nil {
+		return nil, err
+	}
+
+	return &rpc.CreateResponse{}, nil
+}
+
+// Update a resource in Theila runtime or Kubernetes.
+func (s *resourceServer) Update(ctx context.Context, in *rpc.UpdateRequest) (*rpc.UpdateResponse, error) {
+	r, err := runtime.Get(getSource(ctx).String())
+	if err != nil {
+		return nil, err
+	}
+
+	opts := withContext(router.ExtractContext(ctx))
+
+	if in.CurrentVersion != "" {
+		opts = append(opts, runtime.WithCurrentVersion(in.CurrentVersion))
+	}
+
+	protoR, err := protobuf.Unmarshal(in.Resource)
+	if err != nil {
+		return nil, err
+	}
+
+	obj, err := protobuf.UnmarshalResource(protoR)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = r.Update(ctx, obj, opts...); err != nil {
+		return nil, err
+	}
+
+	return &rpc.UpdateResponse{}, nil
+}
+
+// Delete a resource in Theila runtime or Kubernetes.
+func (s *resourceServer) Delete(ctx context.Context, in *rpc.DeleteRequest) (*rpc.DeleteResponse, error) {
+	r, err := runtime.Get(getSource(ctx).String())
+	if err != nil {
+		return nil, err
+	}
+
+	opts := withContext(router.ExtractContext(ctx))
+
+	opts = append(opts,
+		runtime.WithNamespace(in.Namespace),
+		runtime.WithName(in.Id),
+		runtime.WithResource(in.Type),
+	)
+
+	if err = r.Delete(ctx, opts...); err != nil {
+		return nil, err
+	}
+
+	return &rpc.DeleteResponse{}, nil
 }
 
 // GetConfig returns kubeconfig or talos config.
@@ -145,7 +228,7 @@ func getSource(ctx context.Context) common.Runtime {
 	return common.Runtime_Kubernetes
 }
 
-type resource interface {
+type res interface {
 	GetType() string
 	GetNamespace() string
 }
@@ -165,7 +248,7 @@ func withContext(ctx *common.Context) []runtime.QueryOption {
 	return opts
 }
 
-func withResource(r resource) []runtime.QueryOption {
+func withResource(r res) []runtime.QueryOption {
 	opts := []runtime.QueryOption{}
 	if r == nil {
 		return opts

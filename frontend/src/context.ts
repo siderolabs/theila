@@ -34,10 +34,8 @@ export async function detectCapabilities() {
   const checkCRD = async (id: string) => {
     try {
       await ResourceService.Get({
-        resource: {
-          type: "customresourcedefinitions.v1.apiextensions.k8s.io",
-          id: id,
-        }
+        type: "customresourcedefinitions.v1.apiextensions.k8s.io",
+        id: id,
       });
 
       return true;

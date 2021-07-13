@@ -53,7 +53,7 @@ export default class Shell extends Vue {}
 
 <style>
 .sidebar-inverted {
-  @apply flex flex-col justify-between flex-none h-full py-2 select-none px-3 overflow-y-auto;
+  @apply flex flex-col justify-between flex-none h-full py-2 select-none px-3 overflow-y-auto gap-2;
 }
 
 .sidebar-normal {

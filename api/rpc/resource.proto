@@ -1,29 +1,44 @@
 syntax = "proto3";
-package resource;
+package theila.resource;
 
 option go_package = "github.com/talos-systems/theila/api/rpc";
 
 import "talos/resource/resource.proto";
 import "common/theila.proto";
+import "v1alpha1/resource.proto";
 
-message GetFromClusterRequest {
-  resource.GetRequest resource = 1;
-}
-
-message GetFromClusterResponse {
+message GetResponse {
   // Body should contain JSON encoded spec.
   string body = 1;
 }
 
-message ListFromClusterRequest {
-  resource.ListRequest resource = 1;
-  // Selectors allow filtering list results by labels.
-  repeated string selectors = 2;
-}
-
-message ListFromClusterResponse {
+message ListResponse {
   // Messages should contain JSON encoded list spec.
   repeated string messages = 1;
+}
+
+message CreateRequest {
+  cosi.resource.Resource resource = 1;
+}
+
+message CreateResponse {
+}
+
+message UpdateRequest {
+  string currentVersion = 1;
+  cosi.resource.Resource resource = 2;
+}
+
+message UpdateResponse {
+}
+
+message DeleteRequest {
+  string namespace = 1;
+  string type = 2;
+  string id = 3;
+}
+
+message DeleteResponse {
 }
 
 message ConfigResponse {
@@ -38,8 +53,11 @@ message UpgradeK8sSpec {
   repeated string nodes = 2;
 }
 
-service ClusterResourceService {
-  rpc Get(GetFromClusterRequest) returns (GetFromClusterResponse);
-  rpc List(ListFromClusterRequest) returns (ListFromClusterResponse);
+service ResourceService {
+  rpc Get(.resource.GetRequest) returns (GetResponse);
+  rpc List(.resource.ListRequest) returns (ListResponse);
+  rpc Create(CreateRequest) returns (CreateResponse);
+  rpc Update(UpdateRequest) returns (UpdateResponse);
+  rpc Delete(DeleteRequest) returns (DeleteResponse);
   rpc GetConfig(common.Cluster) returns (ConfigResponse);
 }
