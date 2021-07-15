@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cosi-project/runtime/api/v1alpha1"
 	"github.com/cosi-project/runtime/pkg/resource/protobuf"
 	gateway "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/talos-systems/talos/pkg/machinery/api/resource"
@@ -121,6 +122,8 @@ func (s *resourceServer) Create(ctx context.Context, in *rpc.CreateRequest) (*rp
 		return nil, err
 	}
 
+	populateResource(in.Resource)
+
 	opts := withContext(router.ExtractContext(ctx))
 
 	protoR, err := protobuf.Unmarshal(in.Resource)
@@ -146,6 +149,8 @@ func (s *resourceServer) Update(ctx context.Context, in *rpc.UpdateRequest) (*rp
 	if err != nil {
 		return nil, err
 	}
+
+	populateResource(in.Resource)
 
 	opts := withContext(router.ExtractContext(ctx))
 
@@ -263,4 +268,12 @@ func withResource(r res) []runtime.QueryOption {
 	}
 
 	return opts
+}
+
+func populateResource(resource *v1alpha1.Resource) {
+	if resource.Metadata.Version == "" {
+		resource.Metadata.Version = "1"
+	}
+
+	resource.Metadata.Phase = "running"
 }

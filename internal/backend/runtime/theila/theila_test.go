@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/talos-systems/theila/api/common"
 	"github.com/talos-systems/theila/api/rpc"
 	"github.com/talos-systems/theila/internal/backend/runtime"
 	"github.com/talos-systems/theila/internal/backend/runtime/theila"
@@ -52,17 +53,14 @@ func (r *testResource) Spec() interface{} {
 }
 
 func (r *testResource) String() string {
-	return fmt.Sprintf("testResource(%s) to %s, nodes: %q", r.md.ID(), r.spec.Version, r.spec.Nodes)
+	return fmt.Sprintf("testResource(%s) to %s", r.md.ID(), r.spec.ToVersion)
 }
 
 // DeepCopy implements resource.Resource.
 func (r *testResource) DeepCopy() resource.Resource {
 	return &testResource{
-		md: r.md,
-		spec: &rpc.UpgradeK8SSpec{
-			Version: r.spec.Version,
-			Nodes:   append([]string{}, r.spec.Nodes...),
-		},
+		md:   r.md,
+		spec: proto.Clone(r.spec).(*rpc.UpgradeK8SSpec),
 	}
 }
 
@@ -103,9 +101,11 @@ func (suite *TheilaRuntimeSuite) TestCrud() {
 	namespace := "test"
 
 	resource := newTestResource(namespace, id, &rpc.UpgradeK8SSpec{
-		Version: "1.21",
-		Nodes: []string{
-			"127.0.0.1",
+		ToVersion: "1.21",
+		Context: &common.Context{
+			Nodes: []string{
+				"127.0.0.1",
+			},
 		},
 	})
 
@@ -123,15 +123,17 @@ func (suite *TheilaRuntimeSuite) TestCrud() {
 
 	r := getResource()
 
-	suite.Require().Equal(r.Spec["nodes"], []interface{}{"127.0.0.1"})
-	suite.Require().Equal(r.Spec["version"], "1.21")
+	suite.Require().Equal(map[string]interface{}{"nodes": []interface{}{"127.0.0.1"}, "cluster": nil, "name": ""}, r.Spec["context"])
+	suite.Require().Equal("1.21", r.Spec["toversion"])
 
 	version := strconv.Itoa(r.Metadata["version"].(int))
 
 	resource = newTestResource(namespace, id, &rpc.UpgradeK8SSpec{
-		Version: "1.21",
-		Nodes: []string{
-			"127.0.0.2",
+		ToVersion: "1.21",
+		Context: &common.Context{
+			Nodes: []string{
+				"127.0.0.2",
+			},
 		},
 	})
 	resource.Metadata().BumpVersion()
@@ -140,7 +142,7 @@ func (suite *TheilaRuntimeSuite) TestCrud() {
 
 	r = getResource()
 
-	suite.Require().Equal(r.Spec["nodes"], []interface{}{"127.0.0.2"})
+	suite.Require().Equal(map[string]interface{}{"nodes": []interface{}{"127.0.0.2"}, "cluster": nil, "name": ""}, r.Spec["context"])
 
 	suite.Require().NoError(suite.runtime.Delete(suite.ctx, runtime.WithName(id), runtime.WithNamespace(namespace), runtime.WithResource(testResourceType)))
 

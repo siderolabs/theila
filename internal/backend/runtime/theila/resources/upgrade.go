@@ -2,7 +2,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// Package resources ...
 package resources
 
 import (
@@ -47,17 +46,14 @@ func (r *UpgradeK8sTask) Spec() interface{} {
 }
 
 func (r *UpgradeK8sTask) String() string {
-	return fmt.Sprintf("UpgradeK8sTask(%s) to %s, nodes: %q", r.md.ID(), r.spec.Version, r.spec.Nodes)
+	return fmt.Sprintf("UpgradeK8sTask(%s) to %s", r.md.ID(), r.spec.ToVersion)
 }
 
 // DeepCopy implements resource.Resource.
 func (r *UpgradeK8sTask) DeepCopy() resource.Resource {
 	return &UpgradeK8sTask{
-		md: r.md,
-		spec: &rpc.UpgradeK8SSpec{
-			Version: r.spec.Version,
-			Nodes:   append([]string{}, r.spec.Nodes...),
-		},
+		md:   r.md,
+		spec: proto.Clone(r.spec).(*rpc.UpgradeK8SSpec),
 	}
 }
 
