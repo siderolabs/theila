@@ -7,8 +7,8 @@ package kubernetes
 import (
 	cabpt "github.com/talos-systems/cluster-api-bootstrap-provider-talos/api/v1alpha3"
 	cacppt "github.com/talos-systems/cluster-api-control-plane-provider-talos/api/v1alpha3"
-	sidero "github.com/talos-systems/sidero/app/cluster-api-provider-sidero/api/v1alpha3"
-	metal "github.com/talos-systems/sidero/app/metal-controller-manager/api/v1alpha1"
+	sidero "github.com/talos-systems/sidero/app/caps-controller-manager/api/v1alpha3"
+	metal "github.com/talos-systems/sidero/app/sidero-controller-manager/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"

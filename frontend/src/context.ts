@@ -5,6 +5,7 @@
 import { ref, Ref } from 'vue';
 import { Client } from "./api/client";
 import { ResourceService } from './api/grpc';
+import { Runtime } from './api/common/theila.pb';
 
 export namespace context {
   // create a singleton for the api.
@@ -23,6 +24,10 @@ export function changeContext(c: Object) {
   localStorage.context = JSON.stringify(c);
 
   context.current.value = c;
+}
+
+export function getContext(runtime: Runtime): string {
+  return runtime === Runtime.Talos ? context.current.value.cluster : context.current.value.name;
 }
 
 export async function detectCapabilities() {

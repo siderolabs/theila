@@ -2,8 +2,8 @@
 import { util, configure, Writer, Reader } from "protobufjs/minimal";
 import * as Long from "long";
 import { Resource } from "../v1alpha1/resource";
+import { Context, Cluster } from "../common/theila";
 import { GetRequest, ListRequest } from "../talos/resource/resource";
-import { Cluster } from "../common/theila";
 
 export const protobufPackage = "theila.resource";
 
@@ -44,10 +44,68 @@ export interface ConfigResponse {
 }
 
 export interface UpgradeK8sSpec {
+  /** K8s version to upgrade from. */
+  from_version: string;
   /** K8s version to upgrade to. */
-  version: string;
-  /** The list of nodes to perform upgrade on. */
-  nodes: string[];
+  to_version: string;
+  /** Context to use. */
+  context: Context | undefined;
+}
+
+export interface TaskStatusSpec {
+  /** Upgrade task state. */
+  phase: TaskStatusSpec_Phase;
+  /** Progress represents the task progress [0,1]. */
+  progress: number;
+  /** Failure reason. */
+  error: string;
+}
+
+export enum TaskStatusSpec_Phase {
+  FAILED = 0,
+  RUNNING = 1,
+  COMPLETE = 2,
+  UNRECOGNIZED = -1,
+}
+
+export function taskStatusSpec_PhaseFromJSON(
+  object: any
+): TaskStatusSpec_Phase {
+  switch (object) {
+    case 0:
+    case "FAILED":
+      return TaskStatusSpec_Phase.FAILED;
+    case 1:
+    case "RUNNING":
+      return TaskStatusSpec_Phase.RUNNING;
+    case 2:
+    case "COMPLETE":
+      return TaskStatusSpec_Phase.COMPLETE;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return TaskStatusSpec_Phase.UNRECOGNIZED;
+  }
+}
+
+export function taskStatusSpec_PhaseToJSON(
+  object: TaskStatusSpec_Phase
+): string {
+  switch (object) {
+    case TaskStatusSpec_Phase.FAILED:
+      return "FAILED";
+    case TaskStatusSpec_Phase.RUNNING:
+      return "RUNNING";
+    case TaskStatusSpec_Phase.COMPLETE:
+      return "COMPLETE";
+    default:
+      return "UNKNOWN";
+  }
+}
+
+export interface TaskLogSpec {
+  /** Line represents a single log line. */
+  line: string;
 }
 
 const baseGetResponse: object = { body: "" };
@@ -559,15 +617,18 @@ export const ConfigResponse = {
   },
 };
 
-const baseUpgradeK8sSpec: object = { version: "", nodes: "" };
+const baseUpgradeK8sSpec: object = { from_version: "", to_version: "" };
 
 export const UpgradeK8sSpec = {
   encode(message: UpgradeK8sSpec, writer: Writer = Writer.create()): Writer {
-    if (message.version !== "") {
-      writer.uint32(10).string(message.version);
+    if (message.from_version !== "") {
+      writer.uint32(10).string(message.from_version);
     }
-    for (const v of message.nodes) {
-      writer.uint32(18).string(v!);
+    if (message.to_version !== "") {
+      writer.uint32(18).string(message.to_version);
+    }
+    if (message.context !== undefined) {
+      Context.encode(message.context, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -576,15 +637,17 @@ export const UpgradeK8sSpec = {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = { ...baseUpgradeK8sSpec } as UpgradeK8sSpec;
-    message.nodes = [];
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.version = reader.string();
+          message.from_version = reader.string();
           break;
         case 2:
-          message.nodes.push(reader.string());
+          message.to_version = reader.string();
+          break;
+        case 3:
+          message.context = Context.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -596,43 +659,197 @@ export const UpgradeK8sSpec = {
 
   fromJSON(object: any): UpgradeK8sSpec {
     const message = { ...baseUpgradeK8sSpec } as UpgradeK8sSpec;
-    message.nodes = [];
-    if (object.version !== undefined && object.version !== null) {
-      message.version = String(object.version);
+    if (object.from_version !== undefined && object.from_version !== null) {
+      message.from_version = String(object.from_version);
     } else {
-      message.version = "";
+      message.from_version = "";
     }
-    if (object.nodes !== undefined && object.nodes !== null) {
-      for (const e of object.nodes) {
-        message.nodes.push(String(e));
-      }
+    if (object.to_version !== undefined && object.to_version !== null) {
+      message.to_version = String(object.to_version);
+    } else {
+      message.to_version = "";
+    }
+    if (object.context !== undefined && object.context !== null) {
+      message.context = Context.fromJSON(object.context);
+    } else {
+      message.context = undefined;
     }
     return message;
   },
 
   toJSON(message: UpgradeK8sSpec): unknown {
     const obj: any = {};
-    message.version !== undefined && (obj.version = message.version);
-    if (message.nodes) {
-      obj.nodes = message.nodes.map((e) => e);
-    } else {
-      obj.nodes = [];
-    }
+    message.from_version !== undefined &&
+      (obj.from_version = message.from_version);
+    message.to_version !== undefined && (obj.to_version = message.to_version);
+    message.context !== undefined &&
+      (obj.context = message.context
+        ? Context.toJSON(message.context)
+        : undefined);
     return obj;
   },
 
   fromPartial(object: DeepPartial<UpgradeK8sSpec>): UpgradeK8sSpec {
     const message = { ...baseUpgradeK8sSpec } as UpgradeK8sSpec;
-    message.nodes = [];
-    if (object.version !== undefined && object.version !== null) {
-      message.version = object.version;
+    if (object.from_version !== undefined && object.from_version !== null) {
+      message.from_version = object.from_version;
     } else {
-      message.version = "";
+      message.from_version = "";
     }
-    if (object.nodes !== undefined && object.nodes !== null) {
-      for (const e of object.nodes) {
-        message.nodes.push(e);
+    if (object.to_version !== undefined && object.to_version !== null) {
+      message.to_version = object.to_version;
+    } else {
+      message.to_version = "";
+    }
+    if (object.context !== undefined && object.context !== null) {
+      message.context = Context.fromPartial(object.context);
+    } else {
+      message.context = undefined;
+    }
+    return message;
+  },
+};
+
+const baseTaskStatusSpec: object = { phase: 0, progress: 0, error: "" };
+
+export const TaskStatusSpec = {
+  encode(message: TaskStatusSpec, writer: Writer = Writer.create()): Writer {
+    if (message.phase !== 0) {
+      writer.uint32(8).int32(message.phase);
+    }
+    if (message.progress !== 0) {
+      writer.uint32(21).float(message.progress);
+    }
+    if (message.error !== "") {
+      writer.uint32(26).string(message.error);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): TaskStatusSpec {
+    const reader = input instanceof Reader ? input : new Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseTaskStatusSpec } as TaskStatusSpec;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.phase = reader.int32() as any;
+          break;
+        case 2:
+          message.progress = reader.float();
+          break;
+        case 3:
+          message.error = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
       }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): TaskStatusSpec {
+    const message = { ...baseTaskStatusSpec } as TaskStatusSpec;
+    if (object.phase !== undefined && object.phase !== null) {
+      message.phase = taskStatusSpec_PhaseFromJSON(object.phase);
+    } else {
+      message.phase = 0;
+    }
+    if (object.progress !== undefined && object.progress !== null) {
+      message.progress = Number(object.progress);
+    } else {
+      message.progress = 0;
+    }
+    if (object.error !== undefined && object.error !== null) {
+      message.error = String(object.error);
+    } else {
+      message.error = "";
+    }
+    return message;
+  },
+
+  toJSON(message: TaskStatusSpec): unknown {
+    const obj: any = {};
+    message.phase !== undefined &&
+      (obj.phase = taskStatusSpec_PhaseToJSON(message.phase));
+    message.progress !== undefined && (obj.progress = message.progress);
+    message.error !== undefined && (obj.error = message.error);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<TaskStatusSpec>): TaskStatusSpec {
+    const message = { ...baseTaskStatusSpec } as TaskStatusSpec;
+    if (object.phase !== undefined && object.phase !== null) {
+      message.phase = object.phase;
+    } else {
+      message.phase = 0;
+    }
+    if (object.progress !== undefined && object.progress !== null) {
+      message.progress = object.progress;
+    } else {
+      message.progress = 0;
+    }
+    if (object.error !== undefined && object.error !== null) {
+      message.error = object.error;
+    } else {
+      message.error = "";
+    }
+    return message;
+  },
+};
+
+const baseTaskLogSpec: object = { line: "" };
+
+export const TaskLogSpec = {
+  encode(message: TaskLogSpec, writer: Writer = Writer.create()): Writer {
+    if (message.line !== "") {
+      writer.uint32(10).string(message.line);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): TaskLogSpec {
+    const reader = input instanceof Reader ? input : new Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseTaskLogSpec } as TaskLogSpec;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.line = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): TaskLogSpec {
+    const message = { ...baseTaskLogSpec } as TaskLogSpec;
+    if (object.line !== undefined && object.line !== null) {
+      message.line = String(object.line);
+    } else {
+      message.line = "";
+    }
+    return message;
+  },
+
+  toJSON(message: TaskLogSpec): unknown {
+    const obj: any = {};
+    message.line !== undefined && (obj.line = message.line);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<TaskLogSpec>): TaskLogSpec {
+    const message = { ...baseTaskLogSpec } as TaskLogSpec;
+    if (object.line !== undefined && object.line !== null) {
+      message.line = object.line;
+    } else {
+      message.line = "";
     }
     return message;
   },

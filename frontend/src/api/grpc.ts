@@ -7,7 +7,7 @@ import { ContextService as WrappedContextService, ListContextsRequest, ListConte
 import { Runtime, Context, Cluster } from './common/theila.pb';
 import { MachineService as WrappedMachineService } from './talos/machine/machine.pb';
 import { GetRequest, ListRequest, Metadata, Spec } from './talos/resource/resource.pb';
-import { context } from '../context';
+import { context, getContext } from '../context';
 import { backOff, IBackOffOptions } from "exponential-backoff";
 import { ref, Ref } from 'vue';
 import { RouteLocationNormalized } from 'vue-router';
@@ -54,7 +54,7 @@ export class Options {
     md["runtime"] = runtime.toString();
 
     if(context.current.value) {
-      md["context"] = md["context"] || runtime === Runtime.Talos ? context.current.value.cluster : context.current.value.name;
+      md["context"] = md["context"] || getContext(runtime);
     }
 
     for(const key in md) {
@@ -127,15 +127,11 @@ export class Stream {
   }
 }
 
-export class Resource {
-  public metadata?: Metadata;
-  public spec: Spec;
-
-  constructor(spec: any, metadata?: Object) {
-    this.metadata = metadata;
-    this.spec = {};
-  }
-}
+type Resource = {
+  metadata?: Metadata,
+  spec: any,
+  type: any,
+};
 
 // define a wrapper for grpc resource service.
 export class ResourceService {
@@ -163,7 +159,18 @@ export class ResourceService {
     return results;
   }
 
-  static async Create(request: CreateRequest, options?: Partial<OptionsPartial>): Promise<void> {
+  static async Create(resource: Partial<Resource>, options?: Partial<OptionsPartial>): Promise<void> {
+    const protoSpec = resource.type.encode(resource.type.fromPartial(resource.spec)).finish();
+
+    const request: CreateRequest = {
+      resource: {
+        metadata: resource.metadata,
+        spec: {
+          protoSpec: protoSpec,
+        }
+      }
+    }
+
     monkeyPatchUint8Array(request);
 
     await WrappedResourceService.Create(request, Options.fromPartial(options));

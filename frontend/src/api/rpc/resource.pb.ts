@@ -6,6 +6,13 @@ import * as CommonTheila from "../common/theila.pb"
 import * as fm from "../fetch.pb"
 import * as ResourceResource from "../talos/resource/resource.pb"
 import * as CosiResourceResource from "../v1alpha1/resource.pb"
+
+export enum TaskStatusSpecPhase {
+  FAILED = "FAILED",
+  RUNNING = "RUNNING",
+  COMPLETE = "COMPLETE",
+}
+
 export type GetResponse = {
   body?: string
 }
@@ -43,8 +50,19 @@ export type ConfigResponse = {
 }
 
 export type UpgradeK8sSpec = {
-  version?: string
-  nodes?: string[]
+  fromVersion?: string
+  toVersion?: string
+  context?: CommonTheila.Context
+}
+
+export type TaskStatusSpec = {
+  phase?: TaskStatusSpecPhase
+  progress?: number
+  error?: string
+}
+
+export type TaskLogSpec = {
+  line?: string
 }
 
 export class ResourceService {

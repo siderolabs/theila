@@ -46,13 +46,6 @@ message ConfigResponse {
   string data = 1;
 }
 
-message UpgradeK8sSpec {
-  // K8s version to upgrade to.
-  string version = 1;
-  // The list of nodes to perform upgrade on.
-  repeated string nodes = 2;
-}
-
 service ResourceService {
   rpc Get(.resource.GetRequest) returns (GetResponse);
   rpc List(.resource.ListRequest) returns (ListResponse);
@@ -60,4 +53,32 @@ service ResourceService {
   rpc Update(UpdateRequest) returns (UpdateResponse);
   rpc Delete(DeleteRequest) returns (DeleteResponse);
   rpc GetConfig(common.Cluster) returns (ConfigResponse);
+}
+
+message UpgradeK8sSpec {
+  // K8s version to upgrade from.
+  string from_version = 1;
+  // K8s version to upgrade to.
+  string to_version = 2;
+  // Context to use.
+  common.Context context = 3;
+}
+
+message TaskStatusSpec {
+  enum Phase {
+    FAILED = 0;
+    RUNNING = 1;
+    COMPLETE = 2;
+  }
+  // Upgrade task state.
+  Phase phase = 1;
+  // Progress represents the task progress [0,1].
+  float progress = 2;
+  // Failure reason.
+  string error = 3;
+}
+
+message TaskLogSpec {
+  // Line represents a single log line.
+  string line = 1;
 }
