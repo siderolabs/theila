@@ -18,6 +18,7 @@
     "luxon": "^1.26.0",
     "pluralize": "^8.0.0",
     "protobufjs": "^6.10.2",
+    "semver-parser": "^3.1.1",
     "uuid": "^3.4.0",
     "vue": "^3.0.0",
     "vue-class-component": "^8.0.0-0",

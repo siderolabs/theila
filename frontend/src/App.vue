@@ -4,17 +4,17 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <template>
-  <div :class="{dark: dark}">
+  <div :class="{dark: dark}" v-if="connected">
     <t-modal/>
-    <shell v-if="connected" class="h-screen">
+    <shell class="h-screen">
       <template v-slot:menu>
         <sidebar-change-context v-if="selectContext" :contexts="contexts" :active="explicitContext ? explicitContext['name'] : currentContext" :changed="switchContext" :cancel="() => selectContext = false" class="overflow-y-hidden h-screen"/>
         <sidebar v-else/>
         <t-button @click="toggleContextChange" :disabled="!contexts">
           <t-spinner v-if="!currentContext && !explicitContext"/>
-          <template>
+          <div v-else class="flex-1">
             {{ explicitContext ? explicitContext['name'] : currentContext }}
-          </template>
+          </div>
         </t-button>
       </template>
       <template v-slot:content>

@@ -2,7 +2,7 @@
 
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-07-13T16:49:16Z by kres 907039b.
+# Generated on 2021-07-20T12:59:08Z by kres 907039b.
 
 ARG JS_TOOLCHAIN
 ARG TOOLCHAIN
@@ -25,6 +25,7 @@ RUN npm i sentences-per-line@0.2.1
 WORKDIR /src
 COPY .markdownlint.json .
 COPY ./CHANGELOG.md ./CHANGELOG.md
+COPY ./CONTRIBUTING.md ./CONTRIBUTING.md
 COPY ./README.md ./README.md
 RUN markdownlint --ignore "CHANGELOG.md" --ignore "**/node_modules/**" --ignore '**/hack/chglog/**' --rules /node_modules/sentences-per-line/index.js .
 
@@ -34,6 +35,7 @@ ADD api/socket/message.proto /api/socket/message/
 ADD api/common/theila.proto /api/common/
 ADD api/rpc/resource.proto /api/rpc/
 ADD api/rpc/context.proto /api/rpc/
+ADD api/rpc/management.proto /api/rpc/
 ADD https://raw.githubusercontent.com/googleapis/googleapis/master/google/rpc/status.proto /api/google/rpc/
 ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/common/common.proto /api/common/
 ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/resource/resource.proto /api/talos/resource/
@@ -47,6 +49,7 @@ ADD api/common/theila.proto /frontend/src/api/common/
 ADD api/socket/message.proto /frontend/src/api/socket/
 ADD api/rpc/resource.proto /frontend/src/api/rpc/
 ADD api/rpc/context.proto /frontend/src/api/rpc/
+ADD api/rpc/management.proto /frontend/src/api/rpc/
 ADD https://raw.githubusercontent.com/googleapis/googleapis/master/google/rpc/status.proto /frontend/src/api/google/rpc/
 ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/resource/resource.proto /frontend/src/api/talos/resource/
 ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/machine/machine.proto /frontend/src/api/talos/machine/
@@ -54,6 +57,7 @@ ADD https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google
 ADD https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/duration.proto /frontend/src/api/google/protobuf/
 ADD https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/empty.proto /frontend/src/api/google/protobuf/
 ADD https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/timestamp.proto /frontend/src/api/google/protobuf/
+ADD https://raw.githubusercontent.com/googleapis/googleapis/master/google/rpc/code.proto /frontend/src/api/google/rpc/
 ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/common/common.proto /frontend/src/api/common/
 ADD https://raw.githubusercontent.com/cosi-project/runtime/master/api/v1alpha1/resource.proto /frontend/src/api/v1alpha1/
 
@@ -121,6 +125,7 @@ RUN protoc -I/frontend/src/api --grpc-gateway-ts_out=source_relative:/frontend/s
 RUN protoc -I/frontend/src/api --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src/api --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/api/socket/message.proto
 RUN protoc -I/frontend/src/api --grpc-gateway-ts_out=source_relative:/frontend/src/api --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src/api --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/api/rpc/resource.proto
 RUN protoc -I/frontend/src/api --grpc-gateway-ts_out=source_relative:/frontend/src/api --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src/api --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/api/rpc/context.proto
+RUN protoc -I/frontend/src/api --grpc-gateway-ts_out=source_relative:/frontend/src/api --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src/api --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/api/rpc/management.proto
 RUN protoc -I/frontend/src/api --grpc-gateway-ts_out=source_relative:/frontend/src/api --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src/api --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/api/google/rpc/status.proto
 RUN protoc -I/frontend/src/api --grpc-gateway-ts_out=source_relative:/frontend/src/api --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src/api --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/api/talos/resource/resource.proto
 RUN protoc -I/frontend/src/api --grpc-gateway-ts_out=source_relative:/frontend/src/api --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src/api --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/api/talos/machine/machine.proto
@@ -128,12 +133,14 @@ RUN protoc -I/frontend/src/api --grpc-gateway-ts_out=source_relative:/frontend/s
 RUN protoc -I/frontend/src/api --grpc-gateway-ts_out=source_relative:/frontend/src/api --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src/api --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/api/google/protobuf/duration.proto
 RUN protoc -I/frontend/src/api --grpc-gateway-ts_out=source_relative:/frontend/src/api --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src/api --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/api/google/protobuf/empty.proto
 RUN protoc -I/frontend/src/api --grpc-gateway-ts_out=source_relative:/frontend/src/api --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src/api --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/api/google/protobuf/timestamp.proto
+RUN protoc -I/frontend/src/api --grpc-gateway-ts_out=source_relative:/frontend/src/api --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src/api --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/api/google/rpc/code.proto
 RUN protoc -I/frontend/src/api --grpc-gateway-ts_out=source_relative:/frontend/src/api --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src/api --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/api/common/common.proto
 RUN protoc -I/frontend/src/api --grpc-gateway-ts_out=source_relative:/frontend/src/api --plugin=/root/.npm-global/.bin/protoc-gen-ts_proto.cmd --ts_proto_out=paths=source_relative:/frontend/src/api --ts_proto_opt=returnObservable=false --ts_proto_opt=outputClientImpl=false --ts_proto_opt=snakeToCamel=false /frontend/src/api/v1alpha1/resource.proto
 RUN rm /frontend/src/api/common/theila.proto
 RUN rm /frontend/src/api/socket/message.proto
 RUN rm /frontend/src/api/rpc/resource.proto
 RUN rm /frontend/src/api/rpc/context.proto
+RUN rm /frontend/src/api/rpc/management.proto
 
 # runs js unit-tests
 FROM js AS unit-tests-frontend
@@ -146,6 +153,7 @@ RUN protoc -I/api --go_out=paths=source_relative:/api --go-grpc_out=paths=source
 RUN protoc -I/api --go_out=paths=source_relative:/api --go-grpc_out=paths=source_relative:/api /api/common/theila.proto
 RUN protoc -I/api --grpc-gateway_out=paths=source_relative:/api --grpc-gateway_opt=generate_unbound_methods=true --go_out=paths=source_relative:/api --go-grpc_out=paths=source_relative:/api /api/rpc/resource.proto
 RUN protoc -I/api --grpc-gateway_out=paths=source_relative:/api --grpc-gateway_opt=generate_unbound_methods=true --go_out=paths=source_relative:/api --go-grpc_out=paths=source_relative:/api /api/rpc/context.proto
+RUN protoc -I/api --grpc-gateway_out=paths=source_relative:/api --grpc-gateway_opt=generate_unbound_methods=true --go_out=paths=source_relative:/api --go-grpc_out=paths=source_relative:/api /api/rpc/management.proto
 RUN protoc -I/api --grpc-gateway_out=paths=source_relative:/api --grpc-gateway_opt=generate_unbound_methods=true --grpc-gateway_opt=standalone=true /api/google/rpc/status.proto
 RUN protoc -I/api --grpc-gateway_out=paths=source_relative:/api --grpc-gateway_opt=generate_unbound_methods=true --grpc-gateway_opt=standalone=true /api/common/common.proto
 RUN protoc -I/api --grpc-gateway_out=paths=source_relative:/api --grpc-gateway_opt=generate_unbound_methods=true --grpc-gateway_opt=standalone=true /api/talos/resource/resource.proto
@@ -156,6 +164,7 @@ RUN rm /api/socket/message/message.proto
 RUN rm /api/common/theila.proto
 RUN rm /api/rpc/resource.proto
 RUN rm /api/rpc/context.proto
+RUN rm /api/rpc/management.proto
 
 # tools and sources
 FROM tools AS base

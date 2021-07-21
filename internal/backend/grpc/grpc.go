@@ -52,6 +52,7 @@ func New(ctx context.Context, mux *http.ServeMux) (*Server, error) {
 	servers := []grpcServer{
 		&contextServer{},
 		&resourceServer{},
+		&managementServer{},
 	}
 
 	addr, local, err := s.newServer(servers)

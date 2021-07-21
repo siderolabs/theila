@@ -40,6 +40,9 @@ spec:
     - source: api/rpc/context.proto
       subdirectory: rpc
       genGateway: true
+    - source: api/rpc/management.proto
+      subdirectory: rpc
+      genGateway: true
     - source: https://raw.githubusercontent.com/googleapis/googleapis/master/google/rpc/status.proto
       subdirectory: google/rpc/
       genGateway: true
@@ -74,6 +77,9 @@ spec:
     - source: api/rpc/context.proto
       subdirectory: rpc
       genGateway: true
+    - source: api/rpc/management.proto
+      subdirectory: rpc
+      genGateway: true
     - source: https://raw.githubusercontent.com/googleapis/googleapis/master/google/rpc/status.proto
       subdirectory: google/rpc/
       genGateway: true
@@ -94,6 +100,9 @@ spec:
       genGateway: true
     - source: https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/timestamp.proto
       subdirectory: google/protobuf/
+      genGateway: true
+    - source: https://raw.githubusercontent.com/googleapis/googleapis/master/google/rpc/code.proto
+      subdirectory: google/rpc/
       genGateway: true
     - source: https://raw.githubusercontent.com/talos-systems/talos/master/api/common/common.proto
       subdirectory: common/

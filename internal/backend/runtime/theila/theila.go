@@ -124,7 +124,9 @@ func (r *Runtime) Watch(ctx context.Context, request *message.WatchSpec, events 
 func (r *Runtime) Get(ctx context.Context, setters ...runtime.QueryOption) (interface{}, error) {
 	opts := runtime.NewQueryOptions(setters...)
 
-	res, err := r.state.Get(ctx, cosiresource.NewMetadata(opts.Namespace, opts.Resource, opts.Name, cosiresource.VersionUndefined))
+	metadata := cosiresource.NewMetadata(opts.Namespace, opts.Resource, opts.Name, cosiresource.VersionUndefined)
+
+	res, err := r.state.Get(ctx, metadata)
 	if err != nil {
 		return nil, err
 	}
@@ -202,12 +204,20 @@ type Watch struct {
 func (w *Watch) run(ctx context.Context) error {
 	events := make(chan state.Event)
 
-	opts := []state.WatchOption{}
-	if w.resource.TailEvents != 0 {
-		opts = append(opts, state.WithTailEvents(int(w.resource.TailEvents)))
+	var err error
+
+	md := cosiresource.NewMetadata(w.resource.Namespace, w.resource.Type, w.resource.Id, cosiresource.VersionUndefined)
+
+	if w.resource.Id == "" {
+		err = w.state.WatchKind(ctx, md, events)
+	} else {
+		opts := []state.WatchOption{}
+		if w.resource.TailEvents != 0 {
+			opts = append(opts, state.WithTailEvents(int(w.resource.TailEvents)))
+		}
+		err = w.state.Watch(ctx, md, events, opts...)
 	}
 
-	err := w.state.Watch(ctx, cosiresource.NewMetadata(w.resource.Namespace, w.resource.Type, w.resource.Id, cosiresource.VersionUndefined), events, opts...)
 	if err != nil {
 		return err
 	}
@@ -220,10 +230,30 @@ func (w *Watch) run(ctx context.Context) error {
 		}
 	}
 
+	listResponse, err := w.state.List(ctx, md)
+	if err != nil {
+		return err
+	}
+
 	go func() {
+		for _, item := range listResponse.Items {
+			r, err := runtime.NewResource(nil, item)
+			if err != nil {
+				w.logger.Error("failed to create resource", zap.Error(err))
+
+				continue
+			}
+
+			created(r)
+		}
+
 		for {
 			select {
 			case msg := <-events:
+				if _, ok := msg.Resource.(*cosiresource.Tombstone); ok {
+					continue
+				}
+
 				r, err := runtime.NewResource(nil, msg.Resource)
 				if err != nil {
 					w.logger.Error("failed to create resource", zap.Error(err))
@@ -291,9 +321,10 @@ func (w *Watch) run(ctx context.Context) error {
 
 func init() {
 	resources := map[cosiresource.Type]protobuf.ResourceUnmarshaler{
-		resources.UpgradeK8sTaskType: &resources.UpgradeK8sTask{},
-		resources.TaskLogType:        &resources.TaskLog{},
-		resources.TaskStatusType:     &resources.TaskStatus{},
+		resources.UpgradeK8sTaskType:    &resources.UpgradeK8sTask{},
+		resources.TaskLogType:           &resources.TaskLog{},
+		resources.TaskStatusType:        &resources.TaskStatus{},
+		resources.KubernetesVersionType: &resources.KubernetesVersion{},
 	}
 
 	for t, res := range resources {

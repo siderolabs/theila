@@ -22,3 +22,25 @@ export const showError = (title: string, body: string) => {
     }
   }
 };
+
+export const showInfo = (title: string, body: string) => {
+  modal.value = {
+    component: TNotification,
+    props: {
+      title: title,
+      body: body,
+      info: true,
+    }
+  }
+};
+
+export const showSuccess = (title: string, body: string) => {
+  modal.value = {
+    component: TNotification,
+    props: {
+      title: title,
+      body: body,
+      success: true,
+    }
+  }
+};

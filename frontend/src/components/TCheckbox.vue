@@ -4,25 +4,31 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <template>
-  <button type="button" :disabled="disabled"
-          class="focus:outline-none focus:shadow-outline disabled:opacity-50"
-          :class="{primary: primary, secondary: !primary && !danger, danger: danger, small: small, xs: xs, 'cursor-pointer': !disabled, 'pointer-events-none': disabled}">
+  <button type="button" 
+          class="focus:outline-none focus:shadow-outline"
+          :class="{primary: primary, secondary: !primary, small: small, xs: xs}">
     <div class="container space-x-1">
-      <slot></slot>
     </div>
   </button>
 </template>
 
 <script lang="ts">
-export default {
+import { Options, Vue } from 'vue-class-component';
+
+@Options({
   props: {
     primary: Boolean,
-    danger: Boolean,
     small: Boolean,
     xs: Boolean,
-    disabled: Boolean,
   },
-};
+
+  data() {
+    return {
+      colors: this.primary ? this.primaryClasses : this.secondaryClasses,
+    };
+  }
+})
+export default class TButton extends Vue {}
 </script>
 
 <style scoped>
@@ -32,10 +38,6 @@ button {
 
 .primary {
   @apply text-white bg-blue-500 hover:bg-blue-700 focus:bg-blue-700 border border-transparent;
-}
-
-.danger {
-  @apply text-white bg-red-600 hover:bg-red-500 focus:bg-red-500 border border-transparent;
 }
 
 .secondary {
@@ -51,6 +53,11 @@ button {
 }
 
 button > div.container {
-  @apply flex items-center;
+  vertical-align: middle;
+}
+
+button > div.container > * {
+  display: inline-block;
+  vertical-align: middle;
 }
 </style>

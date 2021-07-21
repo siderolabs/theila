@@ -72,7 +72,7 @@ func (r *Runtime) Watch(ctx context.Context, request *message.WatchSpec, events 
 		ctx = withNodes(ctx, request.Context.Nodes)
 	}
 
-	c, err := r.GetClient(ctx, contextName, cluster)
+	c, err := r.getClient(ctx, contextName, cluster)
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (r *Runtime) Get(ctx context.Context, setters ...runtime.QueryOption) (inte
 
 	ctx = withNodes(ctx, opts.Nodes)
 
-	c, err := r.GetClient(ctx, opts.Context, opts.Cluster)
+	c, err := r.getClient(ctx, opts.Context, opts.Cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +146,7 @@ func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) (int
 
 	ctx = withNodes(ctx, opts.Nodes)
 
-	c, err := r.GetClient(ctx, opts.Context, opts.Cluster)
+	c, err := r.getClient(ctx, opts.Context, opts.Cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -255,7 +255,15 @@ func (r *Runtime) GetContext(ctx context.Context, context *common.Context, clust
 }
 
 // GetClient returns talos client for the context name or CAPI cluster.
-func (r *Runtime) GetClient(ctx context.Context, name string, cluster *common.Cluster) (*client.Client, error) {
+func (r *Runtime) GetClient(ctx context.Context, context *common.Context) (*client.Client, error) {
+	if context == nil {
+		return r.getClient(ctx, runtime.DefaultClient, nil)
+	}
+
+	return r.getClient(ctx, context.Name, context.Cluster)
+}
+
+func (r *Runtime) getClient(ctx context.Context, name string, cluster *common.Cluster) (*client.Client, error) {
 	contextName := runtime.DefaultClient
 
 	switch {
@@ -513,6 +521,15 @@ func withNodes(ctx context.Context, nodes []string) context.Context {
 	}
 
 	return ctx
+}
+
+// WithNodes returns context with nodes if they are defined.
+func WithNodes(ctx context.Context, context *common.Context) context.Context {
+	if context == nil {
+		return ctx
+	}
+
+	return withNodes(ctx, context.Nodes)
 }
 
 // Watch watches Talos resources.

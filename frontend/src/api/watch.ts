@@ -4,7 +4,7 @@
 
 import { reactive, ref, watch, Ref, onMounted, onUnmounted, toRefs } from 'vue';
 import { Client, Callback, ClientReconnected } from './client';
-import { Runtime, Context } from './common/theila';
+import { Runtime, Context, runtimeFromJSON } from './common/theila';
 import { Message, WatchSpec, UnsubscribeSpec, Kind } from './socket/message';
 import { v4 as uuidv4 } from 'uuid';
 import { context as ctx } from '../context';
@@ -187,9 +187,13 @@ export default class Watch {
     });
   }
 
-  public async start(source: Runtime, resource: Object, context?: Object, compare?: CompareFunc): Promise<Message> {
+  public async start(source: any, resource: Object, context?: Object, compare?: CompareFunc): Promise<Message> {
     this.loading.value = true;
     this.err.value = "";
+
+    if(typeof source === "string") {
+      source = runtimeFromJSON(source);
+    }
 
     if (this.items)
       this.items.value.splice(0, this.items.value.length);

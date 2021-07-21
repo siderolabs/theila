@@ -66,11 +66,13 @@ func (r *Router) getTalosBackend(ctx context.Context, md metadata.MD) ([]proxy.B
 	r.backendsMu.Lock()
 	defer r.backendsMu.Unlock()
 
-	var cluster *common.Cluster
+	var (
+		context     *common.Context
+		contextName string
+		cluster     *common.Cluster
+	)
 
-	contextName := runtime.DefaultClient
-
-	if context := extractContext(md); context != nil {
+	if context = extractContext(md); context != nil {
 		contextName = context.Name
 
 		cluster = context.Cluster
@@ -97,7 +99,7 @@ func (r *Router) getTalosBackend(ctx context.Context, md metadata.MD) ([]proxy.B
 		return nil, fmt.Errorf("failed to get talos runtime")
 	}
 
-	client, err := t.GetClient(ctx, contextName, cluster)
+	client, err := t.GetClient(ctx, context)
 	if err != nil {
 		return nil, err
 	}

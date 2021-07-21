@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/talos-systems/theila/api/socket/message"
 	"github.com/talos-systems/theila/internal/backend/logging"
@@ -39,6 +40,24 @@ func NewSubscription(ctx context.Context, r runtime.Runtime, watch *message.Watc
 	ctx, cancel := context.WithCancel(ctx)
 	id := uuid.New().String()
 
+	contextFields := []zapcore.Field{
+		logging.Component("subscription"),
+		logging.SubscriptionID(id),
+		zap.String("resource", watch.Resource.Type),
+		zap.String("namespace", watch.Resource.Namespace),
+		zap.String("source", watch.Source.String()),
+	}
+
+	if watch.Resource.Id != "" {
+		contextFields = append(contextFields, zap.String("id", watch.Resource.Id))
+	}
+
+	if watch.Context != nil {
+		if watch.Context.Name != "" {
+			contextFields = append(contextFields, zap.String("context", watch.Context.Name))
+		}
+	}
+
 	subscription := &Subscription{
 		ID: id,
 
@@ -48,11 +67,8 @@ func NewSubscription(ctx context.Context, r runtime.Runtime, watch *message.Watc
 		ctx:     ctx,
 		cancel:  cancel,
 		conn:    conn,
-		logger: logging.With(
-			logging.Component("subscription"),
-			logging.SubscriptionID(id),
-		),
-		events: make(chan runtime.Event),
+		logger:  logging.With(contextFields...),
+		events:  make(chan runtime.Event),
 	}
 
 	if err := subscription.run(); err != nil {

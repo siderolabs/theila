@@ -12,10 +12,13 @@ import (
 
 	"github.com/cosi-project/runtime/api/v1alpha1"
 	"github.com/cosi-project/runtime/pkg/resource/protobuf"
+	"github.com/cosi-project/runtime/pkg/state"
 	gateway "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/talos-systems/talos/pkg/machinery/api/resource"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 
 	"github.com/talos-systems/theila/api/common"
 	"github.com/talos-systems/theila/api/rpc"
@@ -60,7 +63,7 @@ func (s *resourceServer) Get(ctx context.Context, in *resource.GetRequest) (*rpc
 
 	result, err := r.Get(ctx, opts...)
 	if err != nil {
-		return nil, err
+		return nil, wrapError(err)
 	}
 
 	data, err := json.Marshal(result)
@@ -100,7 +103,7 @@ func (s *resourceServer) List(ctx context.Context, in *resource.ListRequest) (*r
 
 	result, err := r.List(ctx, opts...)
 	if err != nil {
-		return nil, err
+		return nil, wrapError(err)
 	}
 
 	data, err := json.Marshal(result)
@@ -137,7 +140,7 @@ func (s *resourceServer) Create(ctx context.Context, in *rpc.CreateRequest) (*rp
 	}
 
 	if err = r.Create(ctx, obj, opts...); err != nil {
-		return nil, err
+		return nil, wrapError(err)
 	}
 
 	return &rpc.CreateResponse{}, nil
@@ -169,7 +172,7 @@ func (s *resourceServer) Update(ctx context.Context, in *rpc.UpdateRequest) (*rp
 	}
 
 	if err = r.Update(ctx, obj, opts...); err != nil {
-		return nil, err
+		return nil, wrapError(err)
 	}
 
 	return &rpc.UpdateResponse{}, nil
@@ -191,7 +194,7 @@ func (s *resourceServer) Delete(ctx context.Context, in *rpc.DeleteRequest) (*rp
 	)
 
 	if err = r.Delete(ctx, opts...); err != nil {
-		return nil, err
+		return nil, wrapError(err)
 	}
 
 	return &rpc.DeleteResponse{}, nil
@@ -276,4 +279,19 @@ func populateResource(resource *v1alpha1.Resource) {
 	}
 
 	resource.Metadata.Phase = "running"
+}
+
+func wrapError(err error) error {
+	switch {
+	case state.IsNotFoundError(err):
+		return status.Error(codes.NotFound, err.Error())
+	case state.IsOwnerConflictError(err):
+		return status.Error(codes.PermissionDenied, err.Error())
+	case state.IsPhaseConflictError(err):
+		return status.Error(codes.InvalidArgument, err.Error())
+	case state.IsConflictError(err):
+		return status.Error(codes.FailedPrecondition, err.Error())
+	}
+
+	return err
 }

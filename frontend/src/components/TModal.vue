@@ -5,9 +5,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <template>
   <div class="container-modal" v-if="view" @click.self="close">
-    <div>
-      <component :is="view" v-bind="props"/>
-    </div>
+    <component :is="view" v-bind="props"/>
   </div>
 </template>
 
@@ -69,6 +67,6 @@ export default {
 }
 
 .container-modal > * {
-  @apply align-middle bg-white dark:bg-talos-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform;
+  @apply align-middle bg-white dark:bg-talos-gray-800 rounded-lg text-left shadow-xl transform;
 }
 </style>
