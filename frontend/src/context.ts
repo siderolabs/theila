@@ -4,8 +4,9 @@
 
 import { ref, Ref } from 'vue';
 import { Client } from "./api/client";
-import { ResourceService } from './api/grpc';
+import { ResourceService, RequestError } from './api/grpc';
 import { Runtime } from './api/common/theila.pb';
+import { Code } from './api/google/rpc/code';
 
 export namespace context {
   // create a singleton for the api.
@@ -26,7 +27,10 @@ export function changeContext(c: Object) {
   context.current.value = c;
 }
 
-export function getContext(runtime: Runtime): string {
+export function getContext(runtime: Runtime): string | null {
+  if(context.current.value === null)
+    return null;
+
   return runtime === Runtime.Talos ? context.current.value.cluster : context.current.value.name;
 }
 
@@ -45,6 +49,9 @@ export async function detectCapabilities() {
 
       return true;
     } catch(e) {
+      if(e.code !== Code.NOT_FOUND)
+        throw e;
+
       return false;
     }
   }

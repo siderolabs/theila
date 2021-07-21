@@ -15,6 +15,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         <cube-icon class="w-6 h-6"/>
       </template>
     </shell-menu-item>
+    <disclosure as="template" defaultOpen v-slot="{ open }">
+      <disclosure-button as="div" class="disclosure-button">
+        MANAGE
+        <chevron-up-icon :class="{ chevron: true, open: open }"/>
+      </disclosure-button>
+      <disclosure-panel as="template" class="overflow-hidden">
+        <shell-menu-item @click="openUpgrade" name="Upgrade Kubernetes">
+          <template v-slot:icon>
+            <upload-icon class="w-6 h-6"/>
+          </template>
+        </shell-menu-item>
+      </disclosure-panel>
+    </disclosure>
     <disclosure as="template" defaultOpen v-if="capi" v-slot="{ open }">
       <disclosure-button as="div" class="disclosure-button">
         CAPI
@@ -67,6 +80,7 @@ import {
   ServerIcon,
   CogIcon,
   ChipIcon,
+  UploadIcon,
 } from '@heroicons/vue/outline';
 import {
   ChevronUpIcon,
@@ -81,6 +95,7 @@ export default {
     CogIcon,
     CubeIcon,
     ChipIcon,
+    UploadIcon,
     Disclosure,
     DisclosureButton,
     DisclosurePanel,
@@ -90,6 +105,10 @@ export default {
   setup() {
     const router = useRouter();
 
+    const openUpgrade = () => {
+      router.replace({query: {modal: "upgrade"}});
+    }
+
     const openSettings = () => {
       router.replace({query: {modal: "settings"}});
     }
@@ -98,6 +117,7 @@ export default {
       capi: context.capabilities.capi,
       sidero: context.capabilities.sidero,
       openSettings,
+      openUpgrade,
     }
   },
 };

@@ -6,19 +6,23 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/cosi-project/runtime/pkg/controller"
 	"github.com/cosi-project/runtime/pkg/resource"
+	"github.com/cosi-project/runtime/pkg/state"
+	"github.com/google/go-github/v35/github"
 	"github.com/talos-systems/talos/pkg/cluster"
 	k8s "github.com/talos-systems/talos/pkg/cluster/kubernetes"
-	"github.com/talos-systems/talos/pkg/machinery/client"
 	"go.uber.org/zap"
 
-	"github.com/talos-systems/theila/api/common"
 	"github.com/talos-systems/theila/api/rpc"
-	"github.com/talos-systems/theila/internal/backend/runtime"
+	"github.com/talos-systems/theila/internal/backend/constants"
+	"github.com/talos-systems/theila/internal/backend/management"
 	"github.com/talos-systems/theila/internal/backend/runtime/talos"
 	"github.com/talos-systems/theila/internal/backend/runtime/theila/resources"
 )
@@ -65,6 +69,8 @@ type UpgradeController struct {
 	errors   chan taskError
 	progress chan taskProgress
 
+	kubernetesVersionsRefreshTime time.Time
+
 	Namespace resource.Namespace
 }
 
@@ -95,17 +101,32 @@ func (ctrl *UpgradeController) Outputs() []controller.Output {
 			Type: resources.TaskLogType,
 			Kind: controller.OutputExclusive,
 		},
+		{
+			Type: resources.KubernetesVersionType,
+			Kind: controller.OutputExclusive,
+		},
 	}
 }
 
 // Run implements controller.Controller interface.
 func (ctrl *UpgradeController) Run(ctx context.Context, r controller.Runtime, logger *zap.Logger) error {
+	kubernetesVersionsReconcile := time.NewTicker(time.Minute * 10)
+	defer kubernetesVersionsReconcile.Stop()
+
+	if err := ctrl.reconcileKubernetesVersions(ctx, r, logger); err != nil {
+		return err
+	}
+
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-r.EventCh():
 			if err := ctrl.reconcileTasks(ctx, r, logger); err != nil {
+				return err
+			}
+		case <-kubernetesVersionsReconcile.C:
+			if err := ctrl.reconcileKubernetesVersions(ctx, r, logger); err != nil {
 				return err
 			}
 		case log := <-ctrl.logs:
@@ -138,6 +159,7 @@ func (ctrl *UpgradeController) Run(ctx context.Context, r controller.Runtime, lo
 
 			if err := r.Modify(ctx, status, func(res resource.Resource) error {
 				res.(*resources.TaskStatus).SetError(e.err)
+				res.(*resources.TaskStatus).SetPhase(rpc.TaskStatusSpec_FAILED)
 
 				return nil
 			}); err != nil {
@@ -145,6 +167,44 @@ func (ctrl *UpgradeController) Run(ctx context.Context, r controller.Runtime, lo
 			}
 		}
 	}
+}
+
+func (ctrl *UpgradeController) reconcileKubernetesVersions(ctx context.Context, r controller.Runtime, logger *zap.Logger) error {
+	if time.Now().Before(ctrl.kubernetesVersionsRefreshTime) {
+		logger.Sugar().Infof("controller hit Github rate limit, skipping refreshes until %s", ctrl.kubernetesVersionsRefreshTime.String())
+
+		return nil
+	}
+
+	versions, err := management.K8sUpgradeCandidates(ctx, constants.KubernetesRepoURL)
+	if err != nil {
+		var rateLimitError *github.RateLimitError
+
+		if errors.As(err, &rateLimitError) {
+			ctrl.kubernetesVersionsRefreshTime = rateLimitError.Rate.Reset.Time
+		}
+
+		return err
+	}
+
+	for _, version := range versions {
+		version = strings.TrimLeft(version, "v")
+		kubernetesVersion := resources.NewKubernetesVersion(Namespace, version, version)
+
+		version := version
+
+		if err = r.Modify(ctx, kubernetesVersion, func(res resource.Resource) error {
+			res.(*resources.KubernetesVersion).SetVersion(version)
+
+			return nil
+		}); err != nil {
+			return err
+		}
+	}
+
+	logger.Info("reconciled available Kubernetes releases")
+
+	return nil
 }
 
 func (ctrl *UpgradeController) reconcileTasks(ctx context.Context, r controller.Runtime, logger *zap.Logger) error {
@@ -167,7 +227,7 @@ func (ctrl *UpgradeController) reconcileTasks(ctx context.Context, r controller.
 
 	for id := range ctrl.tasks {
 		if _, exists := touchedIDs[id]; !exists {
-			if err = ctrl.abortTask(ctx, id, r); err != nil {
+			if err = ctrl.abortTask(ctx, id, r, logger); err != nil {
 				return err
 			}
 		}
@@ -183,7 +243,7 @@ func (ctrl *UpgradeController) handleTask(ctx context.Context, task *resources.U
 			return nil
 		}
 
-		if err := ctrl.abortTask(ctx, id, r); err != nil {
+		if err := ctrl.abortTask(ctx, id, r, logger); err != nil {
 			return err
 		}
 	}
@@ -195,16 +255,22 @@ func (ctrl *UpgradeController) handleTask(ctx context.Context, task *resources.U
 	return ctrl.tasks[id].start(ctx, task, ctrl, logger)
 }
 
-func (ctrl *UpgradeController) abortTask(ctx context.Context, id resource.ID, r controller.Runtime) error {
+func (ctrl *UpgradeController) abortTask(ctx context.Context, id resource.ID, r controller.Runtime, logger *zap.Logger) error {
 	ctrl.tasks[id].stop()
 
 	defer delete(ctrl.tasks, id)
 
-	if err := r.Destroy(ctx, resource.NewMetadata(Namespace, resources.TaskStatusType, id, resource.VersionUndefined)); err != nil {
+	if err := r.Destroy(ctx, resource.NewMetadata(Namespace, resources.TaskStatusType, id, resource.VersionUndefined)); err != nil && !state.IsNotFoundError(err) {
 		return err
 	}
 
-	return r.Destroy(ctx, resource.NewMetadata(Namespace, resources.TaskLogType, id, resource.VersionUndefined))
+	if err := r.Destroy(ctx, resource.NewMetadata(Namespace, resources.TaskLogType, id, resource.VersionUndefined)); err != nil && !state.IsNotFoundError(err) {
+		return err
+	}
+
+	logger.Info("task was aborted", zap.String("task", id))
+
+	return nil
 }
 
 type upgradeTask struct {
@@ -239,24 +305,28 @@ func (t *upgradeTask) start(ctx context.Context, task *resources.UpgradeK8sTask,
 		zap:  logger,
 	}
 
-	tr, err := runtime.Get(talos.Name)
+	ctx = talos.WithNodes(ctx, spec.Context)
+
+	clientProvider, err := management.NewUpgradeClientProvider(ctx, spec.Context)
 	if err != nil {
 		return err
 	}
 
-	var clusterOptions *common.Cluster
-
-	contextName := spec.Context.Name
-
-	clusterOptions = spec.Context.Cluster
-
-	if len(spec.Context.Nodes) != 0 {
-		ctx = client.WithNodes(ctx, spec.Context.Nodes...)
+	state := struct {
+		cluster.ClientProvider
+		cluster.K8sProvider
+	}{
+		ClientProvider: clientProvider,
+		K8sProvider: &cluster.KubernetesClient{
+			ClientProvider: clientProvider,
+		},
 	}
 
-	c, err := tr.(*talos.Runtime).GetClient(ctx, contextName, clusterOptions)
-	if err != nil {
-		return err
+	if upgradeOptions.FromVersion == "" {
+		upgradeOptions.FromVersion, err = k8s.DetectLowestVersion(ctx, &state, upgradeOptions)
+		if err != nil {
+			return err
+		}
 	}
 
 	t.wg.Add(1)
@@ -264,17 +334,12 @@ func (t *upgradeTask) start(ctx context.Context, task *resources.UpgradeK8sTask,
 	go func() {
 		defer t.wg.Done()
 
-		state := struct {
-			cluster.ClientProvider
-			cluster.K8sProvider
-		}{
-			ClientProvider: &clientProvider{c},
-			K8sProvider: &cluster.KubernetesClient{
-				ClientProvider: &clientProvider{c},
-			},
-		}
-
 		upgrade := func() error {
+			c, err := clientProvider.Client()
+			if err != nil {
+				return err
+			}
+
 			endpoints := c.GetEndpoints()
 
 			selfHosted, err := k8s.IsSelfHostedControlPlane(ctx, &state, endpoints[0])
@@ -295,16 +360,26 @@ func (t *upgradeTask) start(ctx context.Context, task *resources.UpgradeK8sTask,
 		}
 
 		if err := upgrade(); err != nil {
-			ctrl.errors <- taskError{
+			taskErr := taskError{
 				id:  id,
 				err: err,
 			}
+
+			select {
+			case <-ctx.Done():
+				return
+			case ctrl.errors <- taskErr:
+			}
+
+			return
 		}
 
 		ctrl.progress <- taskProgress{
 			id:    id,
 			value: 1.0,
 		}
+
+		upgradeOptions.Log("upgrade complete")
 	}()
 
 	return nil
@@ -314,18 +389,6 @@ func (t *upgradeTask) stop() {
 	t.cancel()
 
 	t.wg.Wait()
-}
-
-type clientProvider struct {
-	client *client.Client
-}
-
-func (cp *clientProvider) Client(endpoints ...string) (*client.Client, error) {
-	return cp.client, nil
-}
-
-func (cp *clientProvider) Close() error {
-	return nil
 }
 
 type runtimeLogger struct {

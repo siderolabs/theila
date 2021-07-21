@@ -2,15 +2,24 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import { ResourceService as WrappedResourceService, CreateRequest } from './rpc/resource.pb';
+import { ResourceService as WrappedResourceService,
+  CreateRequest,
+  UpdateRequest,
+  DeleteRequest,
+  CreateResponse,
+  UpdateResponse,
+  DeleteResponse,
+} from './rpc/resource.pb';
 import { ContextService as WrappedContextService, ListContextsRequest, ListContextsResponse } from './rpc/context.pb';
 import { Runtime, Context, Cluster } from './common/theila.pb';
+import { ManagementService as WrappedManagementService } from './rpc/management.pb';
 import { MachineService as WrappedMachineService } from './talos/machine/machine.pb';
 import { GetRequest, ListRequest, Metadata, Spec } from './talos/resource/resource.pb';
 import { context, getContext } from '../context';
 import { backOff, IBackOffOptions } from "exponential-backoff";
 import { ref, Ref } from 'vue';
 import { RouteLocationNormalized } from 'vue-router';
+import { Code, codeToJSON } from './google/rpc/code';
 
 const pathPrefix = "/api";
 const prefix = {pathPrefix: pathPrefix};
@@ -137,29 +146,25 @@ type Resource = {
 export class ResourceService {
   static async Get(request: GetRequest, options?: Partial<OptionsPartial>): Promise<Object> {
     const res = await WrappedResourceService.Get(request, Options.fromPartial(options));
-    if (res.body == null) {
-      throw new Error("empty body in the response");
-    }
+    checkError(res);
 
-    return JSON.parse(res.body);
+    return JSON.parse(res.body || "{}");
   }
 
   static async List(request: ListRequest, options?: Partial<OptionsPartial>): Promise<Object[]> {
     const res = await WrappedResourceService.List(request, Options.fromPartial(options));
-    if (res.messages == null) {
-      throw new Error("empty body in the response");
-    }
+    checkError(res);
 
     const results:Object[] = [];
 
-    for (const raw of res.messages) {
+    for (const raw of res.messages || []) {
       results.push(JSON.parse(raw));
     }
 
     return results;
   }
 
-  static async Create(resource: Partial<Resource>, options?: Partial<OptionsPartial>): Promise<void> {
+  static async Create(resource: Partial<Resource>, options?: Partial<OptionsPartial>): Promise<CreateResponse> {
     const protoSpec = resource.type.encode(resource.type.fromPartial(resource.spec)).finish();
 
     const request: CreateRequest = {
@@ -173,7 +178,29 @@ export class ResourceService {
 
     monkeyPatchUint8Array(request);
 
-    await WrappedResourceService.Create(request, Options.fromPartial(options));
+    return checkError(await WrappedResourceService.Create(request, Options.fromPartial(options)));
+  }
+
+  static async Update(resource: Partial<Resource>, options?: Partial<OptionsPartial>, currentVersion?: string | number): Promise<UpdateResponse> {
+    const protoSpec = resource.type.encode(resource.type.fromPartial(resource.spec)).finish();
+
+    const request: UpdateRequest = {
+      resource: {
+        metadata: resource.metadata,
+        spec: {
+          protoSpec: protoSpec,
+        }
+      },
+      currentVersion: currentVersion as string,
+    }
+
+    monkeyPatchUint8Array(request);
+
+    return checkError(await WrappedResourceService.Update(request, Options.fromPartial(options)));
+  }
+
+  static async Delete(request: DeleteRequest, options?: Partial<OptionsPartial>): Promise<DeleteResponse> {
+    return checkError(await WrappedResourceService.Delete(request, Options.fromPartial(options)));
   }
   
   static async GetConfig(cluster: Cluster, options?: Partial<OptionsPartial>): Promise<string> {
@@ -189,6 +216,7 @@ export class ResourceService {
 
 export const MachineService = createProxy(WrappedMachineService);
 export const ContextService = createProxy(WrappedContextService);
+export const ManagementService = createProxy(WrappedManagementService);
 
 // TODO: workaround for https://github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts/issues/22
 // remove when the PR is merged to upstream
@@ -198,7 +226,7 @@ function monkeyPatchUint8Array(data: any) {
       monkeyPatchUint8Array(data[key]);
     }
 
-    if(data[key].constructor === Uint8Array) {
+    if(data[key] && data[key].constructor === Uint8Array) {
       data[key].toJSON = () => {
         return btoa(new TextDecoder().decode(data[key]));
       }
@@ -210,7 +238,7 @@ function createProxy(service: any): any {
   const handler = {
     get(target: any, prop: any, receiver: any) {
       if(target[prop] && (typeof target[prop]) === "function") {
-        return (...args: any[]) => {
+        return async (...args: any[]) => {
           if(args.length == 0) {
             args.push({});
           }
@@ -223,7 +251,9 @@ function createProxy(service: any): any {
           else if(opts.metadata) // it's the partial object, so it should be converted
             args[args.length - 1] = Options.fromPartial(opts)
 
-          return target[prop](...args);
+          const response = await target[prop](...args);
+
+          return checkError(response);
         };
       }
 
@@ -232,4 +262,22 @@ function createProxy(service: any): any {
   }
 
   return new Proxy(service, handler)
+}
+
+export class RequestError extends Error {
+  public code: number = Code.UNKNOWN;
+
+  constructor(response: any) {
+    super(response["message"] || codeToJSON(response["code"]))
+
+    this.code = response["code"];
+  }
+}
+
+function checkError(response: any): any {
+  if(response["code"] != null) {
+    throw new RequestError(response);
+  }
+
+  return response;
 }

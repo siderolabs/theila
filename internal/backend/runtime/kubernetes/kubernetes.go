@@ -12,9 +12,11 @@ import (
 	"sync"
 
 	cosiresource "github.com/cosi-project/runtime/pkg/resource"
+	"github.com/cosi-project/runtime/pkg/state/impl/inmem"
 	"github.com/gertd/go-pluralize"
 	"github.com/talos-systems/talos/pkg/machinery/api/resource"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
@@ -131,7 +133,7 @@ func (r *Runtime) Get(ctx context.Context, setters ...runtime.QueryOption) (inte
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, wrapError(err, opts)
 	}
 
 	return object, nil
@@ -178,7 +180,7 @@ func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) (int
 
 	err = client.List(ctx, object, options...)
 	if err != nil {
-		return nil, err
+		return nil, wrapError(err, opts)
 	}
 
 	return object, nil
@@ -209,7 +211,7 @@ func (r *Runtime) Delete(ctx context.Context, setters ...runtime.QueryOption) er
 	}
 
 	if o, ok := object.(k8sruntime.Object); ok {
-		return client.Delete(ctx, o)
+		return wrapError(client.Delete(ctx, o), opts)
 	}
 
 	return fmt.Errorf("failed to convert object to runtime.Object")
@@ -511,4 +513,19 @@ func parseResource(resource string) (*schema.GroupVersionResource, error) {
 	}
 
 	return gvr, nil
+}
+
+func wrapError(err error, opts *runtime.QueryOptions) error {
+	md := cosiresource.NewMetadata(opts.Namespace, opts.Resource, opts.Name, cosiresource.VersionUndefined)
+
+	switch {
+	case errors.IsConflict(err):
+		fallthrough
+	case errors.IsAlreadyExists(err):
+		return inmem.ErrAlreadyExists(md)
+	case errors.IsNotFound(err):
+		return inmem.ErrNotFound(md)
+	}
+
+	return err
 }
