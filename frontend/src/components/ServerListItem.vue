@@ -8,7 +8,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <div class="col-span-2 block flex items-center gap-3">
       <button type="button" @click="expand" class="relative inline-flex items-center px-1 py-1 text-sm font-medium leading-5 transition-colors duration-200 rounded-full select-none text-talos-gray-700 dark:text-talos-gray-400 bg-talos-gray-200 dark:bg-talos-gray-800 hover:bg-talos-gray-200 dark:hover:bg-talos-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-60">
         <div :class="{ 'w-5': true, 'h-5': true, transform: expanded, 'rotate-180': expanded }">
-          <chevron-up-icon class="w-5 h-5"/>
+          <chevron-down-icon class="w-5 h-5"/>
         </div>
       </button>
       <div class="flex-1 block truncate overflow-hidden">
@@ -61,11 +61,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       </span>
     </div>
     <div v-if="expanded" class="block col-span-5">
-      <div class="flex items-center min-w-0 md:grid md:grid-cols-3 md:gap-4">
+      <div class="flex items-center min-w-0 md:grid md:grid-cols-3 md:gap-4 gap-1">
         <div class="flex-1">
           <div class="label">Labels</div>
           <template v-if="item.metadata.labels">
-          <div :class="{ tag: true, 'details-tag': true, 'mt-1': index > 0 }" v-for="key, value, index in item.metadata.labels" :key="key">
+          <div :class="{ tag: true, 'details-tag': true, 'mt-1': index > 0 }" v-for="value, key, index in item.metadata.labels" :key="key">
             {{ key }}: {{ value }}
           </div>
           </template>
@@ -112,7 +112,7 @@ import {
   LightBulbIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
-  ChevronUpIcon,
+  ChevronDownIcon,
   CheckIcon,
   XIcon,
 } from '@heroicons/vue/solid';
@@ -124,7 +124,7 @@ export default {
     LightBulbIcon,
     CheckCircleIcon,
     ExclamationCircleIcon,
-    ChevronUpIcon,
+    ChevronDownIcon,
     CheckIcon,
     XIcon,
   },
