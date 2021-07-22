@@ -31,7 +31,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <disclosure as="template" defaultOpen v-if="capi" v-slot="{ open }">
       <disclosure-button as="div" class="disclosure-button">
         CAPI
-        <chevron-up-icon :class="{ chevron: true, open: open }"/>
+        <chevron-down-icon :class="{ chevron: true, open: open }"/>
       </disclosure-button>
       <disclosure-panel as="template" class="overflow-hidden">
         <shell-menu-item :link="{name: 'Clusters'}" name="Clusters">
@@ -44,7 +44,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <disclosure as="template" defaultOpen v-if="sidero" v-slot="{ open }">
       <disclosure-button as="div" class="disclosure-button">
         SIDERO
-        <chevron-up-icon :class="{ chevron: true, open: open }"/>
+        <chevron-down-icon :class="{ chevron: true, open: open }"/>
       </disclosure-button>
       <disclosure-panel as="template">
         <shell-menu-item :link="{name: 'Servers'}" name="Servers">
@@ -57,7 +57,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <disclosure as="template" defaultOpen v-slot="{ open }">
       <disclosure-button as="div" class="disclosure-button">
         ACCOUNT
-        <chevron-up-icon :class="{ chevron: true, open: open }"/>
+        <chevron-down-icon :class="{ chevron: true, open: open }"/>
       </disclosure-button>
       <disclosure-panel as="template">
         <shell-menu-item @click="openSettings" name="Settings">
@@ -83,7 +83,7 @@ import {
   UploadIcon,
 } from '@heroicons/vue/outline';
 import {
-  ChevronUpIcon,
+  ChevronDownIcon,
 } from '@heroicons/vue/solid';
 import { useRouter } from 'vue-router';
 
@@ -99,7 +99,7 @@ export default {
     Disclosure,
     DisclosureButton,
     DisclosurePanel,
-    ChevronUpIcon,
+    ChevronDownIcon,
   },
 
   setup() {
