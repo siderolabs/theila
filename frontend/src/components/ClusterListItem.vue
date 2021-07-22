@@ -47,7 +47,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
               <p
                 class="flex items-center mt-2 text-sm text-talos-gray-500 dark:text-talos-gray-400"
                 >
-                {{ getLastUpdated(item) }}
+                {{ lastUpdated }}
               </p>
             </div>
           </div>
@@ -76,6 +76,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 >Download Talos Config</a
               >
             </menu-item>
+            <menu-item v-slot="{ active }">
+              <a
+                v-on:click="upgradeKubernetes"
+                :class="{ active }"
+                >Upgrade Kubernetes</a
+              >
+            </menu-item>
           </template>
         </t-dropdown>
       </div>
@@ -84,8 +91,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 </template>
 
 <script type="ts">
-import { Options, Vue } from 'vue-class-component';
 import TSpinner from '../components/TSpinner.vue';
+import TDropdown from '../components/TDropdown.vue';
+
+import { useRouter } from 'vue-router';
+import { onMounted, ref, toRefs, computed } from 'vue';
 import { ResourceService } from '../api/grpc';
 import { Runtime } from '../api/common/theila.pb';
 import {
@@ -94,11 +104,11 @@ import {
   XCircleIcon
 } from '@heroicons/vue/solid';
 import { DateTime } from 'luxon';
-import TDropdown from '../components/TDropdown.vue';
 import { MenuItem } from '@headlessui/vue';
+
 import pluralize from 'pluralize';
 
-@Options({
+export default {
   components: {
     TSpinner,
     CheckCircleIcon,
@@ -109,83 +119,92 @@ import pluralize from 'pluralize';
   },
 
   props: {
-    item: Object,
+    item: {
+      required: true,
+    },
   },
 
-  async created() {
-    const response = await ResourceService.List({
-      namespace: this.item.metadata.namespace,
-      type: "machinelist.v1alpha3.cluster.x-k8s.io",
-    }, {
-      selectors: [
-        `cluster.x-k8s.io/cluster-name=${this.item.metadata.name}`
-      ]
+  setup(props) {
+    const router = useRouter();
+    const { item } = toRefs(props);
+    const nodesCount = ref(-1);
+    const link = document.createElement("a");
+
+    onMounted(async () => {
+      const response = await ResourceService.List({
+        namespace: item.value.metadata.namespace,
+        type: "machinelist.v1alpha3.cluster.x-k8s.io",
+      }, {
+        selectors: [
+          `cluster.x-k8s.io/cluster-name=${item.value.metadata.name}`
+        ]
+      });
+
+      let count = 0;
+      for (const m of response) {
+        count += m.items.length;
+      }
+
+      nodesCount.value = count;
     });
-    
-    let count = 0;
-    for (const m of response) {
-      count += m.items.length;
-    }
 
-    this.nodesCount = count;
-  },
-  
-  data() {
-    return {
-      nodesCount: -1,
-      link: document.createElement("a"),
-    }
-  },
-
-  methods: {
-    async downloadTalosConfig() {
+    const downloadTalosConfig = async () => {
       const response = await ResourceService.GetConfig({
-        name: this.item.metadata.name,
-        uid: this.item.metadata.uid,
-        namespace: this.item.metadata.namespace,
+        name: item.value.metadata.name,
+        uid: item.value.metadata.uid,
+        namespace: item.value.metadata.namespace,
       }, {
         runtime: Runtime.Talos,
       });
 
-      this.link.href = `data:application/octet-stream;charset=utf-16le;base64,${btoa(response)}`;
-      this.link.download = `${this.item.metadata.name}-talosconfig.yaml`;
-      this.link.click();
-    },
+      link.value.href = `data:application/octet-stream;charset=utf-16le;base64,${btoa(response)}`;
+      link.value.download = `${item.value.metadata.name}-talosconfig.yaml`;
+      link.value.click();
+    };
 
-    async downloadKubeconfig() {
+    const downloadKubeconfig = async () => {
       const response = await ResourceService.GetConfig({
-        name: this.item.metadata.name,
-        uid: this.item.metadata.uid,
-        namespace: this.item.metadata.namespace,
+        name: item.value.metadata.name,
+        uid: item.value.metadata.uid,
+        namespace: item.value.metadata.namespace,
       }, {
         runtime: Runtime.Kubernetes,
       });
 
-      this.link.href = `data:application/octet-stream;charset=utf-16le;base64,${btoa(response)}`;
-      this.link.download = `${this.item.metadata.name}-kubeconfig.yaml`;
-      this.link.click();
-    },
+      link.value.href = `data:application/octet-stream;charset=utf-16le;base64,${btoa(response)}`;
+      link.value.download = `${item.value.metadata.name}-kubeconfig.yaml`;
+      link.value.click();
+    };
 
-    getLastUpdated(item) {
-      if (!item["status"]) {
-        return "";
+    const upgradeKubernetes = () => {
+      router.replace({query: {modal: "upgrade", name: item.value["metadata"]["name"], namespace: item.value["metadata"]["namespace"], uid: item.value["metadata"]["uid"]}});
+    };
+
+    const lastUpdated = computed(() => {
+      if (!item.value["status"]) {
+       return "";
       }
 
-      const conditions = item["status"]["conditions"];
+      const conditions = item.value["status"]["conditions"];
 
       if (!conditions) {
-        return "";
+       return "";
       }
 
       const condition = conditions[0];
 
       return DateTime.fromISO(condition["lastTransitionTime"]).toRelative();
-    },
+    });
 
-    pluralize(name, count) {
-      return pluralize(name, count);
+    return {
+      nodesCount,
+      link,
+      downloadTalosConfig,
+      downloadKubeconfig,
+      upgradeKubernetes,
+      lastUpdated,
+      pluralize: pluralize,
     }
   }
-})
-export default class ClusterListItem extends Vue{}
+};
 </script>
