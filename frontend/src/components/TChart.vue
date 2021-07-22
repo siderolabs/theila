@@ -96,6 +96,9 @@ export default {
   setup(props, componentContext) {
     const series = ref([]);
     const seriesMap = {};
+    let points = {};
+    let flush = {};
+
     const handlePoint = (message, spec) => {
       if(message.kind != Kind.EventItemUpdate) {
         return;
@@ -117,7 +120,6 @@ export default {
 
         const version = spec["new"]["metadata"]["version"];
         const meta = seriesMap[key];
-        const points = series.value[meta.index].data;
         if(version <= meta.version) {
           continue;
         }
@@ -128,12 +130,26 @@ export default {
           point = [DateTime.fromISO(updated).toMillis(), point];
         }
 
-        points.push(point);
+        clearTimeout(flush[meta.index]);
+
+        if(!points[meta.index])
+          points[meta.index] = [];
+
+        points[meta.index].push(point);
         meta.version = version;
 
-        if(points.length >= numPoints.value) {
-          points.splice(0, 1);
-        }
+        flush[meta.index] = setTimeout(() => {
+          let dst = series.value[meta.index].data;
+
+          dst = dst.concat(points[meta.index]);
+
+          if(dst.length >= numPoints.value) {
+            dst.splice(0, dst.length - numPoints.value + 1);
+          }
+
+          series.value[meta.index].data = dst;
+          points[meta.index] = [];
+        }, 50);
       }
     };
 
