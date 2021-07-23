@@ -4,60 +4,43 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <template>
-  <button type="button" 
-          class="focus:outline-none focus:shadow-outline"
-          :class="{primary: primary, secondary: !primary, small: small, xs: xs}">
-    <div class="container space-x-1">
-    </div>
-  </button>
+  <div class="flex items-center gap-2 text-talos-gray-800 hover:text-talos-gray-600 dark:text-talos-gray-400 dark:hover:text-talos-gray-300">
+    <Switch
+      v-model="checked"
+      class="inline-flex justify-center items-center w-5 h-5 rounded-md border-2 border-talos-gray-800 dark:border-talos-gray-400 outline-none"
+      >
+      <check-icon v-if="checked" class="w-4 h-4 inline-block"/>
+    </Switch>
+    <div @click="() => { checked = !checked }" class="cursor-pointer uppercase text-sm select-none font-bold">{{ label }}</div>
+  </div>
 </template>
 
 <script lang="ts">
-import { Options, Vue } from 'vue-class-component';
+import { computed } from 'vue';
+import { Switch } from '@headlessui/vue';
+import { CheckIcon } from '@heroicons/vue/solid';
 
-@Options({
-  props: {
-    primary: Boolean,
-    small: Boolean,
-    xs: Boolean,
+export default {
+  components: {
+    Switch,
+    CheckIcon,
   },
+  props: {
+    modelValue: Boolean,
+    label: String,
+  },
+  emits: [
+    'update:modelValue'
+  ],
+  setup(props, { emit }) {
+    const checked = computed({ 
+      get: () => props.modelValue, 
+      set: (value) => emit('update:modelValue', value) 
+    });
 
-  data() {
     return {
-      colors: this.primary ? this.primaryClasses : this.secondaryClasses,
+      checked,
     };
   }
-})
-export default class TButton extends Vue {}
+};
 </script>
-
-<style scoped>
-button {
-  @apply px-3 py-2 text-sm font-semibold leading-5 transition-colors duration-200 rounded-md shadow-sm select-none;
-}
-
-.primary {
-  @apply text-white bg-blue-500 hover:bg-blue-700 focus:bg-blue-700 border border-transparent;
-}
-
-.secondary {
-  @apply text-black dark:text-white border border-talos-gray-300 dark:border-talos-gray-600 bg-talos-gray-50 dark:bg-talos-gray-800 hover:bg-gray-200 dark:hover:bg-talos-gray-700 focus:bg-talos-gray-200 dark:focus:bg-talos-gray-700;
-}
-
-.small {
-  @apply py-1;
-}
-
-.xs {
-  @apply p-1;
-}
-
-button > div.container {
-  vertical-align: middle;
-}
-
-button > div.container > * {
-  display: inline-block;
-  vertical-align: middle;
-}
-</style>
