@@ -46,7 +46,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 </template>
 
 <script type="ts">
-import { getContext } from '../../router';
+import { getContext } from '../../context';
 import Watch from '../../components/Watch.vue';
 import TBreadcrumbs from '../../components/TBreadcrumbs.vue';
 import NodeListItem from '../../components/NodeListItem.vue';

@@ -3,6 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import { ref, Ref } from 'vue';
+import { useRoute } from 'vue-router';
 import { Client } from "./api/client";
 import { ResourceService, RequestError } from './api/grpc';
 import { Runtime } from './api/common/theila.pb';
@@ -27,11 +28,28 @@ export function changeContext(c: Object) {
   context.current.value = c;
 }
 
-export function getContext(runtime: Runtime): string | null {
-  if(context.current.value === null)
-    return null;
 
-  return runtime === Runtime.Talos ? context.current.value.cluster : context.current.value.name;
+export function getContext() {
+  const route = useRoute();
+
+  const name = contextName();
+
+  if(route.query.namespace && route.query.cluster && route.query.uid) {
+    return {
+      cluster: {
+        name: route.query.cluster,
+        namespace: route.query.namespace || "default",
+        uid: route.query.uid
+      },
+      name: name,
+    };
+  }
+
+  return name ? { name: name } : null;
+}
+
+export function contextName(): string | null {
+  return context.current.value ? context.current.value.name : null;
 }
 
 export async function detectCapabilities() {

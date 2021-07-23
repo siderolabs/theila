@@ -60,22 +60,6 @@ export function getSidebar(route) {
   return SidebarRoot;
 }
 
-export function getContext() {
-  const route = useRoute();
-
-  if(route.query.namespace && route.query.cluster && route.query.uid) {
-    return {
-      cluster: {
-        name: route.query.cluster,
-        namespace: route.query.namespace || "default",
-        uid: route.query.uid
-      }
-    };
-  }
-
-  return null;
-}
-
 const routes = [
   {
     path: "/",

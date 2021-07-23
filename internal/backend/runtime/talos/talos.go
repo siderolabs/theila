@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"sort"
+	"strings"
 	"sync"
 
 	cosiresource "github.com/cosi-project/runtime/pkg/resource"
@@ -271,6 +272,10 @@ func (r *Runtime) getClient(ctx context.Context, name string, cluster *common.Cl
 		contextName = cluster.Uid
 	case name != "":
 		contextName = name
+
+		// strip <username>@ prefix if any
+		parts := strings.Split(contextName, "@")
+		contextName = parts[len(parts)-1]
 	}
 
 	r.clientsMu.RLock()
@@ -299,6 +304,10 @@ func (r *Runtime) getClient(ctx context.Context, name string, cluster *common.Cl
 
 	if contextName != runtime.DefaultClient {
 		opts = append(opts, client.WithContextName(contextName))
+
+		if len(config.Contexts) == 0 || config.Contexts[contextName] == nil {
+			return nil, fmt.Errorf("no config for cluster %#v found in ~/.talos/config", contextName)
+		}
 	}
 
 	r.configMu.Lock()
@@ -367,6 +376,7 @@ func (r *Runtime) fetchTalosconfig(ctx context.Context, name string, clusterCtx 
 		runtime.WithType(&cluster),
 		runtime.WithName(clusterCtx.Name),
 		runtime.WithNamespace(clusterCtx.Namespace),
+		runtime.WithContext(name),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to get cluster %w", err)
@@ -381,6 +391,7 @@ func (r *Runtime) fetchTalosconfig(ctx context.Context, name string, clusterCtx 
 		runtime.WithNamespace(cluster.Spec.ControlPlaneRef.Namespace),
 		runtime.WithName(cluster.Spec.ControlPlaneRef.Name),
 		runtime.WithType(&controlplane),
+		runtime.WithContext(name),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to controlplane %w", err)
@@ -389,6 +400,7 @@ func (r *Runtime) fetchTalosconfig(ctx context.Context, name string, clusterCtx 
 	_, err = k8s.List(ctx,
 		runtime.WithLabelSelector(controlplane.Status.Selector),
 		runtime.WithType(&machines),
+		runtime.WithContext(name),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to get talos control plane %w", err)
@@ -416,6 +428,7 @@ func (r *Runtime) fetchTalosconfig(ctx context.Context, name string, clusterCtx 
 				runtime.WithNamespace(machine.Spec.InfrastructureRef.Namespace),
 				runtime.WithName(machine.Spec.InfrastructureRef.Name),
 				runtime.WithType(&metalMachine),
+				runtime.WithContext(name),
 			)
 			if err != nil {
 				return nil, err
@@ -433,6 +446,7 @@ func (r *Runtime) fetchTalosconfig(ctx context.Context, name string, clusterCtx 
 				runtime.WithNamespace(metalMachine.Spec.ServerRef.Namespace),
 				runtime.WithName(metalMachine.Spec.ServerRef.Name),
 				runtime.WithType(&server),
+				runtime.WithContext(name),
 			)
 			if err != nil {
 				return nil, err
@@ -461,6 +475,7 @@ func (r *Runtime) fetchTalosconfig(ctx context.Context, name string, clusterCtx 
 		runtime.WithNamespace(configRef.Namespace),
 		runtime.WithName(configRef.Name),
 		runtime.WithType(&talosConfig),
+		runtime.WithContext(name),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to get machines list %w", err)

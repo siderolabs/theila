@@ -15,7 +15,7 @@ import { Runtime, Context, Cluster } from './common/theila.pb';
 import { ManagementService as WrappedManagementService } from './rpc/management.pb';
 import { MachineService as WrappedMachineService } from './talos/machine/machine.pb';
 import { GetRequest, ListRequest, Metadata, Spec } from './talos/resource/resource.pb';
-import { context, getContext } from '../context';
+import { contextName } from '../context';
 import { backOff, IBackOffOptions } from "exponential-backoff";
 import { ref, Ref } from 'vue';
 import { RouteLocationNormalized } from 'vue-router';
@@ -62,8 +62,9 @@ export class Options {
     const md = metadata ? metadata : {};
     md["runtime"] = runtime.toString();
 
-    if(context.current.value) {
-      md["context"] = md["context"] || getContext(runtime);
+    const currentContext = contextName();
+    if(currentContext) {
+      md["context"] = md["context"] || currentContext;
     }
 
     for(const key in md) {
@@ -205,6 +206,8 @@ export class ResourceService {
   
   static async GetConfig(cluster: Cluster, options?: Partial<OptionsPartial>): Promise<string> {
     const res = await WrappedResourceService.GetConfig(cluster, Options.fromPartial(options));
+
+    checkError(res);
 
     if(!res.data) {
       return "";

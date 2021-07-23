@@ -74,7 +74,7 @@ import {
   XCircleIcon,
   ExclamationCircleIcon
 } from '@heroicons/vue/outline';
-import { getContext } from '../../router';
+import { getContext } from '../../context';
 import { useRoute } from 'vue-router';
 
 export default {

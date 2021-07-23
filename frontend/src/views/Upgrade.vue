@@ -99,18 +99,15 @@ export default {
     };
 
     const cluster = getCluster(route);
-    const contextName = getContext(Runtime.Talos);
-    const ctx = {
-      name: contextName,
-      cluster: Object.keys(cluster).length === 0 ? null : cluster,
-    };
+    const ctx = getContext() || {};
+    const contextName = ctx["name"];
 
     const handleStatusChange = (message, spec) => {
       if(message.kind != Kind.EventItemUpdate)
         return;
 
       const old = spec["old"]["spec"];
-      const current = spec["new"]["spec"]
+      const current = spec["new"]["spec"];
 
       if(old["phase"] !== current["phase"] && current["phase"] === TaskStatusSpec_Phase.COMPLETE) {
         close();
@@ -140,7 +137,7 @@ export default {
       try {
         const response = await ContextService.List();
         
-        upgradeID.value = `${cluster["uid"] || getContext(Runtime.Kubernetes) || response.currentContext}-upgrade-k8s`;
+        upgradeID.value = `${cluster["uid"] || contextName || response.currentContext}-upgrade-k8s`;
 
         await statusWatch.start(Runtime.Theila, {
           id: upgradeID.value,

@@ -105,6 +105,7 @@ import {
 } from '@heroicons/vue/solid';
 import { DateTime } from 'luxon';
 import { MenuItem } from '@headlessui/vue';
+import { showError } from '../modal';
 
 import pluralize from 'pluralize';
 
@@ -149,46 +150,62 @@ export default {
     });
 
     const downloadTalosConfig = async () => {
-      const response = await ResourceService.GetConfig({
-        name: item.value.metadata.name,
-        uid: item.value.metadata.uid,
-        namespace: item.value.metadata.namespace,
-      }, {
-        runtime: Runtime.Talos,
-      });
+      try {
+        const response = await ResourceService.GetConfig({
+          name: item.value.metadata.name,
+          uid: item.value.metadata.uid,
+          namespace: item.value.metadata.namespace,
+        }, {
+          runtime: Runtime.Talos,
+        });
 
-      link.value.href = `data:application/octet-stream;charset=utf-16le;base64,${btoa(response)}`;
-      link.value.download = `${item.value.metadata.name}-talosconfig.yaml`;
-      link.value.click();
+        link.href = `data:application/octet-stream;charset=utf-16le;base64,${btoa(response)}`;
+        link.download = `${item.value.metadata.name}-talosconfig.yaml`;
+        link.click();
+      } catch(e) {
+        showError("Failed to download Talos config", e.toString());
+      }
     };
 
     const downloadKubeconfig = async () => {
-      const response = await ResourceService.GetConfig({
-        name: item.value.metadata.name,
-        uid: item.value.metadata.uid,
-        namespace: item.value.metadata.namespace,
-      }, {
-        runtime: Runtime.Kubernetes,
-      });
+      try {
+        const response = await ResourceService.GetConfig({
+          name: item.value.metadata.name,
+          uid: item.value.metadata.uid,
+          namespace: item.value.metadata.namespace,
+        }, {
+          runtime: Runtime.Kubernetes,
+        });
 
-      link.value.href = `data:application/octet-stream;charset=utf-16le;base64,${btoa(response)}`;
-      link.value.download = `${item.value.metadata.name}-kubeconfig.yaml`;
-      link.value.click();
+        link.href = `data:application/octet-stream;charset=utf-16le;base64,${btoa(response)}`;
+        link.download = `${item.value.metadata.name}-kubeconfig.yaml`;
+        link.click();
+      } catch(e) {
+        showError("Failed to download Kubeconfig", e.toString());
+      }
     };
 
     const upgradeKubernetes = () => {
-      router.replace({query: {modal: "upgrade", name: item.value["metadata"]["name"], namespace: item.value["metadata"]["namespace"], uid: item.value["metadata"]["uid"]}});
+      router.replace({
+        query: {
+          modal: "upgrade",
+          cluster: item.value["metadata"]["name"],
+          namespace: item.value["metadata"]["namespace"],
+          uid: item.value["metadata"]["uid"]
+        }
+      });
     };
 
     const lastUpdated = computed(() => {
+      const created = DateTime.fromISO(item.value["metadata"]["creationTimestamp"]).toRelative();
       if (!item.value["status"]) {
-       return "";
+       return created;
       }
 
       const conditions = item.value["status"]["conditions"];
 
       if (!conditions) {
-       return "";
+       return created;
       }
 
       const condition = conditions[0];
