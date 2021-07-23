@@ -8,15 +8,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
   <div class="flex-1 pb-3 logs">
     <div class="flex border-b border-talos-gray-300 dark:border-talos-gray-600 px-4 py-2 gap-1">
       <div class="flex-1">{{ logs.length }} lines</div>
-      <div class="flex items-center justify-center gap-2 text-talos-gray-800 hover:text-talos-gray-600 dark:text-talos-gray-400 dark:hover:text-talos-gray-300">
-        <Switch
-          v-model="follow"
-          class="inline-flex justify-center items-center w-5 h-5 rounded-md border-2 border-talos-gray-800 dark:border-talos-gray-400 outline-none"
-          >
-          <check-icon v-if="follow" class="w-4 h-4 inline-block"/>
-        </Switch>
-        <div @click="() => { follow = !follow }" class="cursor-pointer uppercase text-sm select-none font-bold">Follow Logs</div>
-      </div>
+      <t-checkbox v-model="follow" label="follow logs"/>
     </div>
     <div class="flex-1 flex flex-col overflow-auto w-full h-full text-xs" ref="logView" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace">
       <div v-for="line, index in logs" :key="index" class="log-line">
@@ -28,9 +20,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 </template>
 
 <script type="ts">
-import { Switch } from '@headlessui/vue';
+import TCheckbox from './TCheckbox.vue';
 import { ref, onMounted, onUpdated, watch } from 'vue';
-import { CheckIcon } from '@heroicons/vue/solid';
 
 export default {
   props: {
@@ -41,8 +32,7 @@ export default {
   },
 
   components: {
-    CheckIcon,
-    Switch,
+    TCheckbox,
   },
 
   setup() {

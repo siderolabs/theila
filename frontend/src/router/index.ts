@@ -15,6 +15,7 @@ import SidebarCluster from "../views/SidebarCluster.vue";
 import SidebarNode from "../views/SidebarNode.vue";
 import Settings from "../views/Settings.vue";
 import Reboot from "../views/Reboot.vue";
+import Reset from "../views/Reset.vue";
 import Upgrade from "../views/Upgrade.vue";
 import { useRoute } from 'vue-router';
 import { context } from '../context';
@@ -123,6 +124,7 @@ const modals = {
   settings: Settings,
   reboot: Reboot,
   upgrade: Upgrade,
+  reset: Reset,
 };
 
 export { modals };

@@ -58,6 +58,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 >Reboot</a
               >
             </menu-item>
+            <menu-item v-slot="{ active }">
+              <a
+                v-on:click="resetNode"
+                :class="{ active }"
+                >Reset</a
+              >
+            </menu-item>
           </template>
         </t-dropdown>
       </div>
@@ -188,6 +195,15 @@ export default {
       })
     };
 
+    const resetNode = async () => {
+      router.replace({
+        query: {
+          modal: "reset",
+          node: ip.value,
+        }
+      });
+    };
+
     return {
       os,
       ip,
@@ -195,6 +211,7 @@ export default {
       roles,
       isTalos,
       rebootNode,
+      resetNode,
       getQuery,
     }
   }
