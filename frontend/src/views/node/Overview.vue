@@ -56,7 +56,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 <script type="ts">
 import { useRoute } from 'vue-router';
-import { getContext } from '../../router';
+import { getContext } from '../../context';
 import TBreadcrumbs from '../../components/TBreadcrumbs.vue';
 import TChart from '../../components/TChart.vue';
 

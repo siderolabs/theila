@@ -7,7 +7,7 @@ import { Client, Callback, ClientReconnected } from './client';
 import { Runtime, Context, runtimeFromJSON } from './common/theila';
 import { Message, WatchSpec, UnsubscribeSpec, Kind } from './socket/message';
 import { v4 as uuidv4 } from 'uuid';
-import { context as ctx } from '../context';
+import { context as ctx, contextName } from '../context';
 
 export class SubscriptionError extends Error {
   constructor(message: string) {
@@ -151,10 +151,8 @@ export default class Watch {
       }
 
       // override the context name by the current default one unless it's explicitly defined
-      if(ctx.current.value) {
-        if(!componentContext.context || !componentContext.context.name)
-          c["name"] = source == Runtime.Kubernetes ? ctx.current.value.name : ctx.current.value.cluster;
-      }
+      if(!componentContext.context || !componentContext.context.name)
+        c["name"] = contextName();
 
       this.start(
         source,

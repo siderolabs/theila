@@ -16,7 +16,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           {{ item.metadata.name }}
         </p>
       </div>
-      <div class="block justify-self-center">
+      <div class="block justify-self-left">
         <p
           class="text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100"
           >
