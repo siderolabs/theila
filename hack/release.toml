@@ -31,4 +31,16 @@ For each node in the cluster it is possible to:
 - get performance metrics.
 - get each internal service logs (etcd, apid, machined and so on).
 - reboot the node.
+- reset the node EPHEMERAL partition.
+"""
+  [nodes.upgrades]
+    title = "Kubernetes Upgrade Automation"
+    description = """\
+Both current cluster and CAPI cluster Kubernetes components can be upgraded right from
+the web.
+Theila manages in-memory internal state of ongoing upgrades and presents progress and logs
+back to the web.
+Upgrade flow is the same as for `talosctl upgrade-k8s` cli command, except for the fact that Theila
+maintains Kubernetes versions list. So when upgrade is initialized Theila can present list of versions
+it can upgrade to.
 """
