@@ -52,9 +52,7 @@ export default {
       view,
       props,
       close() {
-        router.replace({ query: {
-          modal: undefined,
-        }});
+        router.go(-1);
       }
     }
   }

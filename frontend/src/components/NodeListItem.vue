@@ -187,19 +187,21 @@ export default {
     };
 
     const rebootNode = async () => {
-      router.replace({
+      router.push({
         query: {
           modal: "reboot",
           node: ip.value,
+          ...route.query,
         }
       })
     };
 
     const resetNode = async () => {
-      router.replace({
+      router.push({
         query: {
           modal: "reset",
           node: ip.value,
+          ...route.query,
         }
       });
     };

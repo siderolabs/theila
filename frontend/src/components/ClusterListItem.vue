@@ -186,7 +186,7 @@ export default {
     };
 
     const upgradeKubernetes = () => {
-      router.replace({
+      router.push({
         query: {
           modal: "upgrade",
           cluster: item.value["metadata"]["name"],
