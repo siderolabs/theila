@@ -27,12 +27,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import TButton from '../components/TButton.vue';
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { MachineService, getCluster } from '../api/grpc';
+import { MachineService } from '../api/grpc';
 import { Runtime } from '../api/common/theila.pb';
 import {
   ExclamationIcon,
 } from '@heroicons/vue/outline';
 import { showError } from '../modal';
+import { getContext } from '../context';
 
 export default {
   components: {
@@ -46,11 +47,11 @@ export default {
     const state = ref("Reboot");
 
     const close = () => {
-      router.replace({ query: {
-        modal: undefined,
-        node: undefined,
-      }});
+      router.go(-1);
     };
+
+    const context = getContext();
+    context.nodes = [route.query.node as string];
 
     return {
       node: route.query.node,
@@ -62,10 +63,7 @@ export default {
         try {
           const res = await MachineService.Reboot({}, {
             runtime: Runtime.Talos,
-            metadata: {
-              nodes: [route.query.node],
-              ...getCluster(route),
-            }
+            context: context,
           });
 
           const errors: string[] = [];

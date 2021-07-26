@@ -75,7 +75,6 @@ import {
   ExclamationCircleIcon
 } from '@heroicons/vue/outline';
 import { getContext } from '../../context';
-import { useRoute } from 'vue-router';
 
 export default {
   components: {
@@ -88,18 +87,8 @@ export default {
   },
 
   setup() {
-    const route = useRoute();
-
     return {
-      getContext() {
-        const ctx = getContext() || {};
-
-        ctx.nodes = [
-          route.params.node
-        ];
-
-        return ctx;
-      },
+      getContext,
     }
   }
 }

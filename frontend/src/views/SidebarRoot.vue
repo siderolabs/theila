@@ -106,11 +106,11 @@ export default {
     const router = useRouter();
 
     const openUpgrade = () => {
-      router.replace({query: {modal: "upgrade"}});
+      router.push({query: {modal: "upgrade"}});
     }
 
     const openSettings = () => {
-      router.replace({query: {modal: "settings"}});
+      router.push({query: {modal: "settings"}});
     }
 
     return {

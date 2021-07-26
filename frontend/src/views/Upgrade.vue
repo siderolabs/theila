@@ -58,11 +58,11 @@ import LogView from '../components/LogView.vue';
 import Watch from '../api/watch';
 import { MenuItem } from '@headlessui/vue';
 import { ref, onMounted, onUnmounted, computed, Ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { ResourceService, ManagementService, ContextService, getCluster } from '../api/grpc';
+import { useRouter } from 'vue-router';
+import { ResourceService, ManagementService, ContextService } from '../api/grpc';
 import { Runtime } from '../api/common/theila.pb';
 import { Kind } from '../api/socket/message';
-import { UpgradeK8sSpec, TaskStatusSpec_Phase } from '../api/rpc/management';
+import { TaskStatusSpec_Phase } from '../api/rpc/management';
 import { showError, showSuccess } from '../modal';
 import { context, getContext } from '../context';
 import { DefaultNamespace, UpgradeTaskType, TaskStatusType, TaskLogType, KubernetesVersionType } from '../api/resources';
@@ -79,7 +79,6 @@ export default {
   },
 
   setup() {
-    const route = useRoute();
     const router = useRouter();
     const logs:Ref<string[]> = ref([]);
     const statuses:Ref<Object[]> = ref([]);
@@ -93,14 +92,11 @@ export default {
     const ready = ref(false);
 
     const close = () => {
-      router.replace({ query: {
-        modal: undefined,
-      }});
+      router.go(-1);
     };
 
-    const cluster = getCluster(route);
-    const ctx = getContext() || {};
-    const contextName = ctx["name"];
+    const ctx = getContext();
+    const contextName = ctx.name;
 
     const handleStatusChange = (message, spec) => {
       if(message.kind != Kind.EventItemUpdate)
@@ -137,7 +133,7 @@ export default {
       try {
         const response = await ContextService.List();
         
-        upgradeID.value = `${cluster["uid"] || contextName || response.currentContext}-upgrade-k8s`;
+        upgradeID.value = `${ctx.cluster ? ctx.cluster.uid : null || contextName || response.currentContext}-upgrade-k8s`;
 
         await statusWatch.start(Runtime.Theila, {
           id: upgradeID.value,
@@ -153,10 +149,7 @@ export default {
         }, ctx);
 
         const upgradeInfo = await ManagementService.UpgradeInfo({}, {
-          metadata: {
-            context: contextName,
-            ...cluster,
-          },
+          context: ctx,
         });
 
         fromVersion.value = upgradeInfo["fromVersion"] || "unknown";
@@ -195,7 +188,7 @@ export default {
           if(!isValidSemVer(v))
             continue;
 
-          if(compareSemVer(v, fromVersion.value) === 1)
+          if(compareSemVer(v, fromVersion.value) >= 0)
             res.push(v);
         }
 
@@ -249,10 +242,9 @@ export default {
                 version: `${pending["metadata"]["version"] + 1}`,
               },
               spec: {
-                to_version: toVersion.value,
+                toVersion: toVersion.value,
                 context: ctx,
               },
-              type: UpgradeK8sSpec,
             }, {
               runtime: Runtime.Theila,
             });
@@ -264,10 +256,9 @@ export default {
                 id: upgradeID.value,
               },
               spec: {
-                to_version: toVersion.value,
+                toVersion: toVersion.value,
                 context: ctx,
               },
-              type: UpgradeK8sSpec,
             }, {
               runtime: Runtime.Theila,
             });

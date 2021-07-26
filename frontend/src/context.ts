@@ -6,7 +6,7 @@ import { ref, Ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { Client } from "./api/client";
 import { ResourceService, RequestError } from './api/grpc';
-import { Runtime } from './api/common/theila.pb';
+import { Context } from './api/common/theila';
 import { Code } from './api/google/rpc/code';
 
 export namespace context {
@@ -34,18 +34,22 @@ export function getContext() {
 
   const name = contextName();
 
-  if(route.query.namespace && route.query.cluster && route.query.uid) {
-    return {
-      cluster: {
-        name: route.query.cluster,
-        namespace: route.query.namespace || "default",
-        uid: route.query.uid
-      },
-      name: name,
+  const res = {};
+  if(name)
+    res["name"] = name;
+
+  if(route.params && route.params.node)
+    res["nodes"] = [route.params.node];
+
+  if(route.query && route.query.namespace && route.query.cluster && route.query.uid) {
+    res["cluster"] = {
+      "name": route.query.cluster,
+      "namespace": route.query.namespace || "default",
+      "uid": route.query.uid
     };
   }
 
-  return name ? { name: name } : null;
+  return Context.fromPartial(res);
 }
 
 export function contextName(): string | null {

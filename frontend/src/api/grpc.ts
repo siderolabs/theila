@@ -20,29 +20,15 @@ import { backOff, IBackOffOptions } from "exponential-backoff";
 import { ref, Ref } from 'vue';
 import { RouteLocationNormalized } from 'vue-router';
 import { Code, codeToJSON } from './google/rpc/code';
+import { encodeProtobuf } from './resources';
 
 const pathPrefix = "/api";
-const prefix = {pathPrefix: pathPrefix};
+const prefix = { pathPrefix: pathPrefix };
 
 type OptionsPartial = {
   runtime?: Runtime
   metadata?: Object
-}
-
-export const getCluster = (route: RouteLocationNormalized) => {
-  const res = {};
-  const query = route.query;
-
-  if(query.cluster)
-    res["cluster"] = query.cluster;
-
-  if(query.uid)
-    res["uid"] = query.uid
-
-  if(query.namespace)
-    res["namespace"] = query.namespace;
-
-  return res;
+  context?: Context
 }
 
 export class Options {
@@ -52,7 +38,7 @@ export class Options {
 
   private controller: AbortController = new AbortController()
 
-  constructor(runtime?: Runtime, metadata?: Object) {
+  constructor(runtime?: Runtime, metadata?: Object, context?: Context) {
     this.headers = new Headers();
     this.signal = this.controller.signal;
 
@@ -62,9 +48,24 @@ export class Options {
     const md = metadata ? metadata : {};
     md["runtime"] = runtime.toString();
 
-    const currentContext = contextName();
-    if(currentContext) {
-      md["context"] = md["context"] || currentContext;
+    if(context) {
+      if(context.name)
+        md["context"] = context.name;
+
+      if(context.cluster) {
+        md["uid"] = context.cluster.uid;
+        md["namespace"] = context.cluster.namespace;
+        md["cluster"] = context.cluster.name;
+      }
+
+      if(context.nodes && context.nodes.length != 0) {
+        md["nodes"] = context.nodes;
+      }
+    } else {
+      const currentContext = contextName();
+      if(currentContext) {
+        md["context"] = md["context"] || currentContext;
+      }
     }
 
     for(const key in md) {
@@ -80,7 +81,7 @@ export class Options {
     if(!obj)
       return new Options();
 
-    return new Options(obj.runtime, obj.metadata);
+    return new Options(obj.runtime, obj.metadata, obj.context);
   }
 }
 
@@ -138,9 +139,8 @@ export class Stream {
 }
 
 type Resource = {
-  metadata?: Metadata,
+  metadata: Metadata,
   spec: any,
-  type: any,
 };
 
 // define a wrapper for grpc resource service.
@@ -165,8 +165,8 @@ export class ResourceService {
     return results;
   }
 
-  static async Create(resource: Partial<Resource>, options?: Partial<OptionsPartial>): Promise<CreateResponse> {
-    const protoSpec = resource.type.encode(resource.type.fromPartial(resource.spec)).finish();
+  static async Create(resource: Resource, options?: Partial<OptionsPartial>): Promise<CreateResponse> {
+    const protoSpec = encodeProtobuf(resource.metadata.type, resource.spec);
 
     const request: CreateRequest = {
       resource: {
@@ -182,8 +182,8 @@ export class ResourceService {
     return checkError(await WrappedResourceService.Create(request, Options.fromPartial(options)));
   }
 
-  static async Update(resource: Partial<Resource>, options?: Partial<OptionsPartial>, currentVersion?: string | number): Promise<UpdateResponse> {
-    const protoSpec = resource.type.encode(resource.type.fromPartial(resource.spec)).finish();
+  static async Update(resource: Resource, options?: Partial<OptionsPartial>, currentVersion?: string | number): Promise<UpdateResponse> {
+    const protoSpec = encodeProtobuf(resource.metadata.type, resource.spec);
 
     const request: UpdateRequest = {
       resource: {
@@ -251,7 +251,7 @@ function createProxy(service: any): any {
           // or if has only a single argument
           if((typeof opts) === "function" || args.length == 1)
             args.push(prefix);
-          else if(opts.metadata) // it's the partial object, so it should be converted
+          else if(opts.runtime || opts.metadata || opts.context) // it's the partial object, so it should be converted
             args[args.length - 1] = Options.fromPartial(opts)
 
           const response = await target[prop](...args);

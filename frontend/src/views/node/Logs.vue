@@ -21,8 +21,9 @@ import TBreadcrumbs from '../../components/TBreadcrumbs.vue';
 import TAlert from '../../components/TAlert.vue';
 import LogView from '../../components/LogView.vue';
 import { ref, watch, onUnmounted, computed } from 'vue';
-import { MachineService, subscribe, getCluster } from '../../api/grpc';
+import { MachineService, subscribe } from '../../api/grpc';
 import { Runtime } from '../../api/common/theila.pb';
+import { getContext } from '../../context';
 
 export default {
   components: {
@@ -34,6 +35,7 @@ export default {
   setup() {
     const logs = ref([]);
     const route = useRoute();
+    const context = getContext();
 
     let stream = ref(null);
     let buffer = "";
@@ -92,10 +94,7 @@ export default {
         }, 50);
       }, {
         runtime: Runtime.Talos,
-        metadata: {
-          nodes: [route.params.node],
-          ...getCluster(route),
-        },
+        context: context,
       });
     }
 
