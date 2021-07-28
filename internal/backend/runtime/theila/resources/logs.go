@@ -18,13 +18,13 @@ const (
 	TaskLogType = resource.Type("TaskLogs.theila.sidero.dev")
 )
 
-// TaskLog represents the ongoing K8s upgrade task.
+// TaskLog represents the ongoing task logs.
 type TaskLog struct {
 	spec *rpc.TaskLogSpec
 	md   resource.Metadata
 }
 
-// NewTaskLog creates new StrResource.
+// NewTaskLog creates new TaskLog resource.
 func NewTaskLog(ns resource.Namespace, id resource.ID, line string) *TaskLog {
 	r := &TaskLog{
 		md: resource.NewMetadata(ns, TaskLogType, id, resource.VersionUndefined),

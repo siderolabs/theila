@@ -43,6 +43,10 @@ export interface ConfigResponse {
   data: string;
 }
 
+export interface KubernetesResourceSpec {
+  spec: string;
+}
+
 const baseGetResponse: object = { body: "" };
 
 export const GetResponse = {
@@ -547,6 +551,66 @@ export const ConfigResponse = {
       message.data = object.data;
     } else {
       message.data = "";
+    }
+    return message;
+  },
+};
+
+const baseKubernetesResourceSpec: object = { spec: "" };
+
+export const KubernetesResourceSpec = {
+  encode(
+    message: KubernetesResourceSpec,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.spec !== "") {
+      writer.uint32(10).string(message.spec);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): KubernetesResourceSpec {
+    const reader = input instanceof Reader ? input : new Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseKubernetesResourceSpec } as KubernetesResourceSpec;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.spec = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): KubernetesResourceSpec {
+    const message = { ...baseKubernetesResourceSpec } as KubernetesResourceSpec;
+    if (object.spec !== undefined && object.spec !== null) {
+      message.spec = String(object.spec);
+    } else {
+      message.spec = "";
+    }
+    return message;
+  },
+
+  toJSON(message: KubernetesResourceSpec): unknown {
+    const obj: any = {};
+    message.spec !== undefined && (obj.spec = message.spec);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<KubernetesResourceSpec>
+  ): KubernetesResourceSpec {
+    const message = { ...baseKubernetesResourceSpec } as KubernetesResourceSpec;
+    if (object.spec !== undefined && object.spec !== null) {
+      message.spec = object.spec;
+    } else {
+      message.spec = "";
     }
     return message;
   },

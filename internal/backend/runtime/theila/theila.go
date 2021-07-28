@@ -321,10 +321,11 @@ func (w *Watch) run(ctx context.Context) error {
 
 func init() {
 	resources := map[cosiresource.Type]protobuf.ResourceUnmarshaler{
-		resources.UpgradeK8sTaskType:    &resources.UpgradeK8sTask{},
-		resources.TaskLogType:           &resources.TaskLog{},
-		resources.TaskStatusType:        &resources.TaskStatus{},
-		resources.KubernetesVersionType: &resources.KubernetesVersion{},
+		resources.UpgradeK8sTaskType:     &resources.UpgradeK8sTask{},
+		resources.TaskLogType:            &resources.TaskLog{},
+		resources.TaskStatusType:         &resources.TaskStatus{},
+		resources.KubernetesVersionType:  &resources.KubernetesVersion{},
+		resources.KubernetesResourceType: &resources.KubernetesResource{},
 	}
 
 	for t, res := range resources {

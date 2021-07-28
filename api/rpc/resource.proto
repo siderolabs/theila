@@ -54,3 +54,8 @@ service ResourceService {
   rpc Delete(DeleteRequest) returns (DeleteResponse);
   rpc GetConfig(common.Cluster) returns (ConfigResponse);
 }
+
+message KubernetesResourceSpec {
+  // Spec contains JSON encoded Kubernetes runtime object.
+  string spec = 1;
+}
