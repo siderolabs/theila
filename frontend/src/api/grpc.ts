@@ -21,6 +21,7 @@ import { ref, Ref } from 'vue';
 import { RouteLocationNormalized } from 'vue-router';
 import { Code, codeToJSON } from './google/rpc/code';
 import { encodeProtobuf } from './resources';
+import { util } from 'protobufjs/minimal';
 
 const pathPrefix = "/api";
 const prefix = { pathPrefix: pathPrefix };
@@ -231,7 +232,7 @@ function monkeyPatchUint8Array(data: any) {
 
     if(data[key] && data[key].constructor === Uint8Array) {
       data[key].toJSON = () => {
-        return btoa(new TextDecoder().decode(data[key]));
+        return util.base64.encode(data[key], 0, data[key].length);
       }
     }
   }

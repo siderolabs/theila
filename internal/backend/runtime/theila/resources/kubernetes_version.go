@@ -14,17 +14,17 @@ import (
 )
 
 const (
-	// KubernetesVersionType is the type of TaskStatus resource.
+	// KubernetesVersionType is the type of KubernetesResource resource.
 	KubernetesVersionType = resource.Type("KubernetesVersions.theila.sidero.dev")
 )
 
-// KubernetesVersion represents the ongoing K8s upgrade task.
+// KubernetesVersion represents discovered Kubernetes version.
 type KubernetesVersion struct {
 	spec *rpc.KubernetesVersionSpec
 	md   resource.Metadata
 }
 
-// NewKubernetesVersion creates new StrResource.
+// NewKubernetesVersion creates new KubernetesVersion resource.
 func NewKubernetesVersion(ns resource.Namespace, id resource.ID, version string) *KubernetesVersion {
 	r := &KubernetesVersion{
 		md: resource.NewMetadata(ns, KubernetesVersionType, id, resource.VersionUndefined),

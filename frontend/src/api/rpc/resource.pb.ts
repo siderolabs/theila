@@ -42,6 +42,10 @@ export type ConfigResponse = {
   data?: string
 }
 
+export type KubernetesResourceSpec = {
+  spec?: string
+}
+
 export class ResourceService {
   static Get(req: ResourceResource.GetRequest, initReq?: fm.InitReq): Promise<GetResponse> {
     return fm.fetchReq<ResourceResource.GetRequest, GetResponse>(`/theila.resource.ResourceService/Get`, {...initReq, method: "POST", body: JSON.stringify(req)})

@@ -188,7 +188,7 @@ export default {
           if(!isValidSemVer(v))
             continue;
 
-          if(compareSemVer(v, fromVersion.value) >= 0)
+          if(compareSemVer(v, fromVersion.value) === 1)
             res.push(v);
         }
 

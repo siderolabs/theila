@@ -14,7 +14,6 @@ export enum TaskStatusSpecPhase {
 
 export type UpgradeInfoResponse = {
   fromVersion?: string
-  upgradeCandidates?: string[]
 }
 
 export type UpgradeK8sSpec = {

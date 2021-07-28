@@ -9,8 +9,6 @@ export const protobufPackage = "management";
 export interface UpgradeInfoResponse {
   /** FromVersion is the lowest detected Kubernetes version. */
   from_version: string;
-  /** ToVersion is the list of Kubernetes versions available. */
-  upgrade_candidates: string[];
 }
 
 export interface UpgradeK8sSpec {
@@ -83,10 +81,7 @@ export interface KubernetesVersionSpec {
   version: string;
 }
 
-const baseUpgradeInfoResponse: object = {
-  from_version: "",
-  upgrade_candidates: "",
-};
+const baseUpgradeInfoResponse: object = { from_version: "" };
 
 export const UpgradeInfoResponse = {
   encode(
@@ -96,9 +91,6 @@ export const UpgradeInfoResponse = {
     if (message.from_version !== "") {
       writer.uint32(10).string(message.from_version);
     }
-    for (const v of message.upgrade_candidates) {
-      writer.uint32(18).string(v!);
-    }
     return writer;
   },
 
@@ -106,15 +98,11 @@ export const UpgradeInfoResponse = {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = { ...baseUpgradeInfoResponse } as UpgradeInfoResponse;
-    message.upgrade_candidates = [];
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
           message.from_version = reader.string();
-          break;
-        case 2:
-          message.upgrade_candidates.push(reader.string());
           break;
         default:
           reader.skipType(tag & 7);
@@ -126,19 +114,10 @@ export const UpgradeInfoResponse = {
 
   fromJSON(object: any): UpgradeInfoResponse {
     const message = { ...baseUpgradeInfoResponse } as UpgradeInfoResponse;
-    message.upgrade_candidates = [];
     if (object.from_version !== undefined && object.from_version !== null) {
       message.from_version = String(object.from_version);
     } else {
       message.from_version = "";
-    }
-    if (
-      object.upgrade_candidates !== undefined &&
-      object.upgrade_candidates !== null
-    ) {
-      for (const e of object.upgrade_candidates) {
-        message.upgrade_candidates.push(String(e));
-      }
     }
     return message;
   },
@@ -147,29 +126,15 @@ export const UpgradeInfoResponse = {
     const obj: any = {};
     message.from_version !== undefined &&
       (obj.from_version = message.from_version);
-    if (message.upgrade_candidates) {
-      obj.upgrade_candidates = message.upgrade_candidates.map((e) => e);
-    } else {
-      obj.upgrade_candidates = [];
-    }
     return obj;
   },
 
   fromPartial(object: DeepPartial<UpgradeInfoResponse>): UpgradeInfoResponse {
     const message = { ...baseUpgradeInfoResponse } as UpgradeInfoResponse;
-    message.upgrade_candidates = [];
     if (object.from_version !== undefined && object.from_version !== null) {
       message.from_version = object.from_version;
     } else {
       message.from_version = "";
-    }
-    if (
-      object.upgrade_candidates !== undefined &&
-      object.upgrade_candidates !== null
-    ) {
-      for (const e of object.upgrade_candidates) {
-        message.upgrade_candidates.push(e);
-      }
     }
     return message;
   },

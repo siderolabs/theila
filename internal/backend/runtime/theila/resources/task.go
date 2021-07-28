@@ -18,13 +18,13 @@ const (
 	TaskStatusType = resource.Type("TaskStatuses.theila.sidero.dev")
 )
 
-// TaskStatus represents the ongoing K8s upgrade task.
+// TaskStatus represents the ongoing K8s upgrade task status.
 type TaskStatus struct {
 	spec *rpc.TaskStatusSpec
 	md   resource.Metadata
 }
 
-// NewTaskStatus creates new StrResource.
+// NewTaskStatus creates new TaskStatus resource.
 func NewTaskStatus(ns resource.Namespace, id resource.ID) *TaskStatus {
 	r := &TaskStatus{
 		md: resource.NewMetadata(ns, TaskStatusType, id, resource.VersionUndefined),

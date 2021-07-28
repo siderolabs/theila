@@ -7,6 +7,7 @@ package kubernetes
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
@@ -18,6 +19,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -31,8 +33,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
 	"github.com/talos-systems/theila/api/common"
+	"github.com/talos-systems/theila/api/rpc"
 	"github.com/talos-systems/theila/api/socket/message"
 	"github.com/talos-systems/theila/internal/backend/runtime"
+	"github.com/talos-systems/theila/internal/backend/runtime/theila/resources"
 )
 
 // Name kubernetes runtime string id.
@@ -188,12 +192,36 @@ func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) (int
 
 // Create implements runtime.Runtime.
 func (r *Runtime) Create(ctx context.Context, resource cosiresource.Resource, setters ...runtime.QueryOption) error {
-	return fmt.Errorf("not implemented")
+	opts := runtime.NewQueryOptions(setters...)
+
+	client, err := r.getOrCreateClient(ctx, opts)
+	if err != nil {
+		return err
+	}
+
+	obj, err := createObjectFromCosiResource(resource)
+	if err != nil {
+		return err
+	}
+
+	return client.Create(ctx, obj)
 }
 
 // Update implements runtime.Runtime.
 func (r *Runtime) Update(ctx context.Context, resource cosiresource.Resource, setters ...runtime.QueryOption) error {
-	return fmt.Errorf("not implemented")
+	opts := runtime.NewQueryOptions(setters...)
+
+	client, err := r.getOrCreateClient(ctx, opts)
+	if err != nil {
+		return err
+	}
+
+	obj, err := createObjectFromCosiResource(resource)
+	if err != nil {
+		return err
+	}
+
+	return client.Update(ctx, obj)
 }
 
 // Delete implements runtime.Runtime.
@@ -528,4 +556,30 @@ func wrapError(err error, opts *runtime.QueryOptions) error {
 	}
 
 	return err
+}
+
+func createObjectFromCosiResource(resource cosiresource.Resource) (k8sruntime.Object, error) {
+	var data string
+
+	if resource.Metadata().Type() != resources.KubernetesResourceType {
+		return nil, fmt.Errorf("kubernetes runtime accepts only %s type as an input, got %s", resources.KubernetesResourceType, resource.Metadata().Type())
+	}
+
+	var (
+		res *rpc.KubernetesResourceSpec
+		ok  bool
+	)
+
+	if res, ok = resource.Spec().(*rpc.KubernetesResourceSpec); !ok {
+		return nil, fmt.Errorf("failed to convert spec to KubernetesResourceSpec")
+	}
+
+	data = res.Spec
+
+	obj := &unstructured.Unstructured{}
+	if err := json.Unmarshal([]byte(data), &obj.Object); err != nil {
+		return nil, err
+	}
+
+	return obj, nil
 }
