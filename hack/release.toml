@@ -20,10 +20,11 @@ environment variable.
 
 For each cluster it is possible to get the list of nodes and pods.
 
-If Sidero is deployed then the UI also provides a way to view:
-- the list of servers.
-- the list of clusters (for any CAPI provider).
+If Sidero is deployed then the UI:
+- shows the list of servers.
+- shows the list of clusters (for any CAPI provider).
 - allows getting kubeconfig and talosconfig for each Sidero cluster.
+- provides a way to accept metal servers.
 
 For each node in the cluster it is possible to:
 - get the list of services and their health.
