@@ -8,87 +8,87 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <div class="px-3 py-2 mb-2">
       <t-breadcrumbs>{{ $route.params.node }} Overview</t-breadcrumbs>
     </div>
-    <div class="flex gap-2">
-      <div class="flex-1">
-        <t-chart
-           name="cpu"
-           title="CPU Utilization"
-           width="100%"
-           height="200px"
-           type="area"
-           talos
-           :resource="{type: 'CPUStat', namespace: 'perf', tail_events: 25}"
-           :context="context"
-           :point-fn="handleCPU"
-        />
-      </div>
-      <div class="flex-1">
-        <t-chart
-           name="mem"
-           title="Memory Usage"
-           width="100%"
-           height="200px"
-           type="area"
-           talos
-           :resource="{type: 'MemoryStat', namespace: 'perf', tail_events: 25}"
-           :context="context"
-           :point-fn="handleMem"
-        />
-      </div>
-    </div>
-    <div class="flex gap-2">
-      <div class="flex-1">
-        <t-chart
-           name="procs"
-           title="Processes"
-           width="100%"
-           height="200px"
-           type="area"
-           talos
-           :resource="{type: 'CPUStat', namespace: 'perf', tail_events: 25}"
-           :context="context"
-           :point-fn="handleProcs"
-        />
-      </div>
-    </div>
-    <div class="px-4 flex-1 overflow-hidden flex flex-col">
-      <h4>Process List</h4>
-      <div class="p-2 text-xs border rounded-md border-talos-gray-300 dark:border-talos-gray-600 flex-1 flex flex-col overflow-hidden">
-        <div class="grid grid-cols-12 uppercase font-bold select-none">
-          <div v-for="h in headers" @click="() => sortBy(h.id)" :key="h.id" class="flex flex-row items-center cursor-pointer gap-1">
-            <span>{{ h.header || h.id }}</span>
-            <arrow-down-icon class="w-3 h-3" :class="{ transform: sortReverse, 'rotate-180': sortReverse }" v-if="sort === h.id"/>
-          </div>
+    <div class="py-2 border rounded-md border-talos-gray-300 dark:border-talos-gray-600 flex-1 flex flex-col overflow-hidden">
+      <div class="flex gap-2">
+        <div class="flex-1">
+          <t-chart
+             name="cpu"
+             title="CPU Utilization"
+             width="100%"
+             height="180px"
+             type="area"
+             talos
+             :resource="{type: 'CPUStat', namespace: 'perf', tail_events: 25}"
+             :context="context"
+             :point-fn="handleCPU"
+          />
         </div>
-        <div class="flex-1 overflow-x-auto">
-          <div class="grid grid-cols-12" v-for="process in processes" :key="process.pid">
-            <div>
-              {{ process.pid }}
-            </div>
-            <div>
-              {{ process.state }}
-            </div>
-            <div>
-              {{ process.threads }}
-            </div>
-            <div>
-              {{ process.cpu.toFixed(1) }}
-            </div>
-            <div>
-              {{ process.mem.toFixed(1) }}
-            </div>
-            <div>
-              {{ humanizeBytes(process.virtualMemory) }}
-            </div>
-            <div>
-              {{ humanizeBytes(process.residentMemory) }}
-            </div>
-            <div>
-              {{ process.cpuTime }}
-            </div>
-            <div class="col-span-4 truncate">
-              {{ process.command }} {{ process.args }}
-            </div>
+        <div class="flex-1">
+          <t-chart
+             name="mem"
+             title="Memory Usage"
+             width="100%"
+             height="180px"
+             type="area"
+             talos
+             :resource="{type: 'MemoryStat', namespace: 'perf', tail_events: 25}"
+             :context="context"
+             :point-fn="handleMem"
+          />
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <div class="flex-1">
+          <t-chart
+             name="procs"
+             title="Processes"
+             width="100%"
+             height="180px"
+             type="area"
+             talos
+             :resource="{type: 'CPUStat', namespace: 'perf', tail_events: 25}"
+             :context="context"
+             :point-fn="handleProcs"
+          />
+        </div>
+      </div>
+    </div>
+    <h4>Process List</h4>
+    <div class="p-2 text-xs border rounded-md border-talos-gray-300 dark:border-talos-gray-600 flex-1 flex flex-col overflow-hidden">
+      <div class="grid grid-cols-12 uppercase font-bold select-none">
+        <div v-for="h in headers" @click="() => sortBy(h.id)" :key="h.id" class="flex flex-row items-center cursor-pointer gap-1">
+          <span>{{ h.header || h.id }}</span>
+          <arrow-down-icon class="w-3 h-3" :class="{ transform: sortReverse, 'rotate-180': sortReverse }" v-if="sort === h.id"/>
+        </div>
+      </div>
+      <div class="flex-1 overflow-x-auto">
+        <div class="grid grid-cols-12" v-for="process in processes" :key="process.pid">
+          <div>
+            {{ process.pid }}
+          </div>
+          <div>
+            {{ process.state }}
+          </div>
+          <div>
+            {{ process.threads }}
+          </div>
+          <div>
+            {{ process.cpu.toFixed(1) }}
+          </div>
+          <div>
+            {{ process.mem.toFixed(1) }}
+          </div>
+          <div>
+            {{ humanizeBytes(process.virtualMemory) }}
+          </div>
+          <div>
+            {{ humanizeBytes(process.residentMemory) }}
+          </div>
+          <div>
+            {{ process.cpuTime }}
+          </div>
+          <div class="col-span-4 truncate">
+            {{ process.command }} {{ process.args }}
           </div>
         </div>
       </div>
