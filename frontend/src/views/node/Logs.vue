@@ -11,7 +11,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <t-alert v-if="err" :title="logs ? 'Disconnected' : 'Failed to Fetch Logs'" type="error" class="mb-2">
       {{ err }}.
     </t-alert>
-    <log-view v-else :logs="logs"/>
+    <log-view :logs="logs"/>
   </div>
 </template>
 
