@@ -4,9 +4,9 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <template>
-  <div>
+  <div class="flex flex-col">
     <div v-if="title" class="w-full text-center">{{ title }}</div>
-    <div :style="{ width: width, height: height }">
+    <div class="flex-1">
       <div v-if="err || loading" class="flex flex-row justify-center items-center w-full h-full">
         <div v-if="err" class="flex justify-center items-center w-1/2 gap-4 text-talos-gray-500 text-sm">
           <div class="flex-0">
@@ -16,10 +16,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         </div>
         <t-spinner v-else/>
       </div>
-      <apexchart
-        :style="{opacity: loading || err ? 0 : 100}"
-        :width="width"
-        :height="height"
+      <apexchart v-else
+        width="100%"
+        height="100%"
         :type="type"
         :options="options"
         :series="series"
@@ -67,14 +66,6 @@ export default {
     },
     chartType: String,
     title: String,
-    width: {
-      type: String,
-      default: "100%",
-    },
-    height: {
-      type: String,
-      default: "100%",
-    },
     type: String,
     numPoints: {
       type: Number,
