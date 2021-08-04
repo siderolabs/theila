@@ -8,14 +8,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <div class="px-3 py-2 mb-2">
       <t-breadcrumbs>{{ $route.params.node }} Overview</t-breadcrumbs>
     </div>
-    <div class="py-2 border rounded-md border-talos-gray-300 dark:border-talos-gray-600 flex-1 flex flex-col overflow-hidden">
-      <div class="flex gap-2">
+    <div class="p-4 border rounded-md border-talos-gray-300 dark:border-talos-gray-600 flex-1 flex flex-col overflow-hidden">
+      <div class="flex flex-1 gap-2">
         <div class="flex-1">
           <t-chart
+             class="h-full"
              name="cpu"
              title="CPU Utilization"
-             width="100%"
-             height="180px"
              type="area"
              talos
              :resource="{type: 'CPUStat', namespace: 'perf', tail_events: 25}"
@@ -25,10 +24,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         </div>
         <div class="flex-1">
           <t-chart
+             class="h-full"
              name="mem"
              title="Memory Usage"
-             width="100%"
-             height="180px"
              type="area"
              talos
              :resource="{type: 'MemoryStat', namespace: 'perf', tail_events: 25}"
@@ -37,13 +35,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           />
         </div>
       </div>
-      <div class="flex gap-2">
+      <div class="flex flex-1 gap-2">
         <div class="flex-1">
           <t-chart
+             class="h-full"
              name="procs"
              title="Processes"
-             width="100%"
-             height="180px"
              type="area"
              talos
              :resource="{type: 'CPUStat', namespace: 'perf', tail_events: 25}"
