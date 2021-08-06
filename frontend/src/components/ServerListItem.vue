@@ -6,7 +6,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 <template>
   <div class="flex flex-col px-6 py-3">
     <div class="flex items-center">
-      <div class="flex flex-1 items-center min-w-0 md:grid md:grid-cols-5 md:gap-4">
+      <div class="flex flex-1 items-center grid grid-cols-5 gap-4">
         <div class="col-span-2 block flex items-center gap-3">
           <button type="button" @click="expand" class="relative inline-flex items-center px-1 py-1 text-sm font-medium leading-5 transition-colors duration-200 rounded-full select-none text-talos-gray-700 dark:text-talos-gray-400 bg-talos-gray-200 dark:bg-talos-gray-800 hover:bg-talos-gray-200 dark:hover:bg-talos-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-60">
             <div :class="{ 'w-5': true, 'h-5': true, transform: expanded, 'rotate-180': expanded }">
@@ -50,7 +50,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             </span>
           </p>
         </div>
-        <div class="block">
+        <div class="hidden md:block">
           <span :class="{
               tag: true,
               uppercase: true,
@@ -85,7 +85,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     </div>
 
     <div v-if="expanded" class="block col-span-5">
-      <div class="flex items-center min-w-0 md:grid md:grid-cols-3 md:gap-4 gap-1">
+      <div class="flex items-center grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1 lg:gap-4">
         <div class="flex-1">
           <div class="label">Labels</div>
           <template v-if="item.metadata.labels">

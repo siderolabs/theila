@@ -20,7 +20,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         search="Search node by name"
         :context="getContext()">
       <template v-slot:header>
-        <div class="flex items-center md:grid md:grid-cols-7">
+        <div class="flex items-center grid-cols-4 md:grid-cols-7 lg:grid-cols-7">
           <div class="block justify-self-left">
             Name
           </div>
@@ -30,10 +30,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           <div class="justify-self-center">
             OS
           </div>
-          <div class="col-span-2 block justify-self-center">
+          <div class="col-span-2 block justify-self-center hidden md:block lg:block">
             Roles
           </div>
-          <div class="justify-self-center">
+          <div class="justify-self-center hidden md:block lg:block">
             Status
           </div>
         </div>

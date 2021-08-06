@@ -8,9 +8,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     :to="{name: 'Nodes', query: { cluster: item.metadata.name, namespace: item.metadata.namespace, uid: item.metadata.uid }}"
     class="block hover:bg-talos-gray-50 dark:hover:bg-talos-gray-800 overflow-visible"
     >
-    <div class="flex items-center px-4 py-4 sm:px-6">
+    <div class="flex items-center px-4 py-4">
       <div class="flex items-center flex-1 min-w-0">
-        <div class="flex-1 min-w-0 md:grid md:grid-cols-2 md:gap-4">
+        <div class="flex-1 grid grid-cols-2 gap-4">
           <div>
             <p
               class="text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100"

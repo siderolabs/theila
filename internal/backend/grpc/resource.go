@@ -8,7 +8,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/cosi-project/runtime/api/v1alpha1"
 	"github.com/cosi-project/runtime/pkg/resource/protobuf"
@@ -89,10 +88,12 @@ func (s *resourceServer) List(ctx context.Context, in *resource.ListRequest) (*r
 
 	md, _ := metadata.FromIncomingContext(ctx)
 
-	for _, s := range md.Get("selectors") {
-		for _, condition := range strings.Split(s, ",") {
-			opts = append(opts, runtime.WithLabelSelector(condition))
-		}
+	if s := md.Get("selectors"); len(s) > 0 {
+		opts = append(opts, runtime.WithLabelSelector(s[0]))
+	}
+
+	if s := md.Get("fieldSelectors"); len(s) > 0 {
+		opts = append(opts, runtime.WithFieldSelector(s[0]))
 	}
 
 	res := &rpc.ListResponse{}

@@ -8,7 +8,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <Menu as="div" class="relative w-full">
       <menu-button as="template" :disabled="disabled">
         <t-button :xs="xs" :small="small" :disabled="disabled" class="w-full">
-          <div class="flex-1" v-if="title">{{ title }}</div>
+          <div class="flex-1 truncate" v-if="title">{{ title }}</div>
           <slot name="icon" v-if="$slots.icon"></slot>
           <chevron-down-icon v-else class="w-5 h-5 ml-2 -mr-1" aria-hidden="true"/>
         </t-button>
