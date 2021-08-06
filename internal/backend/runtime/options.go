@@ -17,6 +17,7 @@ type QueryOptions struct {
 	Context        string
 	Resource       string
 	LabelSelector  string
+	FieldSelector  string
 	CurrentVersion string
 	Nodes          []string
 }
@@ -53,6 +54,13 @@ func WithName(name string) QueryOption {
 func WithLabelSelector(selector string) QueryOption {
 	return func(o *QueryOptions) {
 		o.LabelSelector = selector
+	}
+}
+
+// WithFieldSelector enables filtering by field.
+func WithFieldSelector(selector string) QueryOption {
+	return func(o *QueryOptions) {
+		o.FieldSelector = selector
 	}
 }
 

@@ -8,32 +8,20 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     :to="{name: 'Overview', params: { node: ip }, query: getQuery() }"
     class="block hover:bg-talos-gray-50 dark:hover:bg-talos-gray-800 flex"
     >
-    <div class="flex-1 flex items-center px-4 py-3 sm:px-6 min-w-0 md:grid md:grid-cols-7 md:gap-4">
-      <div class="block justify-self-left">
-        <p
-          class="text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100"
-          >
-          {{ item.metadata.name }}
-        </p>
+    <div class="flex-1 flex items-center px-4 py-3 min-w-0 grid grid-cols-4 md:grid-cols-7 lg:grid-cols-7 gap-4">
+      <div class="truncate">
+        {{ item.metadata.name }}
       </div>
-      <div class="block justify-self-left">
-        <p
-          class="text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100"
-          >
-          {{ ip }}
-        </p>
+      <div class="truncate">
+        {{ ip }}
       </div>
-      <div class="justify-self-center">
+      <div class="truncate">
         {{ os }}
       </div>
-      <div class="col-span-2 block justify-self-center">
-        <p
-          class="text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100 space-x-1 space-y-1"
-          >
-          <t-label v-for="role in roles" v-bind:key="role">{{ role }}</t-label>
-        </p>
+      <div class="col-span-2 block justify-self-center hidden md:flex lg:flex flex flex-wrap gap-2">
+        <t-label v-for="role in roles" v-bind:key="role" class="inline text-sm">{{ role }}</t-label>
       </div>
-      <div class="justify-self-center">
+      <div class="justify-self-center hidden md:block lg:block">
         <t-label :col="status === 'ready' ? 'green' : 'red'" class="uppercase">
           <template v-slot:icon>
             <check-circle-icon class="w-5 h-5" v-if="status === 'ready'"/>

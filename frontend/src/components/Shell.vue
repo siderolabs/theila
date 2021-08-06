@@ -5,19 +5,23 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <template>
   <div :class="shellClasses">
-    <div :class="sidebarClasses" :style="style">
+    <div :class="sidebarClasses">
       <slot name="menu"></slot>
     </div>
-    <div :class="contentClasses">
-      <slot name="content"></slot>
+    <div class="flex items-center justify-center w-full overflow-y-auto overflow-x-hidden">
+      <div class="flex-1 max-w-screen-xl h-full">
+        <div :class="contentClasses">
+          <slot name="content"></slot>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script type="ts">
-import { Options, Vue } from 'vue-class-component';
+import { computed, toRefs } from 'vue';
 
-@Options({
+export default {
   props: {
     colorStyle: {
       type: String,
@@ -26,34 +30,31 @@ import { Options, Vue } from 'vue-class-component';
 
     sidebarWidth: {
       type: String,
-      default: "18rem",
+      default: "w-60 lg:w-72",
     }
   },
 
-  computed: {
-    sidebarClasses() {
-      return `sidebar sidebar-${this.colorStyle}`;
-    },
+  setup(props) {
+    const {colorStyle, sidebarWidth} = toRefs(props);
 
-    contentClasses() {
-      return `content-${this.colorStyle}`;
-    },
-
-    shellClasses() {
-      return `shell-${this.colorStyle}`;
-    },
-
-    style() {
-      return `width: ${this.sidebarWidth};`;
+    return {
+      sidebarClasses: computed(() => {
+        return `sidebar sidebar-${colorStyle.value} ${sidebarWidth.value}`;
+      }),
+      contentClasses: computed(() => {
+        return `content-${colorStyle.value}`;
+      }),
+      shellClasses: computed(() => {
+        return `shell-${colorStyle.value}`;
+      }),
     }
   }
-})
-export default class Shell extends Vue {}
+};
 </script>
 
 <style>
 .sidebar-inverted {
-  @apply flex flex-col justify-between flex-none h-full py-2 select-none px-3 overflow-y-auto gap-2;
+  @apply flex flex-col justify-between flex-none h-full py-2 select-none sm:px-3 overflow-y-auto gap-2;
 }
 
 .sidebar-normal {
@@ -61,7 +62,7 @@ export default class Shell extends Vue {}
 }
 
 .content-inverted {
-  @apply flex flex-col w-full h-full overflow-x-hidden overflow-y-auto py-2 px-4;
+  @apply flex-1 flex flex-col py-2 px-4 h-full;
 }
 
 .content-normal {
