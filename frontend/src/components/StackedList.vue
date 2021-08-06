@@ -5,8 +5,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <template>
   <div>
-    <div class="flex gap-2">
-      <t-input v-if="search" :placeholder="search" v-model="filter" class="mb-4 w-full flex-1">
+    <div class="lg:flex gap-2 grid grid-col-1 mb-4">
+      <t-input v-if="search" :placeholder="search" v-model="filter" class="w-full flex-1">
         <template v-slot:icon>
           <search-icon class="w-5 h-5"/>
         </template>
@@ -27,7 +27,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <div class="stacked-list">
       <ul>
         <li v-if="showCount && itemName">
-          <div class="px-4 py-4 sm:px-6">
+          <div class="px-4 py-4">
             {{ items.length }} {{ pluralize(itemName, items.length) }}
           </div>
         </li>
@@ -35,8 +35,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           <slot name="header"></slot>
         </li>
         <li
-          v-for="item in filteredItems"
-          :key="idFn(item)"
+          v-for="item, index in filteredItems"
+          :key="idFn ? idFn(item) : index"
           >
           <slot :item="item"></slot>
         </li>
@@ -138,6 +138,6 @@ export default {
 }
 
 .stacked-list .table-header > * {
-  @apply font-medium flex items-center px-4 py-3 sm:px-6 min-w-0 md:grid md:gap-4 uppercase bg-talos-gray-100 dark:bg-talos-gray-700 text-talos-gray-500 dark:text-talos-gray-300;
+  @apply font-medium flex items-center px-4 py-3 min-w-0 grid gap-4 uppercase bg-talos-gray-100 dark:bg-talos-gray-700 text-talos-gray-500 dark:text-talos-gray-300;
 }
 </style>

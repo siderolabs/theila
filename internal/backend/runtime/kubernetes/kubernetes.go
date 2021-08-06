@@ -20,6 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -182,6 +183,19 @@ func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) (int
 		})
 	}
 
+	if opts.FieldSelector != "" {
+		var selector fields.Selector
+
+		selector, err = fields.ParseSelector(opts.FieldSelector)
+		if err != nil {
+			return nil, err
+		}
+
+		options = append(options, runtimeclient.MatchingFieldsSelector{
+			Selector: selector,
+		})
+	}
+
 	err = client.List(ctx, object, options...)
 	if err != nil {
 		return nil, wrapError(err, opts)
@@ -335,21 +349,21 @@ func (r *Runtime) getKubeconfig(ctx context.Context, context *common.Context) (*
 func (r *Runtime) getOrCreateClient(ctx context.Context, opts *runtime.QueryOptions) (*client, error) {
 	client, err := r.getClient(opts.Context)
 	if err != nil {
-		// initialize the client if it's not initialized and we have Cluster information
-		if opts.Cluster != nil {
-			_, err = r.getKubeconfig(ctx, &common.Context{
-				Name:    opts.Context,
-				Cluster: opts.Cluster,
-			})
-			if err != nil {
-				return nil, err
-			}
+		return nil, err
+	}
 
-			client, err = r.getClient(opts.Context)
-			if err != nil {
-				return nil, err
-			}
-		} else {
+	// initialize the client if it's not initialized and we have Cluster information
+	if opts.Cluster != nil {
+		_, err = r.getKubeconfig(ctx, &common.Context{
+			Name:    opts.Context,
+			Cluster: opts.Cluster,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		client, err = r.getClient(opts.Cluster.Uid)
+		if err != nil {
 			return nil, err
 		}
 	}

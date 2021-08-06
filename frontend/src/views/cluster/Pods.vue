@@ -20,7 +20,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       search="Search pod by name"
       :context="getContext()">
       <template v-slot:header>
-        <div class="flex items-center md:grid md:grid-cols-6">
+        <div class="items-center grid grid-cols-6">
           <div class="block">
             Namespace
           </div>
@@ -39,31 +39,31 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         <a
           class="block hover:bg-talos-gray-50 dark:hover:bg-talos-gray-800"
           >
-          <div class="flex items-center min-w-0 px-4 py-4 sm:px-6 md:grid md:grid-cols-6 md:gap-4">
+          <div class="flex items-center px-4 py-4 grid grid-cols-6 gap-4">
             <div class="block">
               <p
-                class="text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100"
+                class="text-sm truncate text-talos-gray-900 dark:text-talos-gray-100"
                 >
                 {{ slot.item.metadata.namespace }}
               </p>
             </div>
             <div class="col-span-2 block">
               <p
-                class="text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100"
+                class="text-sm truncate text-talos-gray-900 dark:text-talos-gray-100"
                 >
                 {{ slot.item.metadata.name }}
               </p>
             </div>
             <div class="block">
               <p
-                class="text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100"
+                class="text-sm truncate text-talos-gray-900 dark:text-talos-gray-100"
                 >
                 {{ slot.item.status.phase }}
               </p>
             </div>
             <div class="col-span-2 block">
               <p
-                class="text-sm font-medium truncate text-talos-gray-900 dark:text-talos-gray-100"
+                class="text-sm truncate text-talos-gray-900 dark:text-talos-gray-100"
                 >
                 {{ slot.item.spec.nodeName }}
               </p>

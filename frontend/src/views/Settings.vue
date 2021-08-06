@@ -8,7 +8,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <div class="px-5">
       <h3 class="mb-2 text-lg leading-6 font-medium text-talos-gray-900 dark:text-talos-gray-100" id="modal-title">Settings</h3>
     </div>
-    <shell color-style="inverted" sidebar-width="12rem" class="px-2">
+    <shell color-style="inverted" sidebar-width="w-60" class="px-2">
       <template v-slot:menu>
         <shell-menu-item name="Appearance" active="true">
           <template v-slot:icon>

@@ -8,7 +8,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <div class="px-3 py-2">
       <div class="text-lg tracking-tight text-talos-gray-900 dark:text-white font-bold">Servers</div>
     </div>
-    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-5 md:grid-cols-3">
       <t-stat name="Total Servers" :value="items.length" :loading="loading">
         <template v-slot:icon>
           <server-icon class="w-6 h-6"/>
@@ -27,7 +27,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     </div>
     <watch class="flex-1" :watch="servers" search="Search server" :filterFn="search" :categories="categories" :sortOptions="sortOptions">
       <template v-slot:header>
-        <div class="flex items-center md:grid md:grid-cols-5">
+        <div class="flex items-center grid grid-cols-5">
           <div class="col-span-2 block">
             Name
           </div>
@@ -37,7 +37,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           <div class="block">
             Power
           </div>
-          <div class="block">
+          <div class="hidden md:block">
             Status
           </div>
         </div>
