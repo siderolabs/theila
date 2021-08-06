@@ -8,8 +8,8 @@ import Servers from "../views/Servers.vue";
 import Nodes from "../views/cluster/Nodes.vue";
 import Pods from "../views/cluster/Pods.vue";
 import Overview from "../views/node/Overview.vue";
+import Monitor from "../views/node/Monitor.vue";
 import Logs from "../views/node/Logs.vue";
-import Services from "../views/node/Services.vue";
 import SidebarRoot from "../views/SidebarRoot.vue";
 import SidebarCluster from "../views/SidebarCluster.vue";
 import SidebarNode from "../views/SidebarNode.vue";
@@ -92,17 +92,17 @@ const routes = [
   },
   ...withPrefix("/node/:node", [
     {
-      path: "/services",
-      name: "Services",
-      components: {
-        default: Services,
-      },
-    },
-    {
       path: "/overview",
       name: "Overview",
       components: {
         default: Overview,
+      },
+    },
+    {
+      path: "/monitor",
+      name: "Monitor",
+      components: {
+        default: Monitor,
       },
     },
     {

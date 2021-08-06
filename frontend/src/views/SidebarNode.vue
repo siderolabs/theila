@@ -12,12 +12,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     </shell-menu-item>
     <shell-menu-item :link="{name: 'Overview', query: { cluster: $route.query.cluster, namespace: $route.query.namespace, uid: $route.query.uid }, params: { node: $route.params.node } }" name="Overview">
       <template v-slot:icon>
-        <presentation-chart-line-icon class="w-6 h-6"/>
+        <home-icon class="w-6 h-6"/>
       </template>
     </shell-menu-item>
-    <shell-menu-item :link="{name: 'Services', query: { cluster: $route.query.cluster, namespace: $route.query.namespace, uid: $route.query.uid }, params: { node: $route.params.node } }" name="Services">
+    <shell-menu-item :link="{name: 'Monitor', query: { cluster: $route.query.cluster, namespace: $route.query.namespace, uid: $route.query.uid }, params: { node: $route.params.node } }" name="Monitor">
       <template v-slot:icon>
-        <cube-transparent-icon class="w-6 h-6"/>
+        <presentation-chart-line-icon class="w-6 h-6"/>
       </template>
     </shell-menu-item>
     <shell-menu-item name="Dmesg" :link="{name: 'Logs', query: { cluster: $route.query.cluster, namespace: $route.query.namespace, uid: $route.query.uid }, params: { node: $route.params.node, service: 'dmesg' } }">
@@ -47,11 +47,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import { ref, onMounted, Ref } from 'vue';
 import ShellMenuItem from '../components/ShellMenuItem.vue';
 import {
-  CubeTransparentIcon,
   ArrowSmLeftIcon,
   ChevronUpIcon,
   PresentationChartLineIcon,
   DocumentTextIcon,
+  HomeIcon,
 } from '@heroicons/vue/outline';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 import { ResourceService } from '../api/grpc';
@@ -61,7 +61,6 @@ import { getContext } from '../context';
 export default {
   components: {
     ShellMenuItem,
-    CubeTransparentIcon,
     ArrowSmLeftIcon,
     Disclosure,
     DisclosureButton,
@@ -69,6 +68,7 @@ export default {
     ChevronUpIcon,
     PresentationChartLineIcon,
     DocumentTextIcon,
+    HomeIcon,
   },
 
   setup() {
