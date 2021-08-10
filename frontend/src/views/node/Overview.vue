@@ -165,9 +165,9 @@ export default {
 
     onMounted(async () => {
       try {
-        const hostname = await ResourceService.Get({
-          type: "hostname",
-          id: "hostname",
+        const nodename = await ResourceService.Get({
+          type: "nodename",
+          id: "nodename",
         }, {
           runtime: Runtime.Talos,
           context: context,
@@ -176,7 +176,7 @@ export default {
         const response = await ResourceService.Get({
           namespace: "default",
           type: "nodes.v1",
-          id: hostname.spec.hostname,
+          id: nodename.spec.nodename,
         }, {
           runtime: Runtime.Kubernetes,
           context: context,
