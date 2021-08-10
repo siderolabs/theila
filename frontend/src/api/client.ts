@@ -99,7 +99,8 @@ export class Client extends EventEmitter {
   // connect opens web socket.
   // should receive the session after that.
   public connect(timeout?: number): Promise<void> {
-    this.ws = new WebSocket("ws://" + this.address + "/ws");
+    const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+    this.ws = new WebSocket(`${protocol}://${this.address}/ws`);
     this.ws.binaryType = "arraybuffer";
 
     this.ws.onmessage = this.onmessage.bind(this);
