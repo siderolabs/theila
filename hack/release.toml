@@ -5,8 +5,6 @@ project_name = "theila"
 github_repo = "talos-systems/theila"
 match_deps = "^github.com/(talos-systems/[a-zA-Z0-9-]+)$"
 
-pre_release = true
-
 [notes]
 
   [notes.intro]
