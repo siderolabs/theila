@@ -9,6 +9,8 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"net/url"
+	"strings"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -34,7 +36,26 @@ func New(ctx context.Context, mux *http.ServeMux) *Server {
 		logger: logging.With(
 			logging.Component("websocket"),
 		),
-		upgrader: &websocket.Upgrader{},
+		upgrader: &websocket.Upgrader{
+			CheckOrigin: func(r *http.Request) bool {
+				origin := r.Header["Origin"]
+				if len(origin) == 0 {
+					return true
+				}
+
+				u, err := url.Parse(origin[0])
+				if err != nil {
+					return false
+				}
+
+				forwardedHost := r.Header["X-Forwarded-Host"]
+				if len(forwardedHost) != 0 {
+					return strings.EqualFold(u.Host, forwardedHost[0])
+				}
+
+				return strings.EqualFold(u.Host, r.Host)
+			},
+		},
 	}
 
 	mux.HandleFunc("/ws", ws.createSession)
