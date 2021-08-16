@@ -312,7 +312,7 @@ func (t *upgradeTask) start(ctx context.Context, task *resources.UpgradeK8sTask,
 		return err
 	}
 
-	state := struct {
+	s := struct {
 		cluster.ClientProvider
 		cluster.K8sProvider
 	}{
@@ -323,7 +323,7 @@ func (t *upgradeTask) start(ctx context.Context, task *resources.UpgradeK8sTask,
 	}
 
 	if upgradeOptions.FromVersion == "" {
-		upgradeOptions.FromVersion, err = k8s.DetectLowestVersion(ctx, &state, upgradeOptions)
+		upgradeOptions.FromVersion, err = k8s.DetectLowestVersion(ctx, &s, upgradeOptions)
 		if err != nil {
 			return err
 		}
@@ -335,23 +335,7 @@ func (t *upgradeTask) start(ctx context.Context, task *resources.UpgradeK8sTask,
 		defer t.wg.Done()
 
 		upgrade := func() error {
-			c, err := clientProvider.Client()
-			if err != nil {
-				return err
-			}
-
-			endpoints := c.GetEndpoints()
-
-			selfHosted, err := k8s.IsSelfHostedControlPlane(ctx, &state, endpoints[0])
-			if err != nil {
-				return err
-			}
-
-			if selfHosted {
-				return fmt.Errorf("upgrading self hosted control plane is not supported")
-			}
-
-			return k8s.UpgradeTalosManaged(ctx, &state, upgradeOptions)
+			return k8s.UpgradeTalosManaged(ctx, &s, upgradeOptions)
 		}
 
 		ctrl.progress <- taskProgress{

@@ -101,7 +101,7 @@ func (s *Server) Run(ctx context.Context) error {
 
 	s.ws = ws.New(s.ctx, mux)
 
-	s.logger.Sugar().Infof("serving on port %d", s.port)
+	s.logger.Sugar().Infof("serving on %s:%d", s.address, s.port)
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", s.address, s.port),
