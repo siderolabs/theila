@@ -7,7 +7,6 @@ package grpc
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/cosi-project/runtime/api/v1alpha1"
 	"github.com/cosi-project/runtime/pkg/resource/protobuf"
@@ -210,9 +209,6 @@ func (s *resourceServer) GetConfig(ctx context.Context, cluster *common.Cluster)
 	}
 
 	context := router.ExtractContext(ctx)
-	if context == nil {
-		return nil, fmt.Errorf("context parameters are required for the config request")
-	}
 
 	res, err := r.GetContext(ctx, context, cluster)
 	if err != nil {

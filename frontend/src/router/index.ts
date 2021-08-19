@@ -30,7 +30,7 @@ const withPrefix = (prefix, routes) =>
 export function getBreadcrumbs(route) {
   const crumbs:Object[] = [];
 
-  if(route.query.cluster && route.query.uid && route.query.namespace) {
+  if(route.query && route.query.cluster && route.query.uid && route.query.namespace) {
     crumbs.push(
       {
         text: "Clusters",
@@ -41,7 +41,7 @@ export function getBreadcrumbs(route) {
 
   if(route.params.node) {
     crumbs.push(
-      { text: `${route.query.cluster || context.current.value ? context.current.value.cluster : "Current Cluster"} Nodes`, to: {name: "Nodes", query: route.query } },
+      { text: `${route.query.cluster || (context.current.value ? context.current.value.cluster : "Current Cluster")} Nodes`, to: {name: "Nodes", query: route.query } },
     );
   }
 
