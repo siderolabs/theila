@@ -372,6 +372,10 @@ func (r *Runtime) getOrCreateClient(ctx context.Context, opts *runtime.QueryOpti
 }
 
 func (r *Runtime) getClient(id string) (*client, error) {
+	if id == "" {
+		id = runtime.DefaultClient
+	}
+
 	client := func() *client {
 		r.clientsMu.Lock()
 		defer r.clientsMu.Unlock()
@@ -406,8 +410,13 @@ func (r *Runtime) getClient(id string) (*client, error) {
 		return client, nil
 	}
 
+	ctxID := id
+	if id == runtime.DefaultClient {
+		ctxID = ""
+	}
+
 	// then fall back to the local kubeconfig
-	cfg, err := config.GetConfigWithContext(id)
+	cfg, err := config.GetConfigWithContext(ctxID)
 	if err != nil {
 		return nil, err
 	}

@@ -18,7 +18,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <disclosure as="template" defaultOpen v-slot="{ open }">
       <disclosure-button as="div" class="disclosure-button">
         MANAGE
-        <chevron-up-icon :class="{ chevron: true, open: open }"/>
+        <chevron-down-icon :class="{ chevron: true, open: open }"/>
       </disclosure-button>
       <disclosure-panel as="template" class="overflow-hidden">
         <shell-menu-item @click="openUpgrade" name="Upgrade Kubernetes">
