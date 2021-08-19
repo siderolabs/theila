@@ -223,7 +223,7 @@ export class Client extends EventEmitter {
   private async reconnect() {
     console.warn("lost connection to server, reconnecting in...");
 
-    // trottle reconnection rate in case if server has closed the connection without an error.
+    // throttle reconnection rate in case if the server has closed the connection without an error.
     if (this.lastReconnect != null) {
       const delta = this.lastReconnect.diff(DateTime.now()).milliseconds;
       const minDelay = 1000;
@@ -261,6 +261,7 @@ export class Client extends EventEmitter {
 
     console.log("reconnected to server");
     this.emit(ClientReconnected);
+    this.lastReconnect = null;
 
     return;
   }
