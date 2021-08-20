@@ -63,15 +63,19 @@ export default {
     onMounted(async () => {
       await context.api.connect();
 
-      connected.value = true;
-
       const response = await ContextService.List();
 
       if(response.contexts)
         contexts.value = response.contexts;
 
-      if(response.current)
+      if(response.current) {
         currentContext.value = response.current;
+        context.current.value = {
+          name: response.current,
+        };
+      }
+
+      connected.value = true;
 
       await detectCapabilities();
     });

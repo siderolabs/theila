@@ -27,15 +27,18 @@ export class AwaitError extends Error {
 
 export class RequestError extends Error {
   public response: Message;
+  public aborted: boolean;
   constructor(response: Message) {
-    let err: any = "unknown";
+    let err: any = "request aborted";
+    let aborted = true;
 
     if (response.spec) {
       err = JSON.parse(response.spec)["error"];
+      aborted = false;
     }
 
     super(err);
-
+    this.aborted = aborted;
     this.response = response;
     this.name = "RequestError";
   }
@@ -47,9 +50,12 @@ export interface Callback {
 
 interface Subscription {
   callback(Message): void
+  abort(): void
 }
 
 class AwaitCallback {
+  public timeout: any;
+
   private cb: Callback;
 
   constructor(cb: Callback) {
@@ -58,6 +64,13 @@ class AwaitCallback {
 
   callback(message: Message): void {
     this.cb(message);
+  }
+
+  abort(): void {
+    this.cb(Message.fromPartial({
+      kind: Kind.Error,
+    }));
+    clearTimeout(this.timeout);
   }
 }
 
@@ -74,6 +87,10 @@ class CallbackList extends EventEmitter {
   callback(message: Message): void {
     this.emit(SubscriptionEvent, message)
   }
+
+  abort(): void {
+    this.removeAllListeners();
+  }
 }
 
 // Client is used to establish connection to the websocket provided by the backend
@@ -81,7 +98,7 @@ class CallbackList extends EventEmitter {
 export class Client extends EventEmitter {
   private ws: any = null;
   private connected: boolean = false;
-  private subcriptions = new Map<string, Subscription>();
+  private subscriptions = new Map<string, Subscription>();
   private timeout: number = 30000;
   private address: string;
   private lastReconnect?: DateTime;
@@ -149,50 +166,52 @@ export class Client extends EventEmitter {
     const uid = message.metadata.uid;
 
     const p:Promise<Message> = new Promise((resolve, reject) => {
-      this.subcriptions[uid] = new AwaitCallback((response: Message) => {
+      const awaitCallback = new AwaitCallback((response: Message) => {
         if (response.kind == Kind.Error) {
           reject(new RequestError(response));
         } else {
           resolve(response);
         }
-      })
+      });
+
+      this.subscriptions[uid] = awaitCallback;
 
       const data = Message.encode(message).finish();
       this.ws.send(data);
 
-      setTimeout(() => {
+      awaitCallback.timeout = setTimeout(() => {
         reject(new AwaitError("timeout expired while waiting for message: " + uid + " response"));
       }, timeout || this.timeout);
     })
 
     p.finally(() => {
-      delete this.subcriptions[uid];
+      delete this.subscriptions[uid];
     })
 
     return p
   }
 
   public subscribe(uid: string, func: Callback): void {
-    if (this.subcriptions[uid] == null) {
-      this.subcriptions[uid] = new CallbackList();
+    if (!this.subscriptions.has(uid)) {
+      this.subscriptions[uid] = new CallbackList();
     }
 
-    const callbacks:CallbackList = this.subcriptions[uid] as CallbackList;
+    const callbacks:CallbackList = this.subscriptions[uid] as CallbackList;
 
     callbacks.addListener(SubscriptionEvent, func);
   }
 
   public unsubscribe(uid: string, func: Callback): boolean {
-    if (this.subcriptions[uid] == null) {
-      return true;
+    if (!this.subscriptions.has(uid)) {
+      return false;
     }
 
-    const callbacks:CallbackList = this.subcriptions[uid] as CallbackList;
+    const callbacks:CallbackList = this.subscriptions[uid] as CallbackList;
 
     callbacks.removeListener(SubscriptionEvent, func);
 
     if(callbacks.listenerCount(SubscriptionEvent) == 0) {
-      delete this.subcriptions[uid];
+      delete this.subscriptions[uid];
 
       return true;
     }
@@ -209,11 +228,10 @@ export class Client extends EventEmitter {
       return;
     }
 
-    const sub = this.subcriptions[message.metadata.uid];
+    const sub = this.subscriptions[message.metadata.uid];
 
-    if (sub == null) {
-      console.error("api socket orphaned message", message)
-
+    if (sub === null) {
+      // discard
       return;
     }
 
@@ -260,6 +278,10 @@ export class Client extends EventEmitter {
     }
 
     console.log("reconnected to server");
+    for(const key in this.subscriptions) {
+      this.subscriptions[key].abort()
+    }
+    this.subscriptions = new Map<string, Subscription>();
     this.emit(ClientReconnected);
     this.lastReconnect = null;
 
