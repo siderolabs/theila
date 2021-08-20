@@ -154,7 +154,7 @@ export default class Watch {
       if(!componentContext.context || !componentContext.context.name)
         c["name"] = contextName();
 
-      this.start(
+      await this.start(
         source,
         resource.value,
         c,
@@ -185,7 +185,7 @@ export default class Watch {
     });
   }
 
-  public async start(source: any, resource: Object, context?: Object, compare?: CompareFunc): Promise<Message> {
+  public async start(source: any, resource: Object, context?: Object, compare?: CompareFunc): Promise<Message | undefined> {
     this.loading.value = true;
     this.err.value = "";
 
@@ -233,6 +233,10 @@ export default class Watch {
 
       this.client.addListener(ClientReconnected, this.handler);
     } catch(err) {
+      if(err.aborted) {
+        return;
+      }
+
       this.err.value = err;
       throw err;
     } finally {
@@ -244,7 +248,7 @@ export default class Watch {
     return message;
   }
 
-  public stop(): Promise<Message> {
+  public async stop(): Promise<Message | undefined> {
     if(this.items)
       this.items.value.splice(0, this.items.value.length);
 
@@ -254,21 +258,21 @@ export default class Watch {
       return Promise.reject(new SubscriptionError("failed to stop: not subscribed"));
     }
 
-    if (!this.client.unsubscribe(this.uid, this.callback)) {
-      return Promise.reject(new SubscriptionError("failed to stop: not subscribed"))
-    }
+    const unsubscribed = this.client.unsubscribe(this.uid, this.callback);
 
-    const unsubscribe = newMessage(
-      Kind.Unsubscribe,
-      UnsubscribeSpec.fromPartial({
-        uid: this.uid,
-      }),
-    );
-
-    this.uid = null!;
     this.client.removeListener(ClientReconnected, this.handler);
 
-    return this.client.send(unsubscribe);
+    if(unsubscribed) {
+      const unsubscribe = newMessage(
+        Kind.Unsubscribe,
+        UnsubscribeSpec.fromPartial({
+          uid: this.uid,
+        }),
+      );
+
+      this.uid = null!;
+      await this.client.send(unsubscribe);
+    }
   }
 
   public async handleReconnect() {
