@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-05-21T14:44:23Z by kres c09e0bc-dirty.
+# Generated on 2021-08-24T17:35:07Z by kres e5f1e7e-dirty.
 
 # common variables
 
@@ -125,8 +125,8 @@ lint-gofumpt:  ## Runs gofumpt linter.
 fmt:  ## Formats the source code
 	@docker run --rm -it -v $(PWD):/src -w /src golang:$(GO_VERSION) \
 		bash -c "export GO111MODULE=on; export GOPROXY=https://proxy.golang.org; \
-		cd /tmp && go mod init tmp && go get mvdan.cc/gofumpt/gofumports@$(GOFUMPT_VERSION) && \
-		cd - && gofumports -w -local github.com/talos-systems/theila ."
+		go install mvdan.cc/gofumpt/gofumports@$(GOFUMPT_VERSION) && \
+		gofumports -w -local github.com/talos-systems/theila ."
 
 generate:  ## Generate .proto definitions.
 	@$(MAKE) local-$@ DEST=./

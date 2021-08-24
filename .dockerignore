@@ -1,14 +1,14 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-07-16T20:37:11Z by kres 907039b.
+# Generated on 2021-08-24T17:35:07Z by kres e5f1e7e-dirty.
 
 **
 !frontend/src
 !frontend/tests
 !frontend/public
-!internal
-!cmd
 !api
+!cmd
+!internal
 !frontend/*.json
 !frontend/*.js
 !.babelrc

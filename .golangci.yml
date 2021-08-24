@@ -1,7 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-03-29T21:06:20Z by kres 40e845d-dirty.
-
+# Generated on 2021-08-24T17:35:07Z by kres e5f1e7e-dirty.
 
 # options for analysis running
 run:
@@ -21,7 +20,6 @@ output:
   print-linter-name: true
   uniq-by-line: true
   path-prefix: ""
-
 
 # all available settings of specific linters
 linters-settings:
@@ -116,23 +114,30 @@ linters-settings:
 
 linters:
   enable-all: true
-  disable:
-    - gas
-    - typecheck
-    - gochecknoglobals
-    - gochecknoinits
-    - funlen
-    - godox
-    - gomnd
-    - goerr113
-    - nestif
-    - wrapcheck
-    - paralleltest
-    - exhaustivestruct
-    - forbidigo
   disable-all: false
   fast: false
-
+  disable:
+    - exhaustivestruct
+    - forbidigo
+    - funlen
+    - gas
+    - gochecknoglobals
+    - gochecknoinits
+    - godox
+    - goerr113
+    - gomnd
+    - gomoddirectives
+    - nestif
+    - paralleltest
+    - tagliatelle
+    - thelper
+    - typecheck
+    - wrapcheck
+    # abandoned linters for which golangci shows the warning that the repo is archived by the owner
+    - interfacer
+    - maligned
+    - golint
+    - scopelint
 
 issues:
   exclude: []
@@ -141,10 +146,8 @@ issues:
   exclude-case-sensitive: false
   max-issues-per-linter: 10
   max-same-issues: 3
-
   new: false
 
 severity:
   default-severity: error
-
   case-sensitive: false

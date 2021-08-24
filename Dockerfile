@@ -2,7 +2,7 @@
 
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-07-20T12:59:08Z by kres 907039b.
+# Generated on 2021-08-24T18:03:29Z by kres c09f1a6-dirty.
 
 ARG JS_TOOLCHAIN
 ARG TOOLCHAIN
@@ -13,10 +13,12 @@ FROM ghcr.io/talos-systems/fhs:v0.3.0-12-g90722c3 AS image-fhs
 
 # base toolchain image
 FROM ${JS_TOOLCHAIN} AS js-toolchain
-RUN apk --update --no-cache add bash curl protoc protobuf-dev go
+COPY --from=golang:1.16-alpine /usr/local/go /usr/local/go
+RUN apk --update --no-cache add bash curl protoc protobuf-dev
 COPY ./go.mod .
 COPY ./go.sum .
 ENV GOPATH /go
+ENV PATH ${PATH}:/usr/local/go/bin
 
 # runs markdownlint
 FROM node:14.8.0-alpine AS lint-markdown
@@ -71,7 +73,7 @@ WORKDIR /src
 ARG PROTOBUF_TS_VERSION
 RUN npm install -g ts-proto@^${PROTOBUF_TS_VERSION}
 ARG PROTOBUF_GRPC_GATEWAY_TS_VERSION
-RUN go get github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts@v${PROTOBUF_GRPC_GATEWAY_TS_VERSION}
+RUN go install github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts@v${PROTOBUF_GRPC_GATEWAY_TS_VERSION}
 RUN mv /go/bin/protoc-gen-grpc-gateway-ts /bin
 COPY frontend/package.json ./
 COPY frontend/package-lock.json ./
@@ -92,11 +94,9 @@ FROM toolchain AS tools
 ENV GO111MODULE on
 ENV CGO_ENABLED 0
 ENV GOPATH /go
-RUN curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b /bin v1.38.0
+RUN curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b /bin v1.41.1
 ARG GOFUMPT_VERSION
-RUN cd $(mktemp -d) \
-	&& go mod init tmp \
-	&& go get mvdan.cc/gofumpt/gofumports@${GOFUMPT_VERSION} \
+RUN go install mvdan.cc/gofumpt/gofumports@${GOFUMPT_VERSION} \
 	&& mv /go/bin/gofumports /bin/gofumports
 ARG PROTOBUF_GO_VERSION
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v${PROTOBUF_GO_VERSION}
@@ -173,9 +173,9 @@ COPY ./go.mod .
 COPY ./go.sum .
 RUN --mount=type=cache,target=/go/pkg go mod download
 RUN --mount=type=cache,target=/go/pkg go mod verify
-COPY ./internal ./internal
-COPY ./cmd ./cmd
 COPY ./api ./api
+COPY ./cmd ./cmd
+COPY ./internal ./internal
 COPY --from=frontend /internal/frontend/dist ./internal/frontend/dist
 RUN --mount=type=cache,target=/go/pkg go list -mod=readonly all >/dev/null
 
@@ -225,7 +225,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/g
 FROM base AS theila-linux-amd64-build
 COPY --from=generate / /
 WORKDIR /src/cmd/theila
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o /theila-linux-amd64
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOARCH=amd64 GOOS=linux go build -ldflags "-s -w" -o /theila-linux-amd64
 
 # builds theila-linux-arm64
 FROM base AS theila-linux-arm64-build
@@ -237,7 +237,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/g
 FROM base AS theila-linux-armv7-build
 COPY --from=generate / /
 WORKDIR /src/cmd/theila
-RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOOS=linux GOARCH=arm GOARM=7 go build -ldflags "-s -w" -o /theila-linux-armv7
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg GOARM=7 GOOS=linux GOARCH=arm go build -ldflags "-s -w" -o /theila-linux-armv7
 
 # builds theila-windows-amd64.exe
 FROM base AS theila-windows-amd64.exe-build

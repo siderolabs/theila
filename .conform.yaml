@@ -1,7 +1,8 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-05-20T19:53:49Z by kres 3ad58bf-dirty.
+# Generated on 2021-08-24T17:44:07Z by kres e5f1e7e-dirty.
 
+---
 policies:
 - type: commit
   spec:
