@@ -83,8 +83,8 @@ export default {
         context: context,
       });
 
-      for(const message of response) {
-        services.value = services.value.concat(message["items"]);
+      for(const items of response) {
+        services.value = services.value.concat(items);
       }
     });
 

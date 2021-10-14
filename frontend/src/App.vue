@@ -68,7 +68,7 @@ export default {
       if(response.contexts)
         contexts.value = response.contexts;
 
-      if(response.current) {
+      if(response.current && !context.current.value) {
         currentContext.value = response.current;
         context.current.value = {
           name: response.current,

@@ -11,7 +11,6 @@ import (
 // QueryOptions List and Get query options.
 type QueryOptions struct {
 	Cluster        *common.Cluster
-	Type           interface{}
 	Namespace      string
 	Name           string
 	Context        string
@@ -82,13 +81,6 @@ func WithResource(resource string) QueryOption {
 func WithCluster(cluster *common.Cluster) QueryOption {
 	return func(o *QueryOptions) {
 		o.Cluster = cluster
-	}
-}
-
-// WithType explicitly defines the Resource type struct (k8s only).
-func WithType(t interface{}) QueryOption {
-	return func(o *QueryOptions) {
-		o.Type = t
 	}
 }
 

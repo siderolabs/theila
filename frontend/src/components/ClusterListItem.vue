@@ -134,7 +134,7 @@ export default {
     onMounted(async () => {
       const response = await ResourceService.List({
         namespace: item.value.metadata.namespace,
-        type: "machinelist.v1alpha3.cluster.x-k8s.io",
+        type: "machines.v1alpha3.cluster.x-k8s.io",
       }, {
         selectors: [
           `cluster.x-k8s.io/cluster-name=${item.value.metadata.name}`
@@ -143,7 +143,7 @@ export default {
 
       let count = 0;
       for (const m of response) {
-        count += m.items.length;
+        count += m.length;
       }
 
       nodesCount.value = count;

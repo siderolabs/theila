@@ -28,7 +28,6 @@ export function changeContext(c: Object) {
   context.current.value = c;
 }
 
-
 export function getContext() {
   const route = useRoute();
 

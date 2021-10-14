@@ -59,7 +59,7 @@ func (t *testRuntime) Get(ctx context.Context, setters ...runtime.QueryOption) (
 	return nil, nil
 }
 
-func (t *testRuntime) List(ctx context.Context, setters ...runtime.QueryOption) (interface{}, error) {
+func (t *testRuntime) List(ctx context.Context, setters ...runtime.QueryOption) ([]interface{}, error) {
 	return nil, nil
 }
 

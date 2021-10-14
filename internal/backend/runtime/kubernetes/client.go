@@ -5,84 +5,169 @@
 package kubernetes
 
 import (
-	cabpt "github.com/talos-systems/cluster-api-bootstrap-provider-talos/api/v1alpha3"
-	cacppt "github.com/talos-systems/cluster-api-control-plane-provider-talos/api/v1alpha3"
-	sidero "github.com/talos-systems/sidero/app/caps-controller-manager/api/v1alpha3"
-	metal "github.com/talos-systems/sidero/app/sidero-controller-manager/api/v1alpha1"
-	v1 "k8s.io/api/core/v1"
-	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/runtime"
+	"context"
+	"fmt"
+	"strings"
+
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
-	"sigs.k8s.io/cluster-api/api/v1alpha3"
-	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 )
 
-func getScheme() (*runtime.Scheme, error) {
-	scheme := runtime.NewScheme()
-
-	if err := clientgoscheme.AddToScheme(scheme); err != nil {
-		return nil, err
-	}
-
-	if err := v1alpha3.AddToScheme(scheme); err != nil {
-		return nil, err
-	}
-
-	if err := cacppt.AddToScheme(scheme); err != nil {
-		return nil, err
-	}
-
-	if err := cabpt.AddToScheme(scheme); err != nil {
-		return nil, err
-	}
-
-	if err := sidero.AddToScheme(scheme); err != nil {
-		return nil, err
-	}
-
-	if err := metal.AddToScheme(scheme); err != nil {
-		return nil, err
-	}
-
-	if err := v1.AddToScheme(scheme); err != nil {
-		return nil, err
-	}
-
-	if err := apiextensions.AddToScheme(scheme); err != nil {
-		return nil, err
-	}
-
-	return scheme, nil
-}
-
-// client wraps controller-runtime client and provides access to mapper.
+// Unstructured client wrapper.
 type client struct {
-	runtimeclient.Client
-	opts runtimeclient.Options
+	client dynamic.Interface
+	Mapper meta.RESTMapper
 }
 
-func (c *client) kindFor(gvr schema.GroupVersionResource) (schema.GroupVersionKind, error) {
-	return c.opts.Mapper.KindFor(gvr)
-}
+func (c *client) Resource(res *unstructured.Unstructured) (dynamic.ResourceInterface, error) {
+	versions := []string{}
 
-func newClient(config *rest.Config, options runtimeclient.Options) (*client, error) {
-	// Init a Mapper if none provided
-	if options.Mapper == nil {
-		var err error
-		options.Mapper, err = apiutil.NewDynamicRESTMapper(config)
+	gvk := res.GroupVersionKind()
 
-		if err != nil {
-			return nil, err
-		}
+	if gvk.Version != "" {
+		versions = append(versions, gvk.Version)
 	}
 
-	c, err := runtimeclient.New(config, options)
+	mapping, err := c.Mapper.RESTMapping(gvk.GroupKind(), versions...)
 	if err != nil {
 		return nil, err
 	}
 
-	return &client{c, options}, nil
+	var dr dynamic.ResourceInterface
+
+	if mapping.Scope.Name() == meta.RESTScopeNameNamespace {
+		dr = c.client.Resource(mapping.Resource).Namespace(res.GetNamespace())
+	} else {
+		dr = c.client.Resource(mapping.Resource)
+	}
+
+	return dr, nil
+}
+
+// Create saves the object obj in the Kubernetes cluster.
+func (c *client) Create(ctx context.Context, res *unstructured.Unstructured, opts metav1.CreateOptions, subresources ...string) (*unstructured.Unstructured, error) {
+	dr, err := c.Resource(res)
+	if err != nil {
+		return nil, err
+	}
+
+	return dr.Create(ctx, res, opts, subresources...)
+}
+
+// Delete deletes the given obj from Kubernetes cluster.
+func (c *client) Delete(ctx context.Context, resource, name, namespace string, opts metav1.DeleteOptions, subresources ...string) error {
+	res, err := c.parseResource(resource, namespace)
+	if err != nil {
+		return err
+	}
+
+	dr, err := c.Resource(res)
+	if err != nil {
+		return err
+	}
+
+	return dr.Delete(ctx, name, opts, subresources...)
+}
+
+// Get retrieves an obj for the given object key from the Kubernetes Cluster.
+func (c *client) Get(ctx context.Context, resource, name, namespace string, opts metav1.GetOptions, subresources ...string) (*unstructured.Unstructured, error) {
+	res, err := c.parseResource(resource, namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	dr, err := c.Resource(res)
+	if err != nil {
+		return nil, err
+	}
+
+	return dr.Get(ctx, name, opts, subresources...)
+}
+
+// Get retrieves an obj for the given object key from the Kubernetes Cluster.
+func (c *client) List(ctx context.Context, resource, namespace string, opts metav1.ListOptions) (*unstructured.UnstructuredList, error) {
+	res, err := c.parseResource(resource, namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	dr, err := c.Resource(res)
+	if err != nil {
+		return nil, err
+	}
+
+	return dr.List(ctx, opts)
+}
+
+// Update updates the resource.
+func (c *client) Update(ctx context.Context, res *unstructured.Unstructured, opts metav1.UpdateOptions, subresources ...string) (*unstructured.Unstructured, error) {
+	dr, err := c.Resource(res)
+	if err != nil {
+		return nil, err
+	}
+
+	return dr.Update(ctx, res, opts, subresources...)
+}
+
+func (c *client) kindFor(gvr schema.GroupVersionResource) (schema.GroupVersionKind, error) {
+	return c.Mapper.KindFor(gvr)
+}
+
+func (c *client) parseResource(resource, namespace string) (*unstructured.Unstructured, error) {
+	gvr, err := getGVR(resource)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &unstructured.Unstructured{}
+
+	gvk, err := c.kindFor(*gvr)
+	if err != nil {
+		return nil, err
+	}
+
+	res.SetGroupVersionKind(gvk)
+	res.SetNamespace(namespace)
+
+	return res, nil
+}
+
+func newClient(config *rest.Config) (*client, error) {
+	mapper, err := apiutil.NewDynamicRESTMapper(config)
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := dynamic.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &client{c, mapper}, nil
+}
+
+func getGVR(resource string) (*schema.GroupVersionResource, error) {
+	var gvr *schema.GroupVersionResource
+
+	parts := strings.Split(resource, ".")
+
+	if len(parts) == 2 {
+		gvr = &schema.GroupVersionResource{
+			Resource: parts[0],
+			Version:  parts[1],
+		}
+	} else {
+		gvr, _ = schema.ParseResourceArg(resource)
+	}
+
+	if gvr == nil {
+		return nil, fmt.Errorf("couldn't parse resource name")
+	}
+
+	return gvr, nil
 }

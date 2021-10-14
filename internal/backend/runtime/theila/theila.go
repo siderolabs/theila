@@ -135,7 +135,7 @@ func (r *Runtime) Get(ctx context.Context, setters ...runtime.QueryOption) (inte
 }
 
 // List implements runtime.Runtime.
-func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) (interface{}, error) {
+func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) ([]interface{}, error) {
 	opts := runtime.NewQueryOptions(setters...)
 
 	list, err := r.state.List(ctx, cosiresource.NewMetadata(opts.Namespace, opts.Resource, "", cosiresource.VersionUndefined))
@@ -143,18 +143,13 @@ func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) (int
 		return nil, err
 	}
 
-	response := runtime.NewResourceList()
+	res := make([]interface{}, 0, len(list.Items))
 
 	for _, item := range list.Items {
-		r, err := runtime.NewResource(nil, item)
-		if err != nil {
-			return nil, err
-		}
-
-		response.Items = append(response.Items, r)
+		res = append(res, item)
 	}
 
-	return response, nil
+	return res, nil
 }
 
 // Create implements runtime.Runtime.

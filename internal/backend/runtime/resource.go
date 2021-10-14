@@ -51,15 +51,3 @@ func NewResource(m *common.Metadata, r resource.Resource) (*Resource, error) {
 
 	return res, nil
 }
-
-// ResourceList wraps multiple items responses from Talos resource API into a struct which is similar to what we have in Kubernetes.
-type ResourceList struct {
-	Items []*Resource `json:"items"`
-}
-
-// NewResourceList creates new resource list.
-func NewResourceList() *ResourceList {
-	return &ResourceList{
-		Items: []*Resource{},
-	}
-}

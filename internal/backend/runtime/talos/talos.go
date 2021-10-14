@@ -15,26 +15,17 @@ import (
 
 	cosiresource "github.com/cosi-project/runtime/pkg/resource"
 	"github.com/cosi-project/runtime/pkg/state"
-	cabpt "github.com/talos-systems/cluster-api-bootstrap-provider-talos/api/v1alpha3"
-	cacpt "github.com/talos-systems/cluster-api-control-plane-provider-talos/api/v1alpha3"
-	sidero "github.com/talos-systems/sidero/app/caps-controller-manager/api/v1alpha3"
-	metal "github.com/talos-systems/sidero/app/sidero-controller-manager/api/v1alpha1"
 	"github.com/talos-systems/talos/pkg/machinery/api/resource"
 	"github.com/talos-systems/talos/pkg/machinery/client"
 	clientconfig "github.com/talos-systems/talos/pkg/machinery/client/config"
-	"github.com/talos-systems/talos/pkg/machinery/config/configloader"
-	"github.com/talos-systems/talos/pkg/machinery/config/types/v1alpha1/generate"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	corev1 "k8s.io/api/core/v1"
-	"sigs.k8s.io/cluster-api/api/v1alpha3"
 
 	"github.com/talos-systems/theila/api/common"
 	"github.com/talos-systems/theila/api/socket/message"
 	"github.com/talos-systems/theila/internal/backend/logging"
 	"github.com/talos-systems/theila/internal/backend/runtime"
-	"github.com/talos-systems/theila/internal/backend/runtime/kubernetes"
 )
 
 // Name talos runtime string id.
@@ -119,30 +110,19 @@ func (r *Runtime) Get(ctx context.Context, setters ...runtime.QueryOption) (inte
 		return nil, err
 	}
 
-	if len(resources) == 1 {
-		return runtime.NewResource(resources[0].Metadata, resources[0].Resource)
-	}
-
-	l := runtime.NewResourceList()
-
 	for _, r := range resources {
 		if r.Resource == nil {
 			continue
 		}
 
-		res, err := runtime.NewResource(r.Metadata, r.Resource)
-		if err != nil {
-			return nil, err
-		}
-
-		l.Items = append(l.Items, res)
+		return runtime.NewResource(r.Metadata, r.Resource)
 	}
 
-	return l, nil
+	return nil, nil
 }
 
 // List implements runtime.Runtime.
-func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) (interface{}, error) {
+func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) ([]interface{}, error) {
 	opts := runtime.NewQueryOptions(setters...)
 
 	ctx = withNodes(ctx, opts.Nodes)
@@ -157,7 +137,7 @@ func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) (int
 		return nil, err
 	}
 
-	response := runtime.NewResourceList()
+	res := []interface{}{}
 
 	for {
 		info, err := listClient.Recv()
@@ -182,10 +162,10 @@ func (r *Runtime) List(ctx context.Context, setters ...runtime.QueryOption) (int
 			return nil, err
 		}
 
-		response.Items = append(response.Items, r)
+		res = append(res, r)
 	}
 
-	return response, nil
+	return res, nil
 }
 
 // Create implements runtime.Runtime.
@@ -341,193 +321,6 @@ func (r *Runtime) getConfig() (*clientconfig.Config, error) {
 	}
 
 	return r.config, nil
-}
-
-//nolint:gocognit,gocyclo,cyclop
-func (r *Runtime) fetchTalosconfig(ctx context.Context, name string, clusterCtx *common.Cluster) error {
-	var (
-		controlplane = cacpt.TalosControlPlane{}
-		machines     = v1alpha3.MachineList{}
-		cluster      = v1alpha3.Cluster{}
-		metalMachine = sidero.MetalMachine{}
-		server       = metal.Server{}
-		talosConfig  = cabpt.TalosConfig{}
-	)
-
-	k8s, err := runtime.Get(kubernetes.Name)
-	if err != nil {
-		return err
-	}
-
-	cfg, err := r.getConfig()
-	if err != nil {
-		return err
-	}
-
-	if clusterCtx == nil {
-		if _, ok := cfg.Contexts[name]; !ok && name != runtime.DefaultClient {
-			return fmt.Errorf("no context with name %v found in the config", name)
-		}
-
-		return nil
-	}
-
-	_, err = k8s.Get(ctx,
-		runtime.WithType(&cluster),
-		runtime.WithName(clusterCtx.Name),
-		runtime.WithNamespace(clusterCtx.Namespace),
-		runtime.WithContext(name),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to get cluster %w", err)
-	}
-
-	id := string(cluster.UID)
-	if _, ok := cfg.Contexts[id]; ok {
-		return nil
-	}
-
-	_, err = k8s.Get(ctx,
-		runtime.WithNamespace(cluster.Spec.ControlPlaneRef.Namespace),
-		runtime.WithName(cluster.Spec.ControlPlaneRef.Name),
-		runtime.WithType(&controlplane),
-		runtime.WithContext(name),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to controlplane %w", err)
-	}
-
-	_, err = k8s.List(ctx,
-		runtime.WithLabelSelector(controlplane.Status.Selector),
-		runtime.WithType(&machines),
-		runtime.WithContext(name),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to get talos control plane %w", err)
-	}
-
-	if len(machines.Items) < 1 {
-		return fmt.Errorf("not enough machines found")
-	}
-
-	configRef := machines.Items[0].Spec.Bootstrap.ConfigRef
-
-	resolveMachinesToIPs := func(machines *v1alpha3.MachineList) ([]string, error) {
-		var endpoints []string
-
-		for _, machine := range machines.Items {
-			if !machine.DeletionTimestamp.IsZero() {
-				continue
-			}
-
-			if v1alpha3.MachinePhase(machine.Status.Phase) != v1alpha3.MachinePhaseRunning {
-				continue
-			}
-
-			_, err = k8s.Get(ctx,
-				runtime.WithNamespace(machine.Spec.InfrastructureRef.Namespace),
-				runtime.WithName(machine.Spec.InfrastructureRef.Name),
-				runtime.WithType(&metalMachine),
-				runtime.WithContext(name),
-			)
-			if err != nil {
-				return nil, err
-			}
-
-			if metalMachine.Spec.ServerRef == nil {
-				continue
-			}
-
-			if !metalMachine.DeletionTimestamp.IsZero() {
-				continue
-			}
-
-			_, err = k8s.Get(ctx,
-				runtime.WithNamespace(metalMachine.Spec.ServerRef.Namespace),
-				runtime.WithName(metalMachine.Spec.ServerRef.Name),
-				runtime.WithType(&server),
-				runtime.WithContext(name),
-			)
-			if err != nil {
-				return nil, err
-			}
-
-			for _, address := range server.Status.Addresses {
-				if address.Type == corev1.NodeInternalIP {
-					endpoints = append(endpoints, address.Address)
-				}
-			}
-		}
-
-		return endpoints, nil
-	}
-
-	controlPlaneNodes, err := resolveMachinesToIPs(&machines)
-	if err != nil {
-		return fmt.Errorf("failed to resolve machines to IPs %w", err)
-	}
-
-	if len(controlPlaneNodes) < 1 {
-		return fmt.Errorf("failed to find control plane nodes")
-	}
-
-	_, err = k8s.Get(ctx,
-		runtime.WithNamespace(configRef.Namespace),
-		runtime.WithName(configRef.Name),
-		runtime.WithType(&talosConfig),
-		runtime.WithContext(name),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to get machines list %w", err)
-	}
-
-	var (
-		clientConfig *clientconfig.Config
-		context      *clientconfig.Context
-	)
-
-	if talosConfig.Status.TalosConfig != "" {
-		clientConfig, err = clientconfig.FromString(talosConfig.Status.TalosConfig)
-		if err != nil {
-			return fmt.Errorf("failed to parse client config %w", err)
-		}
-
-		context = clientConfig.Contexts[clientConfig.Context]
-		delete(clientConfig.Contexts, clientConfig.Context)
-
-		// replace config name with cluster UID
-		clientConfig.Context = id
-		clientConfig.Contexts[id] = context
-	} else {
-		// generate it from the machine config
-		machineConfig, err := configloader.NewFromBytes([]byte(talosConfig.Spec.Data))
-		if err != nil {
-			return err
-		}
-
-		secrets := generate.NewSecretsBundleFromConfig(generate.NewClock(), machineConfig)
-
-		in := &generate.Input{
-			ClusterName: id,
-			Certs:       secrets.Certs,
-		}
-
-		clientConfig, err = generate.Talosconfig(in)
-		if err != nil {
-			return err
-		}
-	}
-
-	context = clientConfig.Contexts[clientConfig.Context]
-
-	context.Endpoints = controlPlaneNodes
-	context.Nodes = controlPlaneNodes
-
-	r.configMu.Lock()
-	r.config.Merge(clientConfig)
-	r.configMu.Unlock()
-
-	return nil
 }
 
 func withNodes(ctx context.Context, nodes []string) context.Context {
