@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-05-21T14:44:23Z by kres c09e0bc-dirty.
+# Generated on 2021-10-25T13:19:50Z by kres 83904ad-dirty.
 
 # common variables
 
@@ -15,10 +15,11 @@ PROTOBUF_TS_VERSION ?= 1.79.2
 PROTOBUF_GRPC_GATEWAY_TS_VERSION ?= 1.1.0
 TESTPKGS ?= ./...
 GOFUMPT_VERSION ?= abc0db2c416aca0f60ea33c23c76665f6e7ba0b6
-GO_VERSION ?= 1.16
-PROTOBUF_GO_VERSION ?= 1.25.0
+GO_VERSION ?= 1.17
+PROTOBUF_GO_VERSION ?= 1.27.1
 GRPC_GO_VERSION ?= 1.1.0
 GRPC_GATEWAY_VERSION ?= 2.4.0
+VTPROTOBUF_VERSION ?= 81d623a9a700ede8ef765e5ab08b3aa1f5b4d5a8
 TESTPKGS ?= ./...
 KRES_IMAGE ?= ghcr.io/talos-systems/kres:latest
 
@@ -45,9 +46,10 @@ COMMON_ARGS += --build-arg=GOFUMPT_VERSION=$(GOFUMPT_VERSION)
 COMMON_ARGS += --build-arg=PROTOBUF_GO_VERSION=$(PROTOBUF_GO_VERSION)
 COMMON_ARGS += --build-arg=GRPC_GO_VERSION=$(GRPC_GO_VERSION)
 COMMON_ARGS += --build-arg=GRPC_GATEWAY_VERSION=$(GRPC_GATEWAY_VERSION)
+COMMON_ARGS += --build-arg=VTPROTOBUF_VERSION=$(VTPROTOBUF_VERSION)
 COMMON_ARGS += --build-arg=TESTPKGS=$(TESTPKGS)
-JS_TOOLCHAIN ?= docker.io/node:15.14.0-alpine3.13
-TOOLCHAIN ?= docker.io/golang:1.16-alpine
+JS_TOOLCHAIN ?= docker.io/node:14.18.1-alpine3.14
+TOOLCHAIN ?= docker.io/golang:1.17-alpine
 
 # help menu
 
@@ -82,7 +84,7 @@ respectively.
 
 endef
 
-all: unit-tests-frontend lint-eslint frontend unit-tests theila image-theila lint
+all: unit-tests-frontend lint-eslint frontend unit-tests theila image-theila dev-server lint
 
 .PHONY: clean
 clean:  ## Cleans up all artifacts.
@@ -125,8 +127,8 @@ lint-gofumpt:  ## Runs gofumpt linter.
 fmt:  ## Formats the source code
 	@docker run --rm -it -v $(PWD):/src -w /src golang:$(GO_VERSION) \
 		bash -c "export GO111MODULE=on; export GOPROXY=https://proxy.golang.org; \
-		cd /tmp && go mod init tmp && go get mvdan.cc/gofumpt/gofumports@$(GOFUMPT_VERSION) && \
-		cd - && gofumports -w -local github.com/talos-systems/theila ."
+		go install mvdan.cc/gofumpt/gofumports@$(GOFUMPT_VERSION) && \
+		gofumports -w -local github.com/talos-systems/theila ."
 
 generate:  ## Generate .proto definitions.
 	@$(MAKE) local-$@ DEST=./
@@ -190,7 +192,7 @@ $(ARTIFACTS)/theila-windows-amd64.exe:
 theila-windows-amd64.exe: $(ARTIFACTS)/theila-windows-amd64.exe  ## Builds executable for theila-windows-amd64.exe.
 
 .PHONY: theila
-theila: theila-darwin-amd64 theila-darwin-arm64 theila-linux-amd64 theila-linux-arm64 theila-linux-armv7 theila-windows-amd64.exe
+theila: theila-darwin-amd64 theila-darwin-arm64 theila-linux-amd64 theila-linux-arm64 theila-linux-armv7 theila-windows-amd64.exe  ## Builds executables for theila.
 
 .PHONY: lint-markdown
 lint-markdown:  ## Runs markdownlint.
@@ -202,6 +204,10 @@ lint: lint-golangci-lint lint-gofumpt lint-markdown  ## Run all linters for the 
 .PHONY: image-theila
 image-theila:  ## Builds image for theila.
 	@$(MAKE) target-$@ TARGET_ARGS="--tag=$(REGISTRY)/$(USERNAME)/theila:$(TAG)"
+
+.PHONY: dev-server
+dev-server:
+	hack/dev-server.sh
 
 .PHONY: rekres
 rekres:

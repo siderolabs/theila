@@ -68,9 +68,6 @@ service MachineService {
   rpc Restart(RestartRequest) returns (RestartResponse);
   rpc Rollback(RollbackRequest) returns (RollbackResponse);
   rpc Reset(ResetRequest) returns (ResetResponse);
-  rpc RemoveBootkubeInitializedKey(google.protobuf.Empty) returns (RemoveBootkubeInitializedKeyResponse) {
-    option deprecated = true;
-  };
   rpc ServiceList(google.protobuf.Empty) returns (ServiceListResponse);
   rpc ServiceRestart(ServiceRestartRequest) returns (ServiceRestartResponse);
   rpc ServiceStart(ServiceStartRequest) returns (ServiceStartResponse);
@@ -366,6 +363,10 @@ message FileInfo {
   string link = 8;
   // RelativeName is the name of the file or directory relative to the RootPath
   string relative_name = 9;
+  // Owner uid
+  uint32 uid = 10;
+  // Owner gid
+  uint32 gid = 11;
 }
 
 // DiskUsageInfo describes a file or directory's information for du command
@@ -794,6 +795,8 @@ message EtcdMember {
   repeated string peer_urls = 4;
   // the list of URLs the member exposes to the cluster for communication.
   repeated string client_urls = 5;
+  // learner flag
+  bool is_learner = 6;
 }
 
 // EtcdMembers contains the list of members registered on the host.
@@ -901,10 +904,6 @@ message GenerateConfiguration {
 message GenerateConfigurationResponse {
   repeated GenerateConfiguration messages = 1;
 }
-
-// RemoveBootkubeInitializedKeyResponse describes the response to a RemoveBootkubeInitializedKey request.
-message RemoveBootkubeInitializedKey { common.Metadata metadata = 1; }
-message RemoveBootkubeInitializedKeyResponse { repeated RemoveBootkubeInitializedKey messages = 1; }
 
 message GenerateClientConfigurationRequest {
   // Roles in the generated client certificate.

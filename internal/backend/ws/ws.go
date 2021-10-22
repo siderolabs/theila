@@ -67,6 +67,8 @@ func New(ctx context.Context, mux *http.ServeMux) *Server {
 func (ws *Server) createSession(rw http.ResponseWriter, r *http.Request) {
 	c, err := ws.upgrader.Upgrade(rw, r, nil)
 	if err != nil {
+		ws.logger.Error("failed to upgrade connection", zap.Error(err))
+
 		rw.WriteHeader(http.StatusInternalServerError)
 		rw.Header().Set("Content-Type", "application/json")
 

@@ -2,10 +2,7 @@
 
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-05-20T15:00:42Z by kres adb52e5-dirty.
-
-
-#!/bin/bash
+# Generated on 2021-10-22T16:23:42Z by kres f6c7130-dirty.
 
 set -e
 
@@ -66,3 +63,4 @@ EOF
 
   exit 1
 fi
+

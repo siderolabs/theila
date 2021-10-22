@@ -17,16 +17,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 </template>
 
 <script type="ts">
-import { Options, Vue } from 'vue-class-component';
-
-@Options({
+export default {
   props: {
     name: String,
     link: Object,
     active: Boolean,
   },
-})
-export default class ShellMenuItem extends Vue {}
+}
 </script>
 
 <style>

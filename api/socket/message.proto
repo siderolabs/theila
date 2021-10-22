@@ -1,5 +1,9 @@
 syntax = "proto3";
 
+package socket;
+
+option go_package = "github.com/talos-systems/theila/api/socket/message/";
+
 import "common/theila.proto";
 import "talos/resource/resource.proto";
 

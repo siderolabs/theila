@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-04-30T17:29:57Z by kres 392fdcb-dirty.
+# Generated on 2021-10-25T13:09:08Z by kres 83904ad-dirty.
 
 ---
 root: true
@@ -10,3 +10,5 @@ extends:
   - "plugin:vue/vue3-essential"
   - "eslint:recommended"
   - "@vue/typescript"
+rules:
+  no-console: off

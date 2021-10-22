@@ -4,6 +4,21 @@ name: build
 spec:
   disableImage: true
 ---
+kind: auto.CustomSteps
+spec:
+  steps:
+    - name: dev-server
+      toplevel: true
+---
+kind: custom.Step
+name: dev-server
+spec:
+  makefile:
+    enabled: true
+    phony: true
+    script:
+      - hack/dev-server.sh
+---
 kind: golang.Build
 spec:
   outputs:
