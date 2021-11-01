@@ -136,9 +136,11 @@ export default {
         namespace: item.value.metadata.namespace,
         type: "machines.v1alpha3.cluster.x-k8s.io",
       }, {
-        selectors: [
-          `cluster.x-k8s.io/cluster-name=${item.value.metadata.name}`
-        ]
+        metadata: {
+          selectors: [
+            `cluster.x-k8s.io/cluster-name=${item.value.metadata.name}`
+          ]
+        }
       });
 
       let count = 0;
