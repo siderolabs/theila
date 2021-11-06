@@ -1,0 +1,22 @@
+{  
+  "compilerOptions": {
+    "baseUrl": "./",
+    "experimentalDecorators": true,
+    "strict": true,
+    "moduleResolution": "node",
+    "noImplicitAny": false,
+    "noEmitOnError": true,
+    "removeComments": true,
+    "sourceMap": true,
+    "target": "es6",
+    "outDir": "dist",
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}
