@@ -6,6 +6,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 <template>
   <div :class="{ dark: dark }" v-if="connected">
     <t-modal />
+    <t-header />
     <shell class="h-screen">
       <template v-slot:menu>
         <sidebar-change-context
@@ -44,6 +45,7 @@ import { context, changeContext, detectCapabilities } from "./context";
 import { theme, systemTheme, isDark } from "./theme";
 import { ContextService } from "./api/grpc";
 import { Context } from "./api/rpc/context.pb";
+import THeader from './components/THeader/THeader.vue';
 
 export default {
   components: {
@@ -53,6 +55,7 @@ export default {
     TModal,
     TButton,
     TSpinner,
+    THeader,
   },
 
   setup() {

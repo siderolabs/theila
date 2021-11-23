@@ -163,6 +163,12 @@ export default {
     [getName("ongoing-tasks")]: defineAsyncComponent(() =>
       import("../../icons/IconOngoingTasks.vue")
     ),
+     [getName("header-logo")]: defineAsyncComponent(() =>
+      import("../../icons/IconHeaderLogo.vue")
+    ),
+     [getName("home")]: defineAsyncComponent(() =>
+      import("../../icons/IconHome.vue")
+    ),
   },
   computed: {
     getIcon() {
