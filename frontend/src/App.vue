@@ -7,6 +7,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
   <div :class="{ dark: dark }" v-if="connected">
     <t-modal />
     <t-header />
+    <t-shell>
+      <template v-slot:menu>
+        <t-side-bar :contexts="contexts">{{
+          explicitContext ? explicitContext["name"] : currentContext
+        }}</t-side-bar>
+      </template>
+      <template v-slot:content>
+        <router-view class="w-full h-full" />
+      </template>
+    </t-shell>
+    <!-- Old Views Below -->
     <shell class="h-screen">
       <template v-slot:menu>
         <sidebar-change-context
@@ -45,7 +56,9 @@ import { context, changeContext, detectCapabilities } from "./context";
 import { theme, systemTheme, isDark } from "./theme";
 import { ContextService } from "./api/grpc";
 import { Context } from "./api/rpc/context.pb";
-import THeader from './components/THeader/THeader.vue';
+import THeader from "./components/THeader/THeader.vue";
+import TSideBar from "./components/views/SideBar/TSideBar.vue";
+import TShell from "./components/common/Shell/TShell.vue";
 
 export default {
   components: {
@@ -56,6 +69,8 @@ export default {
     TButton,
     TSpinner,
     THeader,
+    TSideBar,
+    TShell,
   },
 
   setup() {

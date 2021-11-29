@@ -30,7 +30,7 @@
   </header>
 </template>
 
-<script>
+<script lang="ts">
 import TButton from "../common/Button/TButton.vue";
 import TDropdown from "../common/Dropdown/TDropdown.vue";
 import TIcon from "../common/Icon/TIcon.vue";
@@ -63,13 +63,14 @@ export default {
 <style scoped>
 .theHeader {
   @apply px-6 py-3 flex justify-between items-center bg-naturals-N1 border-b border-naturals-N4;
+  max-height: 52px;
 }
 .theHeader__icon {
   width: 87px;
   height: 26px;
 }
 .theHeader__logo-wrapper {
-  @apply mr-14;
+  @apply mr-12 flex self-center;
 }
 .theHeader__nav-wrapper {
   @apply flex justify-start;

@@ -1,10 +1,7 @@
 <template>
   <div class="dropdown__wrapper">
     <div class="dropdown" @click="() => toggleDropdown()">
-      <icon-header-dropdown-loading
-        v-if="hasLoader"
-        :isLoading="isLoading"
-      />
+      <icon-header-dropdown-loading v-if="hasLoader" :isLoading="isLoading" />
       <span class="dropdown__name">{{ title }}</span>
       <t-icon
         class="dropdown__icon"
@@ -13,21 +10,18 @@
       />
     </div>
     <the-animation>
-      <div
-        v-show="isDropdownOpen"
-        class="dropdown__list"
-      >
+      <div v-show="isDropdownOpen" class="dropdown__list">
         <slot />
       </div>
     </the-animation>
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { ref } from "@vue/reactivity";
 import TIcon from "../Icon/TIcon.vue";
 import IconHeaderDropdownLoading from "../../icons/IconHeaderDropdownLoading.vue";
-import TheAnimation from "../Animation/TheAnimation.vue";
+import TheAnimation from "../Animation/TAnimation.vue";
 export default {
   components: {
     TIcon,

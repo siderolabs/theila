@@ -13,52 +13,64 @@ import Logs from "../views/node/Logs.vue";
 import SidebarRoot from "../views/SidebarRoot.vue";
 import SidebarCluster from "../views/SidebarCluster.vue";
 import SidebarNode from "../views/SidebarNode.vue";
+import TSidebarNodesLogs from "../components/views/SideBar/components/TSideBarNodesLogs.vue";
 import Settings from "../views/Settings.vue";
 import Reboot from "../views/Reboot.vue";
 import Reset from "../views/Reset.vue";
 import Upgrade from "../views/Upgrade.vue";
-import { useRoute } from 'vue-router';
-import { context } from '../context';
+import { useRoute } from "vue-router";
+import { context } from "../context";
 
-const withPrefix = (prefix, routes) => 
-    routes.map( (route) => {
-        route.path = prefix + route.path;
-        return route;
-    });
-
+const withPrefix = (prefix, routes) =>
+  routes.map((route) => {
+    route.path = prefix + route.path;
+    return route;
+  });
 
 export function getBreadcrumbs(route) {
-  const crumbs:Object[] = [];
+  const crumbs: Object[] = [];
 
-  if(route.query && route.query.cluster && route.query.uid && route.query.namespace) {
-    crumbs.push(
-      {
-        text: "Clusters",
-        to: "/clusters",
-      }
-    );
+  if (
+    route.query &&
+    route.query.cluster &&
+    route.query.uid &&
+    route.query.namespace
+  ) {
+    crumbs.push({
+      text: "Clusters",
+      to: "/clusters",
+    });
   }
 
-  if(route.params.node) {
-    crumbs.push(
-      { text: `${route.query.cluster || (context.current.value ? context.current.value.cluster : "Current Cluster")} Nodes`, to: {name: "Nodes", query: route.query } },
-    );
+  if (route.params.node) {
+    crumbs.push({
+      text: `${route.query.cluster ||
+        (context.current.value
+          ? context.current.value.cluster
+          : "Current Cluster")} Nodes`,
+      to: { name: "Nodes", query: route.query },
+    });
   }
 
   return crumbs;
 }
 
 export function getSidebar(route) {
-  if(route.params.node) {
+  if (route.params.node) {
     return SidebarNode;
   }
 
-  if(route.query.cluster && route.query.uid && route.query.namespace) {
+  if (route.query.cluster && route.query.uid && route.query.namespace) {
     return SidebarCluster;
   }
 
-
   return SidebarRoot;
+}
+
+export function getTSideBarNodesLogs(route) {
+  if (route.params.node) {
+    return TSidebarNodesLogs;
+  }
 }
 
 const routes = [
@@ -90,6 +102,27 @@ const routes = [
       default: Servers,
     },
   },
+  {
+    path: "/upgrade",
+    name: "Upgrade Kubernetes",
+    components: {
+      default: Servers,
+    },
+  },
+  {
+    path: "/overview",
+    name: "Overview",
+    components: {
+      default: Servers,
+    },
+  },
+  {
+    path: "/dashboard",
+    name: "Dashboard",
+    components: {
+      default: Servers,
+    },
+  },
   ...withPrefix("/node/:node", [
     {
       path: "/overview",
@@ -110,8 +143,8 @@ const routes = [
       name: "Logs",
       components: {
         default: Logs,
-      }
-    }
+      },
+    },
   ]),
 ];
 

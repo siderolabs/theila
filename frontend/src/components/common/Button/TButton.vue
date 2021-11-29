@@ -9,7 +9,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     :disabled="disabled"
     class="TButton"
     :class="[type, { _left: icon && iconPosition === 'left', _right: icon && iconPosition === 'right' }]"
-    @click="() => $emit('click')"
+    @click.self="() => $emit('click')"
   >
     <span class="TButton__text"><slot></slot></span>
     <t-icon

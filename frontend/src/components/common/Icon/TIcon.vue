@@ -163,11 +163,29 @@ export default {
     [getName("ongoing-tasks")]: defineAsyncComponent(() =>
       import("../../icons/IconOngoingTasks.vue")
     ),
-     [getName("header-logo")]: defineAsyncComponent(() =>
+    [getName("header-logo")]: defineAsyncComponent(() =>
       import("../../icons/IconHeaderLogo.vue")
     ),
-     [getName("home")]: defineAsyncComponent(() =>
+    [getName("home")]: defineAsyncComponent(() =>
       import("../../icons/IconHome.vue")
+    ),
+    [getName("attention")]: defineAsyncComponent(() =>
+      import("../../icons/IconAttention.vue")
+    ),
+    [getName("waiting")]: defineAsyncComponent(() =>
+      import("../../icons/IconWaiting.vue")
+    ),
+    [getName("complete")]: defineAsyncComponent(() =>
+      import("../../icons/IconComplete.vue")
+    ),
+    [getName("in-progress")]: defineAsyncComponent(() =>
+      import("../../icons/IconInProgress.vue")
+    ),
+    [getName("drop-right")]: defineAsyncComponent(() =>
+      import("../../icons/IconDropRight.vue")
+    ),
+    [getName("log")]: defineAsyncComponent(() =>
+      import("../../icons/IconLog.vue")
     ),
   },
   computed: {
