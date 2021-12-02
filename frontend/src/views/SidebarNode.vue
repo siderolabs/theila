@@ -57,6 +57,7 @@ import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 import { ResourceService } from '../api/grpc';
 import { Runtime } from '../api/common/theila.pb';
 import { getContext } from '../context';
+import { talos } from '../api/resources';
 
 export default {
   components: {
@@ -77,7 +78,7 @@ export default {
 
     onMounted(async () => {
       const response = await ResourceService.List({
-        type: 'services',
+        type: talos.service,
       }, {
         runtime: Runtime.Talos,
         context: context,

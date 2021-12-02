@@ -8,6 +8,7 @@ import { Client } from "./api/client";
 import { ResourceService, RequestError } from './api/grpc';
 import { Context } from './api/common/theila';
 import { Code } from './api/google/rpc/code';
+import { kubernetes } from './api/resources';
 
 export namespace context {
   // create a singleton for the api.
@@ -64,7 +65,7 @@ export async function detectCapabilities() {
   const checkCRD = async (id: string) => {
     try {
       await ResourceService.Get({
-        type: "customresourcedefinitions.v1.apiextensions.k8s.io",
+        type: kubernetes.crd,
         id: id,
       });
 

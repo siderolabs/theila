@@ -17,7 +17,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
              title="CPU Utilization"
              type="area"
              talos
-             :resource="{type: 'CPUStat', namespace: 'perf', tail_events: 25}"
+             :resource="{type: talos.cpu, namespace: talos.perfNamespace, tail_events: 25}"
              :context="context"
              :point-fn="handleCPU"
           />
@@ -29,7 +29,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
              title="Memory Usage"
              type="area"
              talos
-             :resource="{type: 'MemoryStat', namespace: 'perf', tail_events: 25}"
+             :resource="{type: talos.mem, namespace: talos.perfNamespace, tail_events: 25}"
              :context="context"
              :point-fn="handleMem"
           />
@@ -43,7 +43,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
              title="Processes"
              type="area"
              talos
-             :resource="{type: 'CPUStat', namespace: 'perf', tail_events: 25}"
+             :resource="{type: talos.cpu, namespace: talos.perfNamespace, tail_events: 25}"
              :context="context"
              :point-fn="handleProcs"
           />
@@ -103,6 +103,7 @@ import TChart from '../../components/TChart.vue';
 import {
   ArrowDownIcon,
 } from '@heroicons/vue/solid';
+import { talos } from '../../api/resources';
 
 function humanizeBytes(size) {
   var gb = Math.pow(1024, 3);
@@ -277,6 +278,7 @@ export default {
     };
 
     return {
+      talos,
       handleMem,
       handleCPU,
       handleProcs,

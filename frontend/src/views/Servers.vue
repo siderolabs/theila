@@ -61,6 +61,7 @@ import {
   TicketIcon,
   CubeIcon,
 } from '@heroicons/vue/outline';
+import { kubernetes } from '../api/resources';
 
 export default {
   components: {
@@ -76,7 +77,7 @@ export default {
     const items = ref([]);
     const props = reactive({
       resource: {
-        type: 'servers.v1alpha1.metal.sidero.dev'
+        type: kubernetes.sideroServers
       },
       talos: false,
       kubernetes: true,

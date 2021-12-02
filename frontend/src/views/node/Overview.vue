@@ -143,6 +143,7 @@ import {
   XCircleIcon,
 } from '@heroicons/vue/solid';
 import Watch from '../../components/Watch.vue';
+import { DefaultNamespace, kubernetes, talos } from '../../api/resources';
 
 export default {
   components: {
@@ -166,16 +167,16 @@ export default {
     onMounted(async () => {
       try {
         const nodename = await ResourceService.Get({
-          type: "nodename",
-          id: "nodename",
+          type: talos.nodename,
+          id: talos.defaultNodeNameID,
         }, {
           runtime: Runtime.Talos,
           context: context,
         });
 
         const response = await ResourceService.Get({
-          namespace: "default",
-          type: "nodes.v1",
+          namespace: DefaultNamespace,
+          type: kubernetes.node,
           id: nodename.spec.nodename,
         }, {
           runtime: Runtime.Kubernetes,

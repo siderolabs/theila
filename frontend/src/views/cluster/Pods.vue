@@ -13,7 +13,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     </div>
     <watch
       class="flex-1"
-      :resource="{type: 'pods.v1'}"
+      :resource="{type: kubernetes.pod}"
       kubernetes
       showCount
       itemName="Pod"
@@ -79,6 +79,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import { getContext } from '../../context';
 import Watch from '../../components/Watch.vue';
 import TBreadcrumbs from '../../components/TBreadcrumbs.vue';
+import { kubernetes } from '../../api/resources'
 
 export default {
   components: {
@@ -88,6 +89,7 @@ export default {
 
   setup() {
     return {
+      kubernetes,
       getContext,
     };
   }

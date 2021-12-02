@@ -8,7 +8,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     <div class="px-3 py-2">
       <h1 class="text-lg tracking-tight text-talos-gray-900 dark:text-white font-bold">Clusters</h1>
     </div>
-    <watch class="flex-1" :resource="{type: 'clusters.v1alpha3.cluster.x-k8s.io'}" kubernetes search="Search cluster by name">
+    <watch class="flex-1" :resource="{type: kubernetes.cluster}" kubernetes search="Search cluster by name">
       <template v-slot:default="slot">
         <cluster-list-item :item="slot.item"/>
       </template>
@@ -19,11 +19,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 <script type="ts">
 import Watch from '../components/Watch.vue';
 import ClusterListItem from '../components/ClusterListItem.vue';
+import { kubernetes } from '../api/resources';
 
 export default {
   components: {
     Watch,
     ClusterListItem,
   },
+
+  setup () {
+    return {
+      kubernetes
+    }
+  }
 }
 </script>

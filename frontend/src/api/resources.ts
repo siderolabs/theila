@@ -70,3 +70,29 @@ export const encodeProtobuf = (type?: string, spec?: any) => {
 
   return res.encode(res.fromPartial(spec)).finish();
 }
+
+const capiVersion = "v1alpha4"
+
+export const kubernetes = {
+  service: "services.v1",
+  pod: "pods.v1",
+  node: "nodes.v1",
+  cluster: `clusters.${capiVersion}.cluster.x-k8s.io`,
+  machine: `machines.${capiVersion}.cluster.x-k8s.io`,
+  sideroServers: "servers.v1alpha1.metal.sidero.dev",
+  crd: "customresourcedefinitions.v1.apiextensions.k8s.io",
+};
+
+export const talos = {
+  // resources
+  service: "services",
+  cpu: "cpustat",
+  mem: "memorystat",
+  nodename: "nodename",
+
+  // well known resource IDs
+  defaultNodeNameID: "nodename",
+
+  // namespaces
+  perfNamespace: "perf",
+};
