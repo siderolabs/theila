@@ -27,11 +27,11 @@
 <script lang="ts">
 import { ref, onMounted, Ref } from "vue";
 
-import TMenuItem from "../../../common/MenuItem/TMenuItem.vue";
-import { getContext } from "../../../../context";
-import { ResourceService } from "../../../../api/grpc";
-import { Runtime } from "../../../../api/common/theila.pb";
-import TAnimation from "../../../common/Animation/TAnimation.vue";
+import TMenuItem from "@/components/common/MenuItem/TMenuItem.vue";
+import { getContext } from "@/context";
+import { ResourceService } from "@/api/grpc";
+import { Runtime } from "@/api/common/theila.pb";
+import TAnimation from "@/components/common/Animation/TAnimation.vue";
 export default {
   components: { TMenuItem, TAnimation },
   props: {

@@ -33,8 +33,8 @@
 
 <script lang="ts">
 import { ref } from "@vue/reactivity";
-import TIcon from "../../../common/Icon/TIcon.vue";
-import TAnimation from "../../../common/Animation/TAnimation.vue";
+import TIcon from "@/components/common/Icon/TIcon.vue";
+import TAnimation from "@/components/common/Animation/TAnimation.vue";
 import TSideBarClusterDropdownSubItem from "./TSideBarClusterDropdownSubItem.vue";
 export default {
   components: { TIcon, TAnimation, TSideBarClusterDropdownSubItem },

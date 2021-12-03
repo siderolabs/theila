@@ -31,7 +31,6 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss7-compat": "^2.0.2",
-    "@types/jest": "^24.0.19",
     "@typescript-eslint/eslint-plugin": "^4.18.0",
     "@typescript-eslint/parser": "^4.19.0",
     "@vue/cli-plugin-babel": "~4.5.0",
@@ -47,9 +46,10 @@
     "babel-eslint": "^10.1.0",
     "eslint": "^5.16.0",
     "eslint-plugin-vue": "^7.20.0",
-    "jest": "^24.9.0",
     "postcss": "^7",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.0.2",
+    "ts-jest": "^27.1.1",
+    "ts-loader": "^9.2.6",
     "typescript": "~4.1.5",
     "vue-cli-plugin-tailwind": "~2.0.6"
   }

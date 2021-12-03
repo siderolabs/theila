@@ -1,6 +1,6 @@
 // THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 //
-// Generated on 2021-11-05T12:13:36Z by kres 6a46ad7-dirty.
+// Generated on 2021-12-13T13:49:17Z by kres 3dbe8c4-dirty.
 
 module.exports = {
   presets: [

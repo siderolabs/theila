@@ -5,9 +5,11 @@
 import { createWebHistory, createRouter } from "vue-router";
 import Clusters from "../views/Clusters.vue";
 import Servers from "../views/Servers.vue";
+import UpgradeKubernetes from "../views/Upgrade/Upgrade.vue";
 import Nodes from "../views/cluster/Nodes.vue";
 import Pods from "../views/cluster/Pods.vue";
 import Overview from "../views/node/Overview.vue";
+import OverviewPage from "../views/Overview/Overview.vue";
 import Monitor from "../views/node/Monitor.vue";
 import Logs from "../views/node/Logs.vue";
 import SidebarRoot from "../views/SidebarRoot.vue";
@@ -44,10 +46,12 @@ export function getBreadcrumbs(route) {
 
   if (route.params.node) {
     crumbs.push({
-      text: `${route.query.cluster ||
+      text: `${
+        route.query.cluster ||
         (context.current.value
           ? context.current.value.cluster
-          : "Current Cluster")} Nodes`,
+          : "Current Cluster")
+      } Nodes`,
       to: { name: "Nodes", query: route.query },
     });
   }
@@ -106,14 +110,14 @@ const routes = [
     path: "/upgrade",
     name: "Upgrade Kubernetes",
     components: {
-      default: Servers,
+      default: UpgradeKubernetes,
     },
   },
   {
     path: "/overview",
-    name: "Overview",
+    name: "OverviewPage",
     components: {
-      default: Servers,
+      default: OverviewPage,
     },
   },
   {

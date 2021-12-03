@@ -31,13 +31,13 @@
 <script lang="ts">
 import { computed, ref, watch } from "@vue/runtime-core";
 import { useRoute } from "vue-router";
-import TIcon from "../../../components/common/Icon/TIcon.vue";
-import TAnimation from "../../common/Animation/TAnimation.vue";
+import TIcon from "@/components/common/Icon/TIcon.vue";
+import TAnimation from "@/components/common/Animation/TAnimation.vue";
 import TSideBarClusterDropdown from "../SideBar/components/TSideBarClusterDropdown.vue";
 import TSideBarList from "./components/TSideBarList.vue";
 import vClickOutside from "click-outside-vue3";
 import TSideBarNodesLogs from "./components/TSideBarNodesLogs.vue";
-import { getTSideBarNodesLogs } from "../../../router";
+import { getTSideBarNodesLogs } from "@/router";
 
 export default {
   directives: {

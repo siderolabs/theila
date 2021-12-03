@@ -145,6 +145,9 @@ export default {
     [getName("warning-clear")]: defineAsyncComponent(() =>
       import("../../icons/IconWarningClear.vue")
     ),
+    [getName("warning")]: defineAsyncComponent(() =>
+      import("../../icons/IconWarning.vue")
+    ),
     [getName("dashboard")]: defineAsyncComponent(() =>
       import("../../icons/IconDashboard.vue")
     ),
@@ -186,6 +189,16 @@ export default {
     ),
     [getName("log")]: defineAsyncComponent(() =>
       import("../../icons/IconLog.vue")
+    ),
+    [getName("external-link")]: defineAsyncComponent(() =>
+      import("../../icons/IconExternalLink.vue")
+    ),
+    [getName("no-connection")]: defineAsyncComponent(() =>
+      import("../../icons/IconNoConnection.vue")
+    ),
+
+    [getName("fail-auth")]: defineAsyncComponent(() =>
+      import("../../icons/IconFailAuth.vue")
     ),
   },
   computed: {

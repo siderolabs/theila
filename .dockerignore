@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-10-22T16:12:03Z by kres c09f1a6-dirty.
+# Generated on 2021-12-13T13:15:28Z by kres c4d092b-dirty.
 
 **
 !frontend/src
@@ -11,9 +11,6 @@
 !internal
 !frontend/*.json
 !frontend/*.js
-!.babelrc
-!.tsconfig
-!.jestrc
 !.eslintrc.yaml
 !internal/frontend/frontend.go
 !go.mod

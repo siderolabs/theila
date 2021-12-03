@@ -1,4 +1,21 @@
 /* ./src/index.css */
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Roboto:wght@300;400;500;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+* {
+  font-family: "Roboto", sans-serif;
+}
+
+*::-webkit-scrollbar {
+  @apply w-1;
+  background-color: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  @apply w-1 bg-naturals-N5 border border-naturals-N4 rounded;
+}
+body {
+  --tw-bg-opacity: 1;
+  background-color: rgba(16, 17, 24, var(--tw-bg-opacity));
+}

@@ -20,7 +20,7 @@
 </template>
 
 <script lang="ts">
-import TIcon from "../../../common/Icon/TIcon.vue";
+import TIcon from "@/components/common/Icon/TIcon.vue";
 export default {
   components: { TIcon },
   props: {

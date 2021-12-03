@@ -1,5 +1,4 @@
 #!/bin/sh
-cp .tsconfig frontend/tsconfig.json
 PLATFORM=$(uname -s | tr "[:upper:]" "[:lower:]")
 ARCHITECTURE=""
 case $(uname -m) in

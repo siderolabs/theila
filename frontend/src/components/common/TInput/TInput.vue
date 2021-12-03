@@ -1,14 +1,63 @@
 <template>
-  <label class="input-box">
+  <label
+    @click.prevent="() => (isFocused = true)"
+    v-click-outside="() => (isFocused = false)"
+    class="input-box"
+    :class="[type, { focused: isFocused }]"
+  >
     <t-icon class="input-box__icon" icon="search" />
-    <input type="text" class="input-box__input" />
+    <input
+      @input="() => $emit('input', inputValue)"
+      ref="input"
+      v-model="inputValue"
+      type="text"
+      class="input-box__input"
+      :placeholder="placeholder"
+    />
+    <div class="input-box__icon-wrapper" @click.stop="clearInput">
+      <t-icon
+        v-if="type === 'secondary'"
+        :class="{ hidden: !isFocused }"
+        class="input-box__icon-close"
+        icon="close"
+      />
+    </div>
   </label>
 </template>
 
-<script lang='ts'>
+<script lang="ts">
+import { ref } from "@vue/reactivity";
 import TIcon from "../Icon/TIcon.vue";
+import vClickOutside from "click-outside-vue3";
+
 export default {
   components: { TIcon },
+  directives: {
+    clickOutside: vClickOutside.directive,
+  },
+  props: {
+    placeholder: String,
+    type: {
+      validator(value: string) {
+        return ["primary", "secondary"].indexOf(value) !== -1;
+      },
+      default: "primary",
+    },
+  },
+  setup() {
+    const isFocused = ref(false);
+    const inputValue = ref("");
+    const input = ref(null);
+    const clearInput = () => {
+      inputValue.value = "";
+    };
+    return {
+      isFocused,
+      inputValue,
+      clearInput,
+      input,
+    };
+  },
 };
 </script>
 
@@ -17,11 +66,35 @@ export default {
   @apply flex justify-start items-center p-2 border border-naturals-N8 rounded h-8;
 }
 .input-box__icon {
-  @apply fill-current text-naturals-N14 mr-2;
-  flex-basis: 16px;
+  @apply fill-current text-naturals-N14 mr-2 transition-all;
+  min-width: 16px;
+  height: 16px;
+}
+.input-box__icon-close {
+  @apply fill-current text-naturals-N8 transition-all cursor-pointer;
   height: 16px;
 }
 .input-box__input {
-  @apply bg-transparent border-none w-full text-naturals-N13 focus:outline-none  focus:border-transparent text-xs;
+  @apply bg-transparent border-none outline-none w-full text-naturals-N13 focus:outline-none  focus:border-transparent text-xs transition-all;
+}
+.input-box__icon-wrapper {
+  min-width: 16px;
+}
+.secondary {
+  @apply border-transparent;
+}
+.secondary .input-box__input {
+  width: 80%;
+}
+.focused {
+  @apply border border-solid border-naturals-N5 pr-2;
+}
+.focused .input-box__icon {
+  @apply text-naturals-N14;
+  min-width: 16px;
+  height: 16px;
+}
+.hidden {
+  visibility: hidden;
 }
 </style>

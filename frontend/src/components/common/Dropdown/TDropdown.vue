@@ -1,5 +1,5 @@
 <template>
-  <div class="dropdown__wrapper">
+  <div v-click-outside="onClickOutside" class="dropdown__wrapper">
     <div class="dropdown" @click="() => toggleDropdown()">
       <icon-header-dropdown-loading v-if="hasLoader" :isLoading="isLoading" />
       <span class="dropdown__name">{{ title }}</span>
@@ -22,11 +22,16 @@ import { ref } from "@vue/reactivity";
 import TIcon from "../Icon/TIcon.vue";
 import IconHeaderDropdownLoading from "../../icons/IconHeaderDropdownLoading.vue";
 import TheAnimation from "../Animation/TAnimation.vue";
+import vClickOutside from "click-outside-vue3";
+
 export default {
   components: {
     TIcon,
     IconHeaderDropdownLoading,
     TheAnimation,
+  },
+  directives: {
+    clickOutside: vClickOutside.directive,
   },
   props: {
     isLoading: {
@@ -50,10 +55,14 @@ export default {
     const toggleDropdown = () => {
       isDropdownOpen.value = !isDropdownOpen.value;
     };
+    const onClickOutside = () => {
+      isDropdownOpen.value = false;
+    };
 
     return {
       toggleDropdown,
       isDropdownOpen,
+      onClickOutside,
     };
   },
 };

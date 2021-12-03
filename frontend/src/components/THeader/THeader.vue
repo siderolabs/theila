@@ -31,9 +31,9 @@
 </template>
 
 <script lang="ts">
-import TButton from "../common/Button/TButton.vue";
-import TDropdown from "../common/Dropdown/TDropdown.vue";
-import TIcon from "../common/Icon/TIcon.vue";
+import TButton from "@/components/common/Button/TButton.vue";
+import TDropdown from "@/components/common/Dropdown/TDropdown.vue";
+import TIcon from "@/components/common/Icon/TIcon.vue";
 import THeaderTaskItem from "./THeaderTaskItem/THeaderTaskItem.vue";
 
 export default {

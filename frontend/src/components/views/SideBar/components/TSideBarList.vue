@@ -16,7 +16,7 @@
 <script lang="ts">
 import { useRoute } from "vue-router";
 import { ref } from "@vue/runtime-core";
-import TMenuItem from "../../../common/MenuItem/TMenuItem.vue";
+import TMenuItem from "@/components/common/MenuItem/TMenuItem.vue";
 export default {
   components: { TMenuItem },
   setup() {

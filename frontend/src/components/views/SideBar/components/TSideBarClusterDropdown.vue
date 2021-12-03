@@ -52,9 +52,9 @@
 </template>
 
 <script lang="ts">
-import TInput from "../../../common/TInput/TInput.vue";
+import TInput from "@/components/common/TInput/TInput.vue";
 import TSideBarClusterCheckbox from "./TSideBarClusterCheckbox.vue";
-import TAnimation from "../../../common/Animation/TAnimation.vue";
+import TAnimation from "@/components/common/Animation/TAnimation.vue";
 import TSideBarClusterDropdownItem from "./TSideBarClusterDropdownItem.vue";
 import { ref, toRefs } from "@vue/reactivity";
 export default {
@@ -99,12 +99,5 @@ export default {
   width: 100%;
   height: 364px;
   overflow: auto;
-}
-.clusters__list::-webkit-scrollbar {
-  @apply w-1;
-  background-color: transparent;
-}
-.clusters__list::-webkit-scrollbar-thumb {
-  @apply w-1 bg-naturals-N5 border border-naturals-N4 rounded;
 }
 </style>

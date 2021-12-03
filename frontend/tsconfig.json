@@ -1,6 +1,6 @@
 {  
   "compilerOptions": {
-    "baseUrl": "./",
+    "baseUrl": ".",
     "experimentalDecorators": true,
     "strict": true,
     "moduleResolution": "node",
@@ -12,7 +12,16 @@
     "outDir": "dist",
     "paths": {
       "@/*": [
-        "./*"
+        ".*"
+      ],
+      "@/router": [
+        "./src/router"
+      ],
+      "@/context": [
+        "./src/context"
+      ],
+      "@/api/*": [
+        "./src/api/*"
       ]
     }
   },

@@ -8,7 +8,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     type="button"
     :disabled="disabled"
     class="TButton"
-    :class="[type, { _left: icon && iconPosition === 'left', _right: icon && iconPosition === 'right' }]"
+    :class="[
+      type,
+      fluid && 'fluid',
+      {
+        _left: icon && iconPosition === 'left',
+        _right: icon && iconPosition === 'right',
+      },
+    ]"
     @click.self="() => $emit('click')"
   >
     <span class="TButton__text"><slot></slot></span>
@@ -135,5 +142,8 @@ export default {
   order: -1;
   margin-left: 0;
   margin-right: 6px;
+}
+.fluid {
+  @apply w-full max-w-full;
 }
 </style>

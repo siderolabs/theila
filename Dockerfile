@@ -2,7 +2,7 @@
 
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-10-25T12:08:42Z by kres d28129e-dirty.
+# Generated on 2021-12-13T13:49:14Z by kres 3dbe8c4-dirty.
 
 ARG JS_TOOLCHAIN
 ARG TOOLCHAIN
@@ -80,12 +80,13 @@ COPY frontend/package-lock.json ./
 RUN --mount=type=cache,target=/src/node_modules npm version ${VERSION}
 RUN --mount=type=cache,target=/src/node_modules npm install
 COPY .eslintrc.yaml ./
-COPY .babelrc ./babel.config.js
-COPY .jestrc ./jest.config.js
-COPY .tsconfig ./tsconfig.json
+COPY frontend/babel.config.js ./
+COPY frontend/jest.config.js ./
+COPY frontend/tsconfig.json ./
 COPY ./frontend/src ./src
 COPY ./frontend/tests ./tests
 COPY ./frontend/public ./public
+COPY ./frontend/jest.config.js ./jest.config.js
 COPY ./frontend/postcss.config.js ./postcss.config.js
 COPY ./frontend/tailwind.config.js ./tailwind.config.js
 COPY ./frontend/vue.config.js ./vue.config.js
