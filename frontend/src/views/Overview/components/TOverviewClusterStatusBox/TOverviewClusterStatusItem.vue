@@ -1,33 +1,40 @@
 <template>
   <div class="item__wrapper">
-    <div class="item">
-      <div class="item__title-box">
-        <h3 class="item__title">
-          {{ title }}
-        </h3>
-        <t-icon class="item__icon" icon="info" />
-      </div>
-      <div class="item__middle">{{ subtitle }}</div>
-      <div class="item__status" :class="{ false: !status }">
-        <span>{{ status ? "true" : "Error" }}</span>
-        <t-icon
-          v-if="!status"
-          @click="() => (isDropdownOpened = !isDropdownOpened)"
-          class="item__arrow"
-          :class="{ 'item__arrow-right--pushed': isDropdownOpened }"
-          icon="drop-up"
-        />
-      </div>
-    </div>
-    <t-overview-cluster-status-item-log
-      v-show="isDropdownOpened"
-      v-for="(log, idx) in logs"
-      :key="idx"
-      :date="log.date"
-      :time="log.time"
-      :info="log.info"
-      :isError="log.isError"
-    />
+    <t-slide-down-wrapper :maxHeight="300" :isSliderOpened="isDropdownOpened">
+      <template v-slot:head>
+        <div class="item">
+          <div class="item__title-box">
+            <h3 class="item__title">
+              {{ title }}
+            </h3>
+            <t-info-label info="Soon..." />
+          </div>
+          <div class="item__middle">{{ subtitle }}</div>
+          <div class="item__status" :class="{ false: !status }">
+            <span>{{ status ? "true" : "Error" }}</span>
+            <t-icon
+              v-if="!status"
+              @click="() => (isDropdownOpened = !isDropdownOpened)"
+              class="item__arrow"
+              :class="{ 'item__arrow-right--pushed': isDropdownOpened }"
+              icon="drop-up"
+            />
+          </div>
+        </div>
+      </template>
+      <template v-slot:body>
+        <div class="item__log-list">
+          <t-overview-cluster-status-item-log
+            v-for="(log, idx) in logs"
+            :key="idx"
+            :date="log.date"
+            :time="log.time"
+            :info="log.info"
+            :isError="log.isError"
+          />
+        </div>
+      </template>
+    </t-slide-down-wrapper>
   </div>
 </template>
 
@@ -35,9 +42,16 @@
 import { ref } from "@vue/reactivity";
 import TIcon from "@/components/common/Icon/TIcon.vue";
 import TOverviewClusterStatusItemLog from "./TOverviewClusterStatusItemLog.vue";
+import TInfoLabel from "@/components/common/InfoLabel/TInfoLabel.vue";
+import TSlideDownWrapper from "@/components/common/SlideDownWrapper/TSlideDownWrapper.vue";
 
 export default {
-  components: { TIcon, TOverviewClusterStatusItemLog },
+  components: {
+    TIcon,
+    TOverviewClusterStatusItemLog,
+    TInfoLabel,
+    TSlideDownWrapper,
+  },
   props: {
     title: String,
     subtitle: String,
@@ -45,7 +59,7 @@ export default {
       type: Boolean,
       default: false,
     },
-    logs: [],
+    logs: Array,
   },
   setup() {
     const isDropdownOpened = ref(false);
@@ -58,8 +72,10 @@ export default {
 
 <style scoped>
 .item {
-  @apply flex w-full;
-  padding: 13px 24px;
+  @apply flex w-full lg:px-6 px-2 py-3;
+}
+.item__log-list {
+  @apply overflow-y-auto;
 }
 .item__wrapper {
   @apply w-full;
@@ -72,7 +88,7 @@ export default {
   width: 70%;
 }
 .item__title {
-  @apply text-xs text-naturals-N9;
+  @apply text-xs text-naturals-N9 pr-2;
   margin-right: 6px;
 }
 .item__icon {

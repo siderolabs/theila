@@ -19,7 +19,7 @@ import TOverviewClusterStatusItem from "./TOverviewClusterStatusItem.vue";
 export default {
   components: { TOverviewClusterStatusItem },
   props: {
-    data: [],
+    data: Array,
     title: String,
   },
 };

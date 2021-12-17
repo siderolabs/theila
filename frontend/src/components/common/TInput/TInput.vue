@@ -44,12 +44,13 @@ export default {
       default: "primary",
     },
   },
-  setup() {
+  setup(props, context) {
     const isFocused = ref(false);
     const inputValue = ref("");
     const input = ref(null);
     const clearInput = () => {
       inputValue.value = "";
+      context.emit("clearInput", inputValue.value);
     };
     return {
       isFocused,
@@ -63,10 +64,10 @@ export default {
 
 <style scoped>
 .input-box {
-  @apply flex justify-start items-center p-2 border border-naturals-N8 rounded h-8;
+  @apply flex justify-start items-center p-2 border border-naturals-N8 rounded h-8 transition-all;
 }
 .input-box__icon {
-  @apply fill-current text-naturals-N14 mr-2 transition-all;
+  @apply fill-current text-naturals-N8 mr-2 transition-all cursor-pointer;
   min-width: 16px;
   height: 16px;
 }
@@ -75,7 +76,7 @@ export default {
   height: 16px;
 }
 .input-box__input {
-  @apply bg-transparent border-none outline-none w-full text-naturals-N13 focus:outline-none  focus:border-transparent text-xs transition-all;
+  @apply bg-transparent border-none outline-none w-full text-naturals-N13 focus:outline-none  focus:border-transparent text-xs transition-all placeholder-naturals-N8;
 }
 .input-box__icon-wrapper {
   min-width: 16px;

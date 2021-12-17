@@ -3,9 +3,11 @@
     <div class="logs__icon-wrapper">
       <t-icon v-show="isError" class="logs__icon" icon="warning" />
     </div>
-    <div class="logs__date">{{ date }}</div>
-    <div class="logs__time">{{ time }}</div>
-    <div class="logs__info">{{ info }}</div>
+    <div class="logs__message">
+      <div>{{ date }}</div>
+      <div>{{ time }}</div>
+      <div>{{ info }}</div>
+    </div>
   </li>
 </template>
 
@@ -30,27 +32,21 @@ export default {
   @apply bg-red-R3;
 }
 .logs__item {
-  @apply w-full flex items-center;
-  padding: 13px 10px;
+  @apply w-full flex items-start gap-3;
+  padding: 8px 12px;
 }
 .logs__icon-wrapper {
-  min-width: 16px;
-  margin-right: 9px;
+  min-width: 18px;
 }
 .logs__icon {
   @apply fill-current text-red-R1;
   width: 18px;
   height: 18px;
 }
-.logs__date {
-  @apply text-xs text-naturals-N9 font-roboto;
-  margin-right: 25px;
+.logs__message {
+  @apply flex gap-6;
 }
-.logs__time {
-  @apply text-xs text-naturals-N9 font-roboto;
-  margin-right: 25px;
-}
-.logs__info {
+.logs__message > div {
   @apply text-xs text-naturals-N9 font-roboto;
 }
 </style>

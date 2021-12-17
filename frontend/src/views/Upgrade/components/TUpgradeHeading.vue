@@ -38,10 +38,10 @@ export default {
 
 <style scoped>
 .upgrade__heading {
-  @apply flex w-full h-auto justify-between mb-5;
+  @apply flex w-full h-auto justify-between mb-5 lg:flex-row flex-col;
 }
 .upgrade__heading-left {
-  @apply flex;
+  @apply flex lg:mb-0 lg:pr-4 pr-0 mb-3;
 }
 .upgrade__heading-right {
   @apply flex;

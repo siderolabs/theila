@@ -9,11 +9,11 @@
         icon="arrow-down"
       />
     </div>
-    <the-animation>
+    <t-animation>
       <div v-show="isDropdownOpen" class="dropdown__list">
         <slot />
       </div>
-    </the-animation>
+    </t-animation>
   </div>
 </template>
 
@@ -21,14 +21,14 @@
 import { ref } from "@vue/reactivity";
 import TIcon from "../Icon/TIcon.vue";
 import IconHeaderDropdownLoading from "../../icons/IconHeaderDropdownLoading.vue";
-import TheAnimation from "../Animation/TAnimation.vue";
+import TAnimation from "../Animation/TAnimation.vue";
 import vClickOutside from "click-outside-vue3";
 
 export default {
   components: {
     TIcon,
     IconHeaderDropdownLoading,
-    TheAnimation,
+    TAnimation,
   },
   directives: {
     clickOutside: vClickOutside.directive,
@@ -87,7 +87,7 @@ export default {
   @apply text-naturals-N13 text-xs font-normal mr-2;
 }
 .dropdown__list {
-  @apply absolute -right-2 top-6 bg-naturals-N2 border border-naturals-N4 rounded z-10;
+  @apply absolute -right-2 top-6 bg-naturals-N2 border border-naturals-N4 rounded z-30;
 }
 
 @keyframes loadingDots {

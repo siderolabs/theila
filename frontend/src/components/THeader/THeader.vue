@@ -18,7 +18,7 @@
         </router-link>
       </nav>
     </div>
-    <t-dropdown title="Ongoing Tasks" hasLoader>
+    <t-dropdown-notifications title="Ongoing Tasks" hasLoader>
       <t-header-task-item
         v-for="(task, index) in tasksList"
         :title="task.title"
@@ -26,18 +26,18 @@
         :description="task.description"
         :key="index"
       />
-    </t-dropdown>
+    </t-dropdown-notifications>
   </header>
 </template>
 
 <script lang="ts">
 import TButton from "@/components/common/Button/TButton.vue";
-import TDropdown from "@/components/common/Dropdown/TDropdown.vue";
 import TIcon from "@/components/common/Icon/TIcon.vue";
 import THeaderTaskItem from "./THeaderTaskItem/THeaderTaskItem.vue";
+import TDropdownNotifications from "@/components/common/Dropdown/TDropdownNotifications.vue";
 
 export default {
-  components: { TIcon, TDropdown, TButton, THeaderTaskItem },
+  components: { TIcon, TButton, THeaderTaskItem, TDropdownNotifications },
   setup() {
     const tasksList = [
       {

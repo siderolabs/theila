@@ -14,6 +14,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       {
         _left: icon && iconPosition === 'left',
         _right: icon && iconPosition === 'right',
+        _middle: icon && iconPosition === 'middle',
       },
     ]"
     @click.self="() => $emit('click')"
@@ -23,7 +24,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       :icon="icon"
       v-if="icon"
       class="TButton__icon"
-      :class="{ _left: icon && iconPosition === 'left' }"
+      :class="{
+        _left: icon && iconPosition === 'left',
+        _right: icon && iconPosition === 'right',
+        _middle: icon && iconPosition === 'middle',
+      }"
     />
   </button>
 </template>
@@ -52,7 +57,7 @@ export default {
     },
     iconPosition: {
       validator(value: string) {
-        return ["left", "right"].indexOf(value) !== -1;
+        return ["left", "middle", "right"].indexOf(value) !== -1;
       },
       default: "right",
     },
@@ -77,6 +82,13 @@ export default {
 }
 .TButton._right {
   padding-right: 14px;
+}
+.TButton._middle {
+  padding-right: 9px;
+  padding-left: 9px;
+}
+.TButton._middle:hover .TButton__icon._middle {
+  @apply text-naturals-N14;
 }
 .TButton.primary {
   @apply text-naturals-N12
@@ -142,6 +154,9 @@ export default {
   order: -1;
   margin-left: 0;
   margin-right: 6px;
+}
+.TButton__icon._middle {
+  margin: 0;
 }
 .fluid {
   @apply w-full max-w-full;

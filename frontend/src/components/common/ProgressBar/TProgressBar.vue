@@ -4,52 +4,68 @@
     @mouseenter="() => (isLogsBoxVisible = true)"
     @mouseleave="() => (isLogsBoxVisible = false)"
   >
-    <div class="bar__line">
-      <div
-        class="bar__color-line"
-        :style="{ transform: `translate(-${100 - currentPosition}%)` }"
-      >
-        <div class="bar__circle" />
-      </div>
-    </div>
-    <div class="bar__counter">{{ currentPosition }}%</div>
-    <t-animation>
-      <div class="bar__logs" v-if="!!progressLogs" v-show="isLogsBoxVisible">
-        <div class="bar__logs-wrapper">
-          <div class="bar__logs-arrow" />
-          <p class="bar__logs-header">
-            Pods for
-            <span class="bar__logs-header--light">{{
-              progressLogs.title
-            }}</span>
-          </p>
-          <div class="bar__logs-box">
-            <div>
-              <div
-                class="bar__log"
-                v-for="(log, idx) in progressLogs.logs"
-                :key="idx"
-              >
-                <div class="bar__log-name">
-                  {{ log.name }}
+    <Popper
+      offsetDistance="20"
+      class="bar__popper"
+      placement="left"
+      :show="isLogsBoxVisible"
+    >
+      <button class="bar__popper-button">
+        <t-animation>
+          <div
+            class="bar__logs-arrow"
+            v-if="!!progressLogs"
+            v-show="isLogsBoxVisible"
+          />
+        </t-animation>
+        <div class="bar__line">
+          <div
+            class="bar__color-line"
+            :style="{ transform: `translate(-${100 - currentPosition}%)` }"
+          >
+            <div class="bar__circle" />
+          </div>
+        </div>
+        <div class="bar__counter">{{ currentPosition }}%</div>
+      </button>
+      <template #content>
+        <div class="bar__logs" v-if="!!progressLogs">
+          <div class="bar__logs-wrapper">
+            <p class="bar__logs-header">
+              Pods for
+              <span class="bar__logs-header--light">{{
+                progressLogs?.title
+              }}</span>
+            </p>
+            <div class="bar__logs-box">
+              <div>
+                <div
+                  class="bar__log"
+                  v-for="(log, idx) in progressLogs?.logs"
+                  :key="idx"
+                >
+                  <div class="bar__log-name">
+                    {{ log?.name }}
+                  </div>
+                  <t-status class="bar__log-status" :iconType="log?.status" />
                 </div>
-                <t-status class="bar__log-status" :iconType="log.status" />
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </t-animation>
+      </template>
+    </Popper>
   </div>
 </template>
 
 <script lang="ts">
 import { computed, ref, toRefs } from "@vue/reactivity";
 import TStatus from "../Status/TStatus.vue";
+import Popper from "vue3-popper";
 import TAnimation from "../Animation/TAnimation.vue";
 
 export default {
-  components: { TStatus, TAnimation },
+  components: { TStatus, Popper, TAnimation },
   props: {
     maxValue: {
       type: Number,
@@ -102,20 +118,18 @@ export default {
   @apply text-xs font-normal text-naturals-N9;
 }
 .bar__logs {
-  @apply bg-naturals-N3 absolute rounded z-20 border border-naturals-N5;
+  @apply bg-naturals-N3 rounded z-20 border border-naturals-N5 transition-all duration-300;
   width: 320px;
   height: 230px;
-  top: calc(50% - 115px);
-  left: -335px;
 }
 .bar__logs-wrapper {
   @apply w-full h-full relative z-10 pr-1;
 }
 .bar__logs-arrow {
-  @apply w-2 h-2 bg-naturals-N3 border-r border-t border-naturals-N5 absolute;
-  z-index: -1;
-  top: calc(50% - 4px);
-  right: -4.45px;
+  @apply w-2 h-2 bg-naturals-N3 border-r border-t border-naturals-N5 absolute transition-all;
+  animation-duration: 0.22s;
+  z-index: 0;
+  left: -24px;
   transform: rotate(45deg);
   border-radius: 1px;
 }
@@ -137,5 +151,11 @@ export default {
 }
 .bar__log-name {
   @apply text-xs font-normal text-naturals-N9;
+}
+.bar__popper {
+  @apply w-full;
+}
+.bar__popper-button {
+  @apply flex w-full items-center cursor-default relative;
 }
 </style>

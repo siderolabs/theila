@@ -1,49 +1,51 @@
 <template>
-  <div v-if="!isNoConnection && !isFailedAuth" class="overview">
-    <div class="overview__container">
-      <div class="overview__title-box">
-        <h2 class="overview__title">talos-GCP-US-oprkf</h2>
-        <t-icon class="overview__icon" icon="edit" />
-      </div>
-      <div class="overview__usage-list">
-        <div class="overview__box-header">
-          <span class="overview__box-title">Node Usage</span>
-          <span class="overview__usage-subtitle">Top 5</span>
+  <div>
+    <div v-if="!isNoConnection && !isFailedAuth" class="overview">
+      <div class="overview__container">
+        <div class="overview__title-box">
+          <h2 class="overview__title">talos-GCP-US-oprkf</h2>
+          <t-icon class="overview__icon" icon="edit" />
         </div>
-        <t-overview-nodes-usage
-          v-for="(data, index) in mockNodesUsageData"
-          :key="index"
-          :title="data.title"
-          :id="data.id"
-          :amount="data.amount"
-        />
-      </div>
-      <div class="overview__status-box">
-        <div class="overview__box-header">
-          <span class="overview__box-title">CAPI cluster status</span>
+        <div class="overview__usage-list">
+          <div class="overview__box-header">
+            <span class="overview__box-title">Node Usage</span>
+            <span class="overview__usage-subtitle">Top 5</span>
+          </div>
+          <t-overview-nodes-usage
+            v-for="(data, index) in mockNodesUsageData"
+            :key="index"
+            :title="data.title"
+            :id="data.id"
+            :amount="data.amount"
+          />
         </div>
-        <t-overview-cluster-status-box
-          v-for="(box, idx) in mockNodesStatusData"
-          :key="idx"
-          :data="box.clusterData"
-          :title="box.clusterName"
-        />
+        <div class="overview__status-box">
+          <div class="overview__box-header">
+            <span class="overview__box-title">CAPI cluster status</span>
+          </div>
+          <t-overview-cluster-status-box
+            v-for="(box, idx) in mockNodesStatusData"
+            :key="idx"
+            :data="box.clusterData"
+            :title="box.clusterName"
+          />
+        </div>
       </div>
+      <t-overview-right-panel />
     </div>
-    <t-overview-right-panel />
+    <t-overview-error-view
+      v-if="isNoConnection"
+      title="We cannot get information about the “talos-GCP-US-oprkf”"
+      subtitle="There is no connection to this cluster"
+      iconName="no-connection"
+    />
+    <t-overview-error-view
+      v-if="isFailedAuth"
+      title="We cannot get information about the “talos-GCP-US-oprkf”"
+      subtitle="Authentication failed"
+      iconName="fail-auth"
+    />
   </div>
-  <t-overview-error-view
-    v-if="isNoConnection"
-    title="We cannot get information about the “talos-GCP-US-oprkf”"
-    subtitle="There is no connection to this cluster"
-    iconName="no-connection"
-  />
-  <t-overview-error-view
-    v-if="isFailedAuth"
-    title="We cannot get information about the “talos-GCP-US-oprkf”"
-    subtitle="Authentication failed"
-    iconName="fail-auth"
-  />
 </template>
 
 <script lang="ts">
@@ -105,19 +107,22 @@ export default {
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info:
+                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: true,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info:
+                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info:
+                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: true,
               },
             ],
@@ -130,19 +135,22 @@ export default {
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info:
+                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: true,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info:
+                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info:
+                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
             ],
@@ -160,19 +168,22 @@ export default {
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info:
+                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: true,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info:
+                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info:
+                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
             ],
@@ -185,19 +196,22 @@ export default {
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info:
+                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: true,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info:
+                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info:
+                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
             ],
@@ -215,19 +229,22 @@ export default {
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info:
+                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: true,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info:
+                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info:
+                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
             ],
@@ -240,19 +257,22 @@ export default {
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info:
+                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: true,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info:
+                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info:
+                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
             ],
@@ -280,7 +300,7 @@ export default {
   @apply w-full flex justify-start items-start;
 }
 .overview__container {
-  @apply w-full mr-6;
+  @apply w-full lg:mr-6 mr-2;
   max-width: 80%;
 }
 .overview__title-box {
@@ -294,10 +314,10 @@ export default {
   @apply fill-current text-naturals-N14 w-5 h-5 cursor-pointer;
 }
 .overview__usage-list {
-  @apply flex-col py-5 bg-naturals-N2 pb-0 rounded mb-6;
+  @apply flex-col py-5 bg-naturals-N2 pb-0 rounded lg:mb-6 mb-2;
 }
 .overview__box-header {
-  @apply flex px-6 mb-4;
+  @apply flex px-2 mb-4 lg:px-6;
 }
 .overview__box-title {
   @apply text-xs text-naturals-N13;

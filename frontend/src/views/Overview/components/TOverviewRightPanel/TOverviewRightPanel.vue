@@ -88,10 +88,11 @@ export default {
 .overview__right-box {
   @apply py-5 bg-naturals-N2 w-full h-auto rounded pb-0;
   max-width: 20%;
+  min-width: 270px;
   margin-top: 63px;
 }
 .overview__right-box-wrapper {
-  @apply flex-col px-6;
+  @apply flex-col lg:px-6 px-2;
 }
 .overview__right-box-wrapper--moved {
   @apply pt-5;

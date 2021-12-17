@@ -20,9 +20,12 @@
       "@/context": [
         "./src/context"
       ],
+      "@/constants": [
+        "./src/constants"
+      ],
       "@/api/*": [
         "./src/api/*"
-      ]
+      ],
     }
   },
   "include": [

@@ -1,6 +1,6 @@
 <template>
   <t-animation>
-    <aside class="side" v-show="isSidebarVisible">
+    <aside class="side">
       <t-side-bar-cluster-dropdown
         v-click-outside="onClickOutside"
         v-show="isSidebarClusterDropdownsActive"
@@ -29,7 +29,7 @@
 </template>
 
 <script lang="ts">
-import { computed, ref, watch } from "@vue/runtime-core";
+import { ref, watch } from "@vue/runtime-core";
 import { useRoute } from "vue-router";
 import TIcon from "@/components/common/Icon/TIcon.vue";
 import TAnimation from "@/components/common/Animation/TAnimation.vue";
@@ -60,10 +60,6 @@ export default {
     const route = useRoute();
     const sidebar = ref<any>(getTSideBarNodesLogs(route));
 
-    const isSidebarVisible = computed(() => {
-      return route.path !== "/dashboard";
-    });
-
     watch(
       () => [route.query, route.params],
       () => {
@@ -81,7 +77,6 @@ export default {
       }
     };
     return {
-      isSidebarVisible,
       isSidebarClusterDropdownsActive,
       onClickOutside,
       dropdown,
@@ -94,10 +89,10 @@ export default {
 
 <style scoped>
 .side {
-  @apply bg-naturals-N1 relative;
-  width: 260px;
-  height: calc(100vh - 52px);
+  @apply bg-naturals-N1 relative w-48 lg:w-64;
+  height: 100%;
 }
+
 .side__cluster-box {
   @apply flex justify-between items-center py-3 px-6 border-b border-naturals-N4 cursor-pointer;
 }

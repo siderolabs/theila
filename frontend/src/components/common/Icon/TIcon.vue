@@ -97,6 +97,9 @@ export default {
     [getName("clusters")]: defineAsyncComponent(() =>
       import("../../icons/IconClusters.vue")
     ),
+    [getName("clusters-big")]: defineAsyncComponent(() =>
+      import("../../icons/IconClustersBig.vue")
+    ),
     [getName("dot")]: defineAsyncComponent(() =>
       import("../../icons/IconDot.vue")
     ),
@@ -196,9 +199,26 @@ export default {
     [getName("no-connection")]: defineAsyncComponent(() =>
       import("../../icons/IconNoConnection.vue")
     ),
-
     [getName("fail-auth")]: defineAsyncComponent(() =>
       import("../../icons/IconFailAuth.vue")
+    ),
+    [getName("kube-config")]: defineAsyncComponent(() =>
+      import("../../icons/IconKubeConfig.vue")
+    ),
+    [getName("key")]: defineAsyncComponent(() =>
+      import("../../icons/IconKey.vue")
+    ),
+    [getName("aws")]: defineAsyncComponent(() =>
+      import("../../icons/IconAWS.vue")
+    ),
+    [getName("gcp")]: defineAsyncComponent(() =>
+      import("../../icons/IconGCP.vue")
+    ),
+    [getName("sidero")]: defineAsyncComponent(() =>
+      import("../../icons/IconSidero.vue")
+    ),
+    [getName("terminal")]: defineAsyncComponent(() =>
+      import("../../icons/IconTerminal.vue")
     ),
   },
   computed: {

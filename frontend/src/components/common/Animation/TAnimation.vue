@@ -1,6 +1,6 @@
 <template>
   <transition :name="name">
-    <slot class="slot"/>
+    <slot class="slot" />
   </transition>
 </template>
 
@@ -18,7 +18,7 @@ export default {
 <style scoped>
 .fade-enter-active,
 .fade-leave-active {
-  transition: all 0.2s linear;
+  transition: all 0.3s linear;
 }
 
 .fade-enter-from,

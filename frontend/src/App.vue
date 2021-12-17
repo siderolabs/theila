@@ -18,7 +18,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       </template>
     </t-shell>
     <!-- Old Views Below -->
-    <shell class="h-screen">
+    <!-- <shell class="h-screen">
       <template v-slot:menu>
         <sidebar-change-context
           v-if="selectContext"
@@ -39,19 +39,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       <template v-slot:content>
         <router-view class="w-full h-full" />
       </template>
-    </shell>
+    </shell> -->
   </div>
 </template>
 
 <script lang="ts">
 import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
-import Shell from "./components/Shell.vue";
-import SidebarChangeContext from "./views/SidebarChangeContext.vue";
-import Sidebar from "./views/Sidebar.vue";
+// import Shell from "./components/Shell.vue";
+// import SidebarChangeContext from "./views/SidebarChangeContext.vue";
+// import Sidebar from "./views/Sidebar.vue";
 import TModal from "./components/TModal.vue";
-import TButton from "./components/TButton.vue";
-import TSpinner from "./components/TSpinner.vue";
+// import TButton from "./components/TButton.vue";
+// import TSpinner from "./components/TSpinner.vue";
 import { context, changeContext, detectCapabilities } from "./context";
 import { theme, systemTheme, isDark } from "./theme";
 import { ContextService } from "./api/grpc";
@@ -62,12 +62,12 @@ import TShell from "./components/common/Shell/TShell.vue";
 
 export default {
   components: {
-    Shell,
-    SidebarChangeContext,
-    Sidebar,
+    // Shell,
+    // SidebarChangeContext,
+    // Sidebar,
     TModal,
-    TButton,
-    TSpinner,
+    // TButton,
+    // TSpinner,
     THeader,
     TSideBar,
     TShell,

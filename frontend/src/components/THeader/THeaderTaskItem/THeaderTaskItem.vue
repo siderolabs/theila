@@ -28,7 +28,6 @@ export default {
 .item {
   @apply border-b border-naturals-N4 p-6;
   width: 361px;
-
 }
 .item__heading {
   @apply flex justify-between mb-2;
