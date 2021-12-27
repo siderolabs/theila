@@ -61,6 +61,9 @@ export default {
 </script>
 
 <style scoped>
+.pods {
+  @apply flex flex-col h-full;
+}
 .pods__header {
   @apply text-xl text-naturals-N14 mb-7;
 }

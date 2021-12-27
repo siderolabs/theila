@@ -66,6 +66,11 @@ export default {
                 iconTypeValue: "error",
                 iconColor: "#FF5C56",
               };
+            case "Unknown":
+              return {
+                iconTypeValue: "unknown",
+                iconColor: "#FF8B59",
+              };
           }
         }
       }),

@@ -220,6 +220,9 @@ export default {
     [getName("terminal")]: defineAsyncComponent(() =>
       import("../../icons/IconTerminal.vue")
     ),
+    [getName("unknown")]: defineAsyncComponent(() =>
+      import("../../icons/IconUnknown.vue")
+    ),
   },
   computed: {
     getIcon() {

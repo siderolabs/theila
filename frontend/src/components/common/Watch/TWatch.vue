@@ -53,6 +53,6 @@ export default {
 
 <style scoped>
 .wrapper {
-  @apply w-full;
+  @apply w-full h-full;
 }
 </style>
