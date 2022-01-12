@@ -7,13 +7,13 @@ import Clusters from "../views/Clusters.vue";
 import Servers from "../views/Servers.vue";
 import Dashboard from "../views/Dashboard/TDashboard.vue";
 import UpgradeKubernetes from "../views/Upgrade/Upgrade.vue";
-import Nodes from "../views/cluster/Nodes.vue";
+import Nodes from "../views/Nodes/TNodes.vue";
 import Pods from "../views/cluster/Pods.vue";
 import TPods from "../views/Pods/TPods.vue";
-import Overview from "../views/node/Overview.vue";
+import Overview from "../views/Nodes/TNodesOverview.vue";
 import OverviewPage from "../views/Overview/Overview.vue";
-import Monitor from "../views/node/Monitor.vue";
-import Logs from "../views/node/Logs.vue";
+import Monitor from "../views/Nodes/TNodesMonitor.vue";
+import Logs from "../views/Nodes/TNodesLogs.vue";
 import SidebarRoot from "../views/SidebarRoot.vue";
 import SidebarCluster from "../views/SidebarCluster.vue";
 import SidebarNode from "../views/SidebarNode.vue";
@@ -22,7 +22,6 @@ import Settings from "../views/Settings.vue";
 import Reboot from "../views/Reboot.vue";
 import Reset from "../views/Reset.vue";
 import Upgrade from "../views/Upgrade.vue";
-import { useRoute } from "vue-router";
 import { context } from "../context";
 
 const withPrefix = (prefix, routes) =>
@@ -47,12 +46,21 @@ export function getBreadcrumbs(route) {
   }
 
   if (route.params.node) {
+    crumbs.push(
+      {
+        text: `All Nodes`,
+        to: { name: "Nodes", query: route.query },
+      },
+      {
+        text: `${route.params.node}`,
+        to: { name: "Overview", query: route.query },
+      }
+    );
+  }
+  if (route.params.service) {
     crumbs.push({
-      text: `${route.query.cluster ||
-        (context.current.value
-          ? context.current.value.cluster
-          : "Current Cluster")} Nodes`,
-      to: { name: "Nodes", query: route.query },
+      text: `${route.params.service} Logs`,
+      to: { name: "Logs", query: route.query },
     });
   }
 

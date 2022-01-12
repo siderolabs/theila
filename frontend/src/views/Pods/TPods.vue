@@ -11,6 +11,12 @@
             @clearInput="setInputValue"
           />
           <t-pods-select-list @checkedValue="setFilterOption" />
+          <t-select-list
+            @checkedValue="setFilterOption"
+            title="Phase"
+            :defaultValue="TPodsViewFilterOptions.ALL"
+            :values="TPodsViewFilterOptions"
+          />
         </div>
         <ul class="pods__table-heading">
           <li class="pods__row-name">Namespace</li>
@@ -30,14 +36,15 @@
 
 <script lang="ts">
 import TInput from "@/components/common/TInput/TInput.vue";
-import TPodsSelectList from "./components/TPodsSelectList.vue";
 import TWatch from "@/components/common/Watch/TWatch.vue";
 import { getContext } from "@/context";
 import { kubernetes } from "@/api/resources";
 import { ref } from "@vue/reactivity";
 import TPodsList from "./components/TPodsList.vue";
+import TSelectList from "@/components/common/SelectList/TSelectList.vue";
+import { TPodsViewFilterOptions } from "@/constants";
 export default {
-  components: { TInput, TPodsSelectList, TWatch, TPodsList },
+  components: { TInput, TWatch, TPodsList, TSelectList },
   setup() {
     const ctx = getContext();
     const filterOption = ref("All");
@@ -55,6 +62,7 @@ export default {
       filterOption,
       setInputValue,
       inputValue,
+      TPodsViewFilterOptions,
     };
   },
 };
@@ -68,7 +76,7 @@ export default {
   @apply text-xl text-naturals-N14 mb-7;
 }
 .pods__search-box {
-  @apply flex justify-between;
+  @apply flex justify-between mb-8;
 }
 .pods__table-heading {
   @apply w-full rounded bg-naturals-N2 flex justify-between items-center mb-1;

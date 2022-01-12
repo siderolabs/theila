@@ -1,6 +1,11 @@
 <template>
   <label
-    @click.prevent="() => (isFocused = true)"
+    @click.prevent="
+      () => {
+        isFocused = true;
+        $refs.input.focus();
+      }
+    "
     v-click-outside="() => (isFocused = false)"
     class="input-box"
     :class="[type, { focused: isFocused }]"
@@ -12,12 +17,14 @@
       v-model="inputValue"
       type="text"
       class="input-box__input"
+      @focus="isFocused = true"
+      @blur="blurHandler"
       :placeholder="placeholder"
     />
-    <div class="input-box__icon-wrapper" @click.stop="clearInput">
+    <div class="input-box__icon-wrapper" @click.prevent="clearInput">
       <t-icon
         v-if="type === 'secondary'"
-        :class="{ hidden: !isFocused }"
+        :class="{ SVGHidden: !isFocused }"
         class="input-box__icon-close"
         icon="close"
       />
@@ -52,11 +59,15 @@ export default {
       inputValue.value = "";
       context.emit("clearInput", inputValue.value);
     };
+    const blurHandler = () => {
+      isFocused.value = false;
+    };
     return {
       isFocused,
       inputValue,
       clearInput,
       input,
+      blurHandler,
     };
   },
 };
@@ -95,7 +106,7 @@ export default {
   min-width: 16px;
   height: 16px;
 }
-.hidden {
+.SVGHidden {
   visibility: hidden;
 }
 </style>

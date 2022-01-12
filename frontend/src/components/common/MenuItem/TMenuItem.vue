@@ -13,7 +13,7 @@ export default {
   components: { TIcon },
   props: {
     route: {
-      type: String,
+      type: [String, Object],
       required: true,
     },
     name: {
@@ -23,7 +23,7 @@ export default {
     icon: {
       type: String,
       required: true,
-    }
+    },
   },
 };
 </script>
@@ -38,7 +38,7 @@ export default {
 .item:hover .item__name {
   @apply text-naturals-N12;
 }
-.item__active .item{
+.item__active .item {
   @apply border-primary-P3;
 }
 .item__active .item__icon {

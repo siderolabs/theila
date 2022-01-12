@@ -223,6 +223,9 @@ export default {
     [getName("unknown")]: defineAsyncComponent(() =>
       import("../../icons/IconUnknown.vue")
     ),
+    [getName("question")]: defineAsyncComponent(() =>
+      import("../../icons/IconQuestion.vue")
+    ),
   },
   computed: {
     getIcon() {

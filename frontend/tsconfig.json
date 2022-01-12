@@ -23,6 +23,9 @@
       "@/constants": [
         "./src/constants"
       ],
+      "@/methods": [
+        "./src/methods"
+      ],
       "@/api/*": [
         "./src/api/*"
       ],

@@ -4,7 +4,8 @@
       <ListboxButton class="menu__button">
         <div>
           <span class="menu__button-version"
-            ><span class="menu__phase">Phase:</span>{{ selectedItem }}</span
+            ><span class="menu__phase">{{ title }}:</span
+            >{{ selectedItem }}</span
           >
         </div>
         <t-icon class="menu__arrow" icon="arrow-down" />
@@ -51,9 +52,16 @@ import {
 import TIcon from "@/components/common/Icon/TIcon.vue";
 import { ref } from "@vue/reactivity";
 import TAnimation from "@/components/common/Animation/TAnimation.vue";
-import { TPodsViewFilterOptions } from "@/constants";
 
 export default {
+  props: {
+    title: String,
+    defaultValue: String,
+    values: {
+      type: Object,
+      required: true,
+    },
+  },
   components: {
     Listbox,
     ListboxButton,
@@ -63,9 +71,9 @@ export default {
     TAnimation,
   },
   emits: ["checkedValue"],
-  setup() {
-    const selectedItem = ref(TPodsViewFilterOptions.ALL);
-    const TPodsViewFilterOptionsArray = Object.values(TPodsViewFilterOptions);
+  setup(props) {
+    const selectedItem = ref(props.defaultValue);
+    const TPodsViewFilterOptionsArray = Object.values(props.values);
 
     return {
       selectedItem,
@@ -77,7 +85,7 @@ export default {
 
 <style scoped>
 .menu {
-  @apply mb-8 relative z-20;
+  @apply relative z-20;
   min-width: 135px;
 }
 .menu__button {

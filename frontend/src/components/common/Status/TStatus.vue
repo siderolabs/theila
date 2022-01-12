@@ -25,6 +25,12 @@
 <script lang="ts">
 import { computed, toRefs } from "@vue/reactivity";
 import TIcon from "../Icon/TIcon.vue";
+import {
+  TNodesViewFilterOptions,
+  TPodsViewFilterOptions,
+  TCommonStatuses,
+} from "@/constants";
+
 export default {
   components: { TIcon },
   props: {
@@ -39,37 +45,56 @@ export default {
       iconData: computed(() => {
         if (title) {
           switch (title.value) {
-            case "Running":
+            case TPodsViewFilterOptions.RUNNING:
               return {
                 iconTypeValue: "check-in-circle-classic",
                 iconColor: "#69C297",
               };
-
-            case "Pending":
+            case TNodesViewFilterOptions.READY:
+              return {
+                iconTypeValue: "check-in-circle-classic",
+                iconColor: "#69C297",
+              };
+            case TPodsViewFilterOptions.PENDING:
               return {
                 iconTypeValue: "time",
                 iconColor: "#FFB200",
               };
 
-            case "Succeeded":
+            case TPodsViewFilterOptions.SUCCEEDED:
               return {
                 iconTypeValue: "check-in-circle-classic",
                 iconColor: "#69C297",
               };
-            case "Completed":
+            case TCommonStatuses.COMPLETED:
               return {
                 iconTypeValue: "check-in-circle-classic",
                 iconColor: "#69C297",
               };
-            case "Failed":
+            case TCommonStatuses.FAILED:
               return {
                 iconTypeValue: "error",
                 iconColor: "#FF5C56",
               };
-            case "Unknown":
+            case TNodesViewFilterOptions.NOT_READY:
+              return {
+                iconTypeValue: "time",
+                iconColor: "#FF5C56",
+              };
+            case TCommonStatuses.UNKNOWN:
               return {
                 iconTypeValue: "unknown",
                 iconColor: "#FF8B59",
+              };
+            case TCommonStatuses.HEALTH_UNKNOWN:
+              return {
+                iconTypeValue: "question",
+                iconColor: "#7D7D85",
+              };
+            case TCommonStatuses.UNHEALTHY:
+              return {
+                iconTypeValue: "error",
+                iconColor: "#FF5C56",
               };
           }
         }

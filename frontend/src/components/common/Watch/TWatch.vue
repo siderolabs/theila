@@ -31,7 +31,9 @@ export default {
     context: Object,
     resource: Object,
     kubernetes: Boolean,
+    talos: Boolean,
     watch: Object,
+    itemName: String,
   },
   setup(props, context) {
     const resourceWatch = props.watch

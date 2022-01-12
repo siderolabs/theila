@@ -10,7 +10,7 @@
 }
 .v-enter-active,
 .v-leave-active {
-  transition: all 0.1s linear;
+  transition: all 0.3s linear;
 }
 .v-enter-from,
 .v-leave-to {
