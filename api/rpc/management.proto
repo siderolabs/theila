@@ -24,6 +24,12 @@ message UpgradeK8sSpec {
   common.Context context = 3;
 }
 
+// Maps the task spec into task status spec.
+message TaskStateSpec {
+  // StatusID keeps the id for the current task status.
+  string status_id = 4;
+}
+
 message TaskStatusSpec {
   enum Phase {
     FAILED = 0;

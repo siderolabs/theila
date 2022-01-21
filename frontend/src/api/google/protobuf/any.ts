@@ -30,7 +30,7 @@ export const protobufPackage = "google.protobuf";
  *       foo = any.unpack(Foo.class);
  *     }
  *
- *  Example 3: Pack and unpack a message in Python.
+ * Example 3: Pack and unpack a message in Python.
  *
  *     foo = Foo(...)
  *     any = Any()
@@ -40,7 +40,7 @@ export const protobufPackage = "google.protobuf";
  *       any.Unpack(foo)
  *       ...
  *
- *  Example 4: Pack and unpack a message in Go
+ * Example 4: Pack and unpack a message in Go
  *
  *      foo := &pb.Foo{...}
  *      any, err := anypb.New(foo)
@@ -61,7 +61,7 @@ export const protobufPackage = "google.protobuf";
  *
  *
  * JSON
- * ====
+ *
  * The JSON representation of an `Any` value uses the regular
  * representation of the deserialized, embedded message, with an
  * additional field `@type` which contains the type URL. Example:
@@ -123,7 +123,9 @@ export interface Any {
   value: Uint8Array;
 }
 
-const baseAny: object = { type_url: "" };
+function createBaseAny(): Any {
+  return { type_url: "", value: new Uint8Array() };
+}
 
 export const Any = {
   encode(message: Any, writer: Writer = Writer.create()): Writer {
@@ -139,8 +141,7 @@ export const Any = {
   decode(input: Reader | Uint8Array, length?: number): Any {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseAny } as Any;
-    message.value = new Uint8Array();
+    const message = createBaseAny();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -159,17 +160,12 @@ export const Any = {
   },
 
   fromJSON(object: any): Any {
-    const message = { ...baseAny } as Any;
-    message.value = new Uint8Array();
-    if (object.type_url !== undefined && object.type_url !== null) {
-      message.type_url = String(object.type_url);
-    } else {
-      message.type_url = "";
-    }
-    if (object.value !== undefined && object.value !== null) {
-      message.value = bytesFromBase64(object.value);
-    }
-    return message;
+    return {
+      type_url: isSet(object.type_url) ? String(object.type_url) : "",
+      value: isSet(object.value)
+        ? bytesFromBase64(object.value)
+        : new Uint8Array(),
+    };
   },
 
   toJSON(message: Any): unknown {
@@ -182,24 +178,17 @@ export const Any = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Any>): Any {
-    const message = { ...baseAny } as Any;
-    if (object.type_url !== undefined && object.type_url !== null) {
-      message.type_url = object.type_url;
-    } else {
-      message.type_url = "";
-    }
-    if (object.value !== undefined && object.value !== null) {
-      message.value = object.value;
-    } else {
-      message.value = new Uint8Array();
-    }
+  fromPartial<I extends Exact<DeepPartial<Any>, I>>(object: I): Any {
+    const message = createBaseAny();
+    message.type_url = object.type_url ?? "";
+    message.value = object.value ?? new Uint8Array();
     return message;
   },
 };
 
 declare var self: any | undefined;
 declare var window: any | undefined;
+declare var global: any | undefined;
 var globalThis: any = (() => {
   if (typeof globalThis !== "undefined") return globalThis;
   if (typeof self !== "undefined") return self;
@@ -239,6 +228,7 @@ type Builtin =
   | number
   | boolean
   | undefined;
+
 export type DeepPartial<T> = T extends Builtin
   ? T
   : T extends Array<infer U>
@@ -249,9 +239,21 @@ export type DeepPartial<T> = T extends Builtin
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
+        Exclude<keyof I, KeysOfUnion<P>>,
+        never
+      >;
+
 // If you get a compile-error about 'Constructor<Long> and ... have no overlap',
 // add '--ts_proto_opt=esModuleInterop=true' as a flag when calling 'protoc'.
 if (util.Long !== Long) {
   util.Long = Long as any;
   configure();
+}
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
 }

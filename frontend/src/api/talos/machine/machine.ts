@@ -24,8 +24,67 @@ export const protobufPackage = "machine";
  */
 export interface ApplyConfigurationRequest {
   data: Uint8Array;
+  /**
+   * replaced by mode
+   *
+   * @deprecated
+   */
   on_reboot: boolean;
+  /**
+   * replaced by mode
+   *
+   * @deprecated
+   */
   immediate: boolean;
+  mode: ApplyConfigurationRequest_Mode;
+}
+
+export enum ApplyConfigurationRequest_Mode {
+  REBOOT = 0,
+  AUTO = 1,
+  NO_REBOOT = 2,
+  STAGED = 3,
+  UNRECOGNIZED = -1,
+}
+
+export function applyConfigurationRequest_ModeFromJSON(
+  object: any
+): ApplyConfigurationRequest_Mode {
+  switch (object) {
+    case 0:
+    case "REBOOT":
+      return ApplyConfigurationRequest_Mode.REBOOT;
+    case 1:
+    case "AUTO":
+      return ApplyConfigurationRequest_Mode.AUTO;
+    case 2:
+    case "NO_REBOOT":
+      return ApplyConfigurationRequest_Mode.NO_REBOOT;
+    case 3:
+    case "STAGED":
+      return ApplyConfigurationRequest_Mode.STAGED;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return ApplyConfigurationRequest_Mode.UNRECOGNIZED;
+  }
+}
+
+export function applyConfigurationRequest_ModeToJSON(
+  object: ApplyConfigurationRequest_Mode
+): string {
+  switch (object) {
+    case ApplyConfigurationRequest_Mode.REBOOT:
+      return "REBOOT";
+    case ApplyConfigurationRequest_Mode.AUTO:
+      return "AUTO";
+    case ApplyConfigurationRequest_Mode.NO_REBOOT:
+      return "NO_REBOOT";
+    case ApplyConfigurationRequest_Mode.STAGED:
+      return "STAGED";
+    default:
+      return "UNKNOWN";
+  }
 }
 
 /** ApplyConfigurationResponse describes the response to a configuration request. */
@@ -33,16 +92,54 @@ export interface ApplyConfiguration {
   metadata: Metadata | undefined;
   /** Configuration validation warnings. */
   warnings: string[];
+  /** States which mode was actually chosen. */
+  mode: ApplyConfigurationRequest_Mode;
+  /** Human-readable message explaining the result of the apply configuration call. */
+  mode_details: string;
 }
 
 export interface ApplyConfigurationResponse {
   messages: ApplyConfiguration[];
 }
 
-/**
- * rpc reboot
- * The reboot message containing the reboot status.
- */
+/** rpc reboot */
+export interface RebootRequest {
+  mode: RebootRequest_Mode;
+}
+
+export enum RebootRequest_Mode {
+  DEFAULT = 0,
+  POWERCYCLE = 1,
+  UNRECOGNIZED = -1,
+}
+
+export function rebootRequest_ModeFromJSON(object: any): RebootRequest_Mode {
+  switch (object) {
+    case 0:
+    case "DEFAULT":
+      return RebootRequest_Mode.DEFAULT;
+    case 1:
+    case "POWERCYCLE":
+      return RebootRequest_Mode.POWERCYCLE;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return RebootRequest_Mode.UNRECOGNIZED;
+  }
+}
+
+export function rebootRequest_ModeToJSON(object: RebootRequest_Mode): string {
+  switch (object) {
+    case RebootRequest_Mode.DEFAULT:
+      return "DEFAULT";
+    case RebootRequest_Mode.POWERCYCLE:
+      return "POWERCYCLE";
+    default:
+      return "UNKNOWN";
+  }
+}
+
+/** The reboot message containing the reboot status. */
 export interface Reboot {
   metadata: Metadata | undefined;
 }
@@ -282,6 +379,22 @@ export interface RestartEvent {
   cmd: number;
 }
 
+/** ConfigLoadErrorEvent is reported when the config loading has failed. */
+export interface ConfigLoadErrorEvent {
+  error: string;
+}
+
+/** ConfigValidationErrorEvent is reported when config validation has failed. */
+export interface ConfigValidationErrorEvent {
+  error: string;
+}
+
+/** AddressEvent reports node endpoints aggregated from k8s.Endpoints and network.Hostname. */
+export interface AddressEvent {
+  hostname: string;
+  addresses: string[];
+}
+
 export interface EventsRequest {
   tail_events: number;
   tail_id: string;
@@ -427,26 +540,6 @@ export interface ServiceRestartResponse {
   messages: ServiceRestart[];
 }
 
-/** @deprecated */
-export interface StartRequest {
-  id: string;
-}
-
-/** @deprecated */
-export interface StartResponse {
-  resp: string;
-}
-
-/** @deprecated */
-export interface StopRequest {
-  id: string;
-}
-
-/** @deprecated */
-export interface StopResponse {
-  resp: string;
-}
-
 /**
  * CopyRequest describes a request to copy data out of Talos node
  *
@@ -560,6 +653,10 @@ export interface FileInfo {
   link: string;
   /** RelativeName is the name of the file or directory relative to the RootPath */
   relative_name: string;
+  /** Owner uid */
+  uid: number;
+  /** Owner gid */
+  gid: number;
 }
 
 /** DiskUsageInfo describes a file or directory's information for du command */
@@ -1028,6 +1125,8 @@ export interface EtcdMember {
   peer_urls: string[];
   /** the list of URLs the member exposes to the cluster for communication. */
   client_urls: string[];
+  /** learner flag */
+  is_learner: boolean;
 }
 
 /** EtcdMembers contains the list of members registered on the host. */
@@ -1095,12 +1194,6 @@ export enum MachineConfig_MachineType {
   TYPE_INIT = 1,
   TYPE_CONTROL_PLANE = 2,
   TYPE_WORKER = 3,
-  /**
-   * TYPE_JOIN - Alias for TYPE_WORKER.
-   *
-   * @deprecated
-   */
-  TYPE_JOIN = 3,
   UNRECOGNIZED = -1,
 }
 
@@ -1120,9 +1213,6 @@ export function machineConfig_MachineTypeFromJSON(
     case 3:
     case "TYPE_WORKER":
       return MachineConfig_MachineType.TYPE_WORKER;
-    case 3:
-    case "TYPE_JOIN":
-      return MachineConfig_MachineType.TYPE_JOIN;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -1142,8 +1232,6 @@ export function machineConfig_MachineTypeToJSON(
       return "TYPE_CONTROL_PLANE";
     case MachineConfig_MachineType.TYPE_WORKER:
       return "TYPE_WORKER";
-    case MachineConfig_MachineType.TYPE_JOIN:
-      return "TYPE_JOIN";
     default:
       return "UNKNOWN";
   }
@@ -1192,15 +1280,6 @@ export interface GenerateConfigurationResponse {
   messages: GenerateConfiguration[];
 }
 
-/** RemoveBootkubeInitializedKeyResponse describes the response to a RemoveBootkubeInitializedKey request. */
-export interface RemoveBootkubeInitializedKey {
-  metadata: Metadata | undefined;
-}
-
-export interface RemoveBootkubeInitializedKeyResponse {
-  messages: RemoveBootkubeInitializedKey[];
-}
-
 export interface GenerateClientConfigurationRequest {
   /** Roles in the generated client certificate. */
   roles: string[];
@@ -1224,10 +1303,14 @@ export interface GenerateClientConfigurationResponse {
   messages: GenerateClientConfiguration[];
 }
 
-const baseApplyConfigurationRequest: object = {
-  on_reboot: false,
-  immediate: false,
-};
+function createBaseApplyConfigurationRequest(): ApplyConfigurationRequest {
+  return {
+    data: new Uint8Array(),
+    on_reboot: false,
+    immediate: false,
+    mode: 0,
+  };
+}
 
 export const ApplyConfigurationRequest = {
   encode(
@@ -1243,6 +1326,9 @@ export const ApplyConfigurationRequest = {
     if (message.immediate === true) {
       writer.uint32(24).bool(message.immediate);
     }
+    if (message.mode !== 0) {
+      writer.uint32(32).int32(message.mode);
+    }
     return writer;
   },
 
@@ -1252,10 +1338,7 @@ export const ApplyConfigurationRequest = {
   ): ApplyConfigurationRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseApplyConfigurationRequest,
-    } as ApplyConfigurationRequest;
-    message.data = new Uint8Array();
+    const message = createBaseApplyConfigurationRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1268,6 +1351,9 @@ export const ApplyConfigurationRequest = {
         case 3:
           message.immediate = reader.bool();
           break;
+        case 4:
+          message.mode = reader.int32() as any;
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -1277,24 +1363,16 @@ export const ApplyConfigurationRequest = {
   },
 
   fromJSON(object: any): ApplyConfigurationRequest {
-    const message = {
-      ...baseApplyConfigurationRequest,
-    } as ApplyConfigurationRequest;
-    message.data = new Uint8Array();
-    if (object.data !== undefined && object.data !== null) {
-      message.data = bytesFromBase64(object.data);
-    }
-    if (object.on_reboot !== undefined && object.on_reboot !== null) {
-      message.on_reboot = Boolean(object.on_reboot);
-    } else {
-      message.on_reboot = false;
-    }
-    if (object.immediate !== undefined && object.immediate !== null) {
-      message.immediate = Boolean(object.immediate);
-    } else {
-      message.immediate = false;
-    }
-    return message;
+    return {
+      data: isSet(object.data)
+        ? bytesFromBase64(object.data)
+        : new Uint8Array(),
+      on_reboot: isSet(object.on_reboot) ? Boolean(object.on_reboot) : false,
+      immediate: isSet(object.immediate) ? Boolean(object.immediate) : false,
+      mode: isSet(object.mode)
+        ? applyConfigurationRequest_ModeFromJSON(object.mode)
+        : 0,
+    };
   },
 
   toJSON(message: ApplyConfigurationRequest): unknown {
@@ -1305,35 +1383,26 @@ export const ApplyConfigurationRequest = {
       ));
     message.on_reboot !== undefined && (obj.on_reboot = message.on_reboot);
     message.immediate !== undefined && (obj.immediate = message.immediate);
+    message.mode !== undefined &&
+      (obj.mode = applyConfigurationRequest_ModeToJSON(message.mode));
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<ApplyConfigurationRequest>
+  fromPartial<I extends Exact<DeepPartial<ApplyConfigurationRequest>, I>>(
+    object: I
   ): ApplyConfigurationRequest {
-    const message = {
-      ...baseApplyConfigurationRequest,
-    } as ApplyConfigurationRequest;
-    if (object.data !== undefined && object.data !== null) {
-      message.data = object.data;
-    } else {
-      message.data = new Uint8Array();
-    }
-    if (object.on_reboot !== undefined && object.on_reboot !== null) {
-      message.on_reboot = object.on_reboot;
-    } else {
-      message.on_reboot = false;
-    }
-    if (object.immediate !== undefined && object.immediate !== null) {
-      message.immediate = object.immediate;
-    } else {
-      message.immediate = false;
-    }
+    const message = createBaseApplyConfigurationRequest();
+    message.data = object.data ?? new Uint8Array();
+    message.on_reboot = object.on_reboot ?? false;
+    message.immediate = object.immediate ?? false;
+    message.mode = object.mode ?? 0;
     return message;
   },
 };
 
-const baseApplyConfiguration: object = { warnings: "" };
+function createBaseApplyConfiguration(): ApplyConfiguration {
+  return { metadata: undefined, warnings: [], mode: 0, mode_details: "" };
+}
 
 export const ApplyConfiguration = {
   encode(
@@ -1346,14 +1415,19 @@ export const ApplyConfiguration = {
     for (const v of message.warnings) {
       writer.uint32(18).string(v!);
     }
+    if (message.mode !== 0) {
+      writer.uint32(24).int32(message.mode);
+    }
+    if (message.mode_details !== "") {
+      writer.uint32(34).string(message.mode_details);
+    }
     return writer;
   },
 
   decode(input: Reader | Uint8Array, length?: number): ApplyConfiguration {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseApplyConfiguration } as ApplyConfiguration;
-    message.warnings = [];
+    const message = createBaseApplyConfiguration();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1362,6 +1436,12 @@ export const ApplyConfiguration = {
           break;
         case 2:
           message.warnings.push(reader.string());
+          break;
+        case 3:
+          message.mode = reader.int32() as any;
+          break;
+        case 4:
+          message.mode_details = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -1372,19 +1452,20 @@ export const ApplyConfiguration = {
   },
 
   fromJSON(object: any): ApplyConfiguration {
-    const message = { ...baseApplyConfiguration } as ApplyConfiguration;
-    message.warnings = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.warnings !== undefined && object.warnings !== null) {
-      for (const e of object.warnings) {
-        message.warnings.push(String(e));
-      }
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      warnings: Array.isArray(object?.warnings)
+        ? object.warnings.map((e: any) => String(e))
+        : [],
+      mode: isSet(object.mode)
+        ? applyConfigurationRequest_ModeFromJSON(object.mode)
+        : 0,
+      mode_details: isSet(object.mode_details)
+        ? String(object.mode_details)
+        : "",
+    };
   },
 
   toJSON(message: ApplyConfiguration): unknown {
@@ -1398,27 +1479,31 @@ export const ApplyConfiguration = {
     } else {
       obj.warnings = [];
     }
+    message.mode !== undefined &&
+      (obj.mode = applyConfigurationRequest_ModeToJSON(message.mode));
+    message.mode_details !== undefined &&
+      (obj.mode_details = message.mode_details);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ApplyConfiguration>): ApplyConfiguration {
-    const message = { ...baseApplyConfiguration } as ApplyConfiguration;
-    message.warnings = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.warnings !== undefined && object.warnings !== null) {
-      for (const e of object.warnings) {
-        message.warnings.push(e);
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<ApplyConfiguration>, I>>(
+    object: I
+  ): ApplyConfiguration {
+    const message = createBaseApplyConfiguration();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.warnings = object.warnings?.map((e) => e) || [];
+    message.mode = object.mode ?? 0;
+    message.mode_details = object.mode_details ?? "";
     return message;
   },
 };
 
-const baseApplyConfigurationResponse: object = {};
+function createBaseApplyConfigurationResponse(): ApplyConfigurationResponse {
+  return { messages: [] };
+}
 
 export const ApplyConfigurationResponse = {
   encode(
@@ -1437,10 +1522,7 @@ export const ApplyConfigurationResponse = {
   ): ApplyConfigurationResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseApplyConfigurationResponse,
-    } as ApplyConfigurationResponse;
-    message.messages = [];
+    const message = createBaseApplyConfigurationResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1458,16 +1540,11 @@ export const ApplyConfigurationResponse = {
   },
 
   fromJSON(object: any): ApplyConfigurationResponse {
-    const message = {
-      ...baseApplyConfigurationResponse,
-    } as ApplyConfigurationResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(ApplyConfiguration.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => ApplyConfiguration.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: ApplyConfigurationResponse): unknown {
@@ -1482,23 +1559,71 @@ export const ApplyConfigurationResponse = {
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<ApplyConfigurationResponse>
+  fromPartial<I extends Exact<DeepPartial<ApplyConfigurationResponse>, I>>(
+    object: I
   ): ApplyConfigurationResponse {
-    const message = {
-      ...baseApplyConfigurationResponse,
-    } as ApplyConfigurationResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(ApplyConfiguration.fromPartial(e));
-      }
-    }
+    const message = createBaseApplyConfigurationResponse();
+    message.messages =
+      object.messages?.map((e) => ApplyConfiguration.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseReboot: object = {};
+function createBaseRebootRequest(): RebootRequest {
+  return { mode: 0 };
+}
+
+export const RebootRequest = {
+  encode(message: RebootRequest, writer: Writer = Writer.create()): Writer {
+    if (message.mode !== 0) {
+      writer.uint32(8).int32(message.mode);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): RebootRequest {
+    const reader = input instanceof Reader ? input : new Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRebootRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.mode = reader.int32() as any;
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): RebootRequest {
+    return {
+      mode: isSet(object.mode) ? rebootRequest_ModeFromJSON(object.mode) : 0,
+    };
+  },
+
+  toJSON(message: RebootRequest): unknown {
+    const obj: any = {};
+    message.mode !== undefined &&
+      (obj.mode = rebootRequest_ModeToJSON(message.mode));
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<RebootRequest>, I>>(
+    object: I
+  ): RebootRequest {
+    const message = createBaseRebootRequest();
+    message.mode = object.mode ?? 0;
+    return message;
+  },
+};
+
+function createBaseReboot(): Reboot {
+  return { metadata: undefined };
+}
 
 export const Reboot = {
   encode(message: Reboot, writer: Writer = Writer.create()): Writer {
@@ -1511,7 +1636,7 @@ export const Reboot = {
   decode(input: Reader | Uint8Array, length?: number): Reboot {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseReboot } as Reboot;
+    const message = createBaseReboot();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1527,13 +1652,11 @@ export const Reboot = {
   },
 
   fromJSON(object: any): Reboot {
-    const message = { ...baseReboot } as Reboot;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+    };
   },
 
   toJSON(message: Reboot): unknown {
@@ -1545,18 +1668,19 @@ export const Reboot = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Reboot>): Reboot {
-    const message = { ...baseReboot } as Reboot;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<Reboot>, I>>(object: I): Reboot {
+    const message = createBaseReboot();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
     return message;
   },
 };
 
-const baseRebootResponse: object = {};
+function createBaseRebootResponse(): RebootResponse {
+  return { messages: [] };
+}
 
 export const RebootResponse = {
   encode(message: RebootResponse, writer: Writer = Writer.create()): Writer {
@@ -1569,8 +1693,7 @@ export const RebootResponse = {
   decode(input: Reader | Uint8Array, length?: number): RebootResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseRebootResponse } as RebootResponse;
-    message.messages = [];
+    const message = createBaseRebootResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1586,14 +1709,11 @@ export const RebootResponse = {
   },
 
   fromJSON(object: any): RebootResponse {
-    const message = { ...baseRebootResponse } as RebootResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Reboot.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => Reboot.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: RebootResponse): unknown {
@@ -1608,22 +1728,18 @@ export const RebootResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<RebootResponse>): RebootResponse {
-    const message = { ...baseRebootResponse } as RebootResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Reboot.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<RebootResponse>, I>>(
+    object: I
+  ): RebootResponse {
+    const message = createBaseRebootResponse();
+    message.messages = object.messages?.map((e) => Reboot.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseBootstrapRequest: object = {
-  recover_etcd: false,
-  recover_skip_hash_check: false,
-};
+function createBaseBootstrapRequest(): BootstrapRequest {
+  return { recover_etcd: false, recover_skip_hash_check: false };
+}
 
 export const BootstrapRequest = {
   encode(message: BootstrapRequest, writer: Writer = Writer.create()): Writer {
@@ -1639,7 +1755,7 @@ export const BootstrapRequest = {
   decode(input: Reader | Uint8Array, length?: number): BootstrapRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseBootstrapRequest } as BootstrapRequest;
+    const message = createBaseBootstrapRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1658,21 +1774,14 @@ export const BootstrapRequest = {
   },
 
   fromJSON(object: any): BootstrapRequest {
-    const message = { ...baseBootstrapRequest } as BootstrapRequest;
-    if (object.recover_etcd !== undefined && object.recover_etcd !== null) {
-      message.recover_etcd = Boolean(object.recover_etcd);
-    } else {
-      message.recover_etcd = false;
-    }
-    if (
-      object.recover_skip_hash_check !== undefined &&
-      object.recover_skip_hash_check !== null
-    ) {
-      message.recover_skip_hash_check = Boolean(object.recover_skip_hash_check);
-    } else {
-      message.recover_skip_hash_check = false;
-    }
-    return message;
+    return {
+      recover_etcd: isSet(object.recover_etcd)
+        ? Boolean(object.recover_etcd)
+        : false,
+      recover_skip_hash_check: isSet(object.recover_skip_hash_check)
+        ? Boolean(object.recover_skip_hash_check)
+        : false,
+    };
   },
 
   toJSON(message: BootstrapRequest): unknown {
@@ -1684,26 +1793,19 @@ export const BootstrapRequest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<BootstrapRequest>): BootstrapRequest {
-    const message = { ...baseBootstrapRequest } as BootstrapRequest;
-    if (object.recover_etcd !== undefined && object.recover_etcd !== null) {
-      message.recover_etcd = object.recover_etcd;
-    } else {
-      message.recover_etcd = false;
-    }
-    if (
-      object.recover_skip_hash_check !== undefined &&
-      object.recover_skip_hash_check !== null
-    ) {
-      message.recover_skip_hash_check = object.recover_skip_hash_check;
-    } else {
-      message.recover_skip_hash_check = false;
-    }
+  fromPartial<I extends Exact<DeepPartial<BootstrapRequest>, I>>(
+    object: I
+  ): BootstrapRequest {
+    const message = createBaseBootstrapRequest();
+    message.recover_etcd = object.recover_etcd ?? false;
+    message.recover_skip_hash_check = object.recover_skip_hash_check ?? false;
     return message;
   },
 };
 
-const baseBootstrap: object = {};
+function createBaseBootstrap(): Bootstrap {
+  return { metadata: undefined };
+}
 
 export const Bootstrap = {
   encode(message: Bootstrap, writer: Writer = Writer.create()): Writer {
@@ -1716,7 +1818,7 @@ export const Bootstrap = {
   decode(input: Reader | Uint8Array, length?: number): Bootstrap {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseBootstrap } as Bootstrap;
+    const message = createBaseBootstrap();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1732,13 +1834,11 @@ export const Bootstrap = {
   },
 
   fromJSON(object: any): Bootstrap {
-    const message = { ...baseBootstrap } as Bootstrap;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+    };
   },
 
   toJSON(message: Bootstrap): unknown {
@@ -1750,18 +1850,21 @@ export const Bootstrap = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Bootstrap>): Bootstrap {
-    const message = { ...baseBootstrap } as Bootstrap;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<Bootstrap>, I>>(
+    object: I
+  ): Bootstrap {
+    const message = createBaseBootstrap();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
     return message;
   },
 };
 
-const baseBootstrapResponse: object = {};
+function createBaseBootstrapResponse(): BootstrapResponse {
+  return { messages: [] };
+}
 
 export const BootstrapResponse = {
   encode(message: BootstrapResponse, writer: Writer = Writer.create()): Writer {
@@ -1774,8 +1877,7 @@ export const BootstrapResponse = {
   decode(input: Reader | Uint8Array, length?: number): BootstrapResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseBootstrapResponse } as BootstrapResponse;
-    message.messages = [];
+    const message = createBaseBootstrapResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1791,14 +1893,11 @@ export const BootstrapResponse = {
   },
 
   fromJSON(object: any): BootstrapResponse {
-    const message = { ...baseBootstrapResponse } as BootstrapResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Bootstrap.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => Bootstrap.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: BootstrapResponse): unknown {
@@ -1813,19 +1912,19 @@ export const BootstrapResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<BootstrapResponse>): BootstrapResponse {
-    const message = { ...baseBootstrapResponse } as BootstrapResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Bootstrap.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<BootstrapResponse>, I>>(
+    object: I
+  ): BootstrapResponse {
+    const message = createBaseBootstrapResponse();
+    message.messages =
+      object.messages?.map((e) => Bootstrap.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseSequenceEvent: object = { sequence: "", action: 0 };
+function createBaseSequenceEvent(): SequenceEvent {
+  return { sequence: "", action: 0, error: undefined };
+}
 
 export const SequenceEvent = {
   encode(message: SequenceEvent, writer: Writer = Writer.create()): Writer {
@@ -1844,7 +1943,7 @@ export const SequenceEvent = {
   decode(input: Reader | Uint8Array, length?: number): SequenceEvent {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseSequenceEvent } as SequenceEvent;
+    const message = createBaseSequenceEvent();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1866,23 +1965,13 @@ export const SequenceEvent = {
   },
 
   fromJSON(object: any): SequenceEvent {
-    const message = { ...baseSequenceEvent } as SequenceEvent;
-    if (object.sequence !== undefined && object.sequence !== null) {
-      message.sequence = String(object.sequence);
-    } else {
-      message.sequence = "";
-    }
-    if (object.action !== undefined && object.action !== null) {
-      message.action = sequenceEvent_ActionFromJSON(object.action);
-    } else {
-      message.action = 0;
-    }
-    if (object.error !== undefined && object.error !== null) {
-      message.error = Error.fromJSON(object.error);
-    } else {
-      message.error = undefined;
-    }
-    return message;
+    return {
+      sequence: isSet(object.sequence) ? String(object.sequence) : "",
+      action: isSet(object.action)
+        ? sequenceEvent_ActionFromJSON(object.action)
+        : 0,
+      error: isSet(object.error) ? Error.fromJSON(object.error) : undefined,
+    };
   },
 
   toJSON(message: SequenceEvent): unknown {
@@ -1895,28 +1984,23 @@ export const SequenceEvent = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<SequenceEvent>): SequenceEvent {
-    const message = { ...baseSequenceEvent } as SequenceEvent;
-    if (object.sequence !== undefined && object.sequence !== null) {
-      message.sequence = object.sequence;
-    } else {
-      message.sequence = "";
-    }
-    if (object.action !== undefined && object.action !== null) {
-      message.action = object.action;
-    } else {
-      message.action = 0;
-    }
-    if (object.error !== undefined && object.error !== null) {
-      message.error = Error.fromPartial(object.error);
-    } else {
-      message.error = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<SequenceEvent>, I>>(
+    object: I
+  ): SequenceEvent {
+    const message = createBaseSequenceEvent();
+    message.sequence = object.sequence ?? "";
+    message.action = object.action ?? 0;
+    message.error =
+      object.error !== undefined && object.error !== null
+        ? Error.fromPartial(object.error)
+        : undefined;
     return message;
   },
 };
 
-const basePhaseEvent: object = { phase: "", action: 0 };
+function createBasePhaseEvent(): PhaseEvent {
+  return { phase: "", action: 0 };
+}
 
 export const PhaseEvent = {
   encode(message: PhaseEvent, writer: Writer = Writer.create()): Writer {
@@ -1932,7 +2016,7 @@ export const PhaseEvent = {
   decode(input: Reader | Uint8Array, length?: number): PhaseEvent {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...basePhaseEvent } as PhaseEvent;
+    const message = createBasePhaseEvent();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1951,18 +2035,12 @@ export const PhaseEvent = {
   },
 
   fromJSON(object: any): PhaseEvent {
-    const message = { ...basePhaseEvent } as PhaseEvent;
-    if (object.phase !== undefined && object.phase !== null) {
-      message.phase = String(object.phase);
-    } else {
-      message.phase = "";
-    }
-    if (object.action !== undefined && object.action !== null) {
-      message.action = phaseEvent_ActionFromJSON(object.action);
-    } else {
-      message.action = 0;
-    }
-    return message;
+    return {
+      phase: isSet(object.phase) ? String(object.phase) : "",
+      action: isSet(object.action)
+        ? phaseEvent_ActionFromJSON(object.action)
+        : 0,
+    };
   },
 
   toJSON(message: PhaseEvent): unknown {
@@ -1973,23 +2051,19 @@ export const PhaseEvent = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<PhaseEvent>): PhaseEvent {
-    const message = { ...basePhaseEvent } as PhaseEvent;
-    if (object.phase !== undefined && object.phase !== null) {
-      message.phase = object.phase;
-    } else {
-      message.phase = "";
-    }
-    if (object.action !== undefined && object.action !== null) {
-      message.action = object.action;
-    } else {
-      message.action = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<PhaseEvent>, I>>(
+    object: I
+  ): PhaseEvent {
+    const message = createBasePhaseEvent();
+    message.phase = object.phase ?? "";
+    message.action = object.action ?? 0;
     return message;
   },
 };
 
-const baseTaskEvent: object = { task: "", action: 0 };
+function createBaseTaskEvent(): TaskEvent {
+  return { task: "", action: 0 };
+}
 
 export const TaskEvent = {
   encode(message: TaskEvent, writer: Writer = Writer.create()): Writer {
@@ -2005,7 +2079,7 @@ export const TaskEvent = {
   decode(input: Reader | Uint8Array, length?: number): TaskEvent {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseTaskEvent } as TaskEvent;
+    const message = createBaseTaskEvent();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2024,18 +2098,12 @@ export const TaskEvent = {
   },
 
   fromJSON(object: any): TaskEvent {
-    const message = { ...baseTaskEvent } as TaskEvent;
-    if (object.task !== undefined && object.task !== null) {
-      message.task = String(object.task);
-    } else {
-      message.task = "";
-    }
-    if (object.action !== undefined && object.action !== null) {
-      message.action = taskEvent_ActionFromJSON(object.action);
-    } else {
-      message.action = 0;
-    }
-    return message;
+    return {
+      task: isSet(object.task) ? String(object.task) : "",
+      action: isSet(object.action)
+        ? taskEvent_ActionFromJSON(object.action)
+        : 0,
+    };
   },
 
   toJSON(message: TaskEvent): unknown {
@@ -2046,23 +2114,19 @@ export const TaskEvent = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<TaskEvent>): TaskEvent {
-    const message = { ...baseTaskEvent } as TaskEvent;
-    if (object.task !== undefined && object.task !== null) {
-      message.task = object.task;
-    } else {
-      message.task = "";
-    }
-    if (object.action !== undefined && object.action !== null) {
-      message.action = object.action;
-    } else {
-      message.action = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<TaskEvent>, I>>(
+    object: I
+  ): TaskEvent {
+    const message = createBaseTaskEvent();
+    message.task = object.task ?? "";
+    message.action = object.action ?? 0;
     return message;
   },
 };
 
-const baseServiceStateEvent: object = { service: "", action: 0, message: "" };
+function createBaseServiceStateEvent(): ServiceStateEvent {
+  return { service: "", action: 0, message: "", health: undefined };
+}
 
 export const ServiceStateEvent = {
   encode(message: ServiceStateEvent, writer: Writer = Writer.create()): Writer {
@@ -2084,7 +2148,7 @@ export const ServiceStateEvent = {
   decode(input: Reader | Uint8Array, length?: number): ServiceStateEvent {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseServiceStateEvent } as ServiceStateEvent;
+    const message = createBaseServiceStateEvent();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2109,28 +2173,16 @@ export const ServiceStateEvent = {
   },
 
   fromJSON(object: any): ServiceStateEvent {
-    const message = { ...baseServiceStateEvent } as ServiceStateEvent;
-    if (object.service !== undefined && object.service !== null) {
-      message.service = String(object.service);
-    } else {
-      message.service = "";
-    }
-    if (object.action !== undefined && object.action !== null) {
-      message.action = serviceStateEvent_ActionFromJSON(object.action);
-    } else {
-      message.action = 0;
-    }
-    if (object.message !== undefined && object.message !== null) {
-      message.message = String(object.message);
-    } else {
-      message.message = "";
-    }
-    if (object.health !== undefined && object.health !== null) {
-      message.health = ServiceHealth.fromJSON(object.health);
-    } else {
-      message.health = undefined;
-    }
-    return message;
+    return {
+      service: isSet(object.service) ? String(object.service) : "",
+      action: isSet(object.action)
+        ? serviceStateEvent_ActionFromJSON(object.action)
+        : 0,
+      message: isSet(object.message) ? String(object.message) : "",
+      health: isSet(object.health)
+        ? ServiceHealth.fromJSON(object.health)
+        : undefined,
+    };
   },
 
   toJSON(message: ServiceStateEvent): unknown {
@@ -2146,33 +2198,24 @@ export const ServiceStateEvent = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ServiceStateEvent>): ServiceStateEvent {
-    const message = { ...baseServiceStateEvent } as ServiceStateEvent;
-    if (object.service !== undefined && object.service !== null) {
-      message.service = object.service;
-    } else {
-      message.service = "";
-    }
-    if (object.action !== undefined && object.action !== null) {
-      message.action = object.action;
-    } else {
-      message.action = 0;
-    }
-    if (object.message !== undefined && object.message !== null) {
-      message.message = object.message;
-    } else {
-      message.message = "";
-    }
-    if (object.health !== undefined && object.health !== null) {
-      message.health = ServiceHealth.fromPartial(object.health);
-    } else {
-      message.health = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<ServiceStateEvent>, I>>(
+    object: I
+  ): ServiceStateEvent {
+    const message = createBaseServiceStateEvent();
+    message.service = object.service ?? "";
+    message.action = object.action ?? 0;
+    message.message = object.message ?? "";
+    message.health =
+      object.health !== undefined && object.health !== null
+        ? ServiceHealth.fromPartial(object.health)
+        : undefined;
     return message;
   },
 };
 
-const baseRestartEvent: object = { cmd: 0 };
+function createBaseRestartEvent(): RestartEvent {
+  return { cmd: 0 };
+}
 
 export const RestartEvent = {
   encode(message: RestartEvent, writer: Writer = Writer.create()): Writer {
@@ -2185,7 +2228,7 @@ export const RestartEvent = {
   decode(input: Reader | Uint8Array, length?: number): RestartEvent {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseRestartEvent } as RestartEvent;
+    const message = createBaseRestartEvent();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2201,37 +2244,206 @@ export const RestartEvent = {
   },
 
   fromJSON(object: any): RestartEvent {
-    const message = { ...baseRestartEvent } as RestartEvent;
-    if (object.cmd !== undefined && object.cmd !== null) {
-      message.cmd = Number(object.cmd);
-    } else {
-      message.cmd = 0;
-    }
-    return message;
+    return {
+      cmd: isSet(object.cmd) ? Number(object.cmd) : 0,
+    };
   },
 
   toJSON(message: RestartEvent): unknown {
     const obj: any = {};
-    message.cmd !== undefined && (obj.cmd = message.cmd);
+    message.cmd !== undefined && (obj.cmd = Math.round(message.cmd));
     return obj;
   },
 
-  fromPartial(object: DeepPartial<RestartEvent>): RestartEvent {
-    const message = { ...baseRestartEvent } as RestartEvent;
-    if (object.cmd !== undefined && object.cmd !== null) {
-      message.cmd = object.cmd;
-    } else {
-      message.cmd = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<RestartEvent>, I>>(
+    object: I
+  ): RestartEvent {
+    const message = createBaseRestartEvent();
+    message.cmd = object.cmd ?? 0;
     return message;
   },
 };
 
-const baseEventsRequest: object = {
-  tail_events: 0,
-  tail_id: "",
-  tail_seconds: 0,
+function createBaseConfigLoadErrorEvent(): ConfigLoadErrorEvent {
+  return { error: "" };
+}
+
+export const ConfigLoadErrorEvent = {
+  encode(
+    message: ConfigLoadErrorEvent,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.error !== "") {
+      writer.uint32(10).string(message.error);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): ConfigLoadErrorEvent {
+    const reader = input instanceof Reader ? input : new Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseConfigLoadErrorEvent();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.error = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ConfigLoadErrorEvent {
+    return {
+      error: isSet(object.error) ? String(object.error) : "",
+    };
+  },
+
+  toJSON(message: ConfigLoadErrorEvent): unknown {
+    const obj: any = {};
+    message.error !== undefined && (obj.error = message.error);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ConfigLoadErrorEvent>, I>>(
+    object: I
+  ): ConfigLoadErrorEvent {
+    const message = createBaseConfigLoadErrorEvent();
+    message.error = object.error ?? "";
+    return message;
+  },
 };
+
+function createBaseConfigValidationErrorEvent(): ConfigValidationErrorEvent {
+  return { error: "" };
+}
+
+export const ConfigValidationErrorEvent = {
+  encode(
+    message: ConfigValidationErrorEvent,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.error !== "") {
+      writer.uint32(10).string(message.error);
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): ConfigValidationErrorEvent {
+    const reader = input instanceof Reader ? input : new Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseConfigValidationErrorEvent();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.error = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ConfigValidationErrorEvent {
+    return {
+      error: isSet(object.error) ? String(object.error) : "",
+    };
+  },
+
+  toJSON(message: ConfigValidationErrorEvent): unknown {
+    const obj: any = {};
+    message.error !== undefined && (obj.error = message.error);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ConfigValidationErrorEvent>, I>>(
+    object: I
+  ): ConfigValidationErrorEvent {
+    const message = createBaseConfigValidationErrorEvent();
+    message.error = object.error ?? "";
+    return message;
+  },
+};
+
+function createBaseAddressEvent(): AddressEvent {
+  return { hostname: "", addresses: [] };
+}
+
+export const AddressEvent = {
+  encode(message: AddressEvent, writer: Writer = Writer.create()): Writer {
+    if (message.hostname !== "") {
+      writer.uint32(10).string(message.hostname);
+    }
+    for (const v of message.addresses) {
+      writer.uint32(18).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): AddressEvent {
+    const reader = input instanceof Reader ? input : new Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAddressEvent();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.hostname = reader.string();
+          break;
+        case 2:
+          message.addresses.push(reader.string());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AddressEvent {
+    return {
+      hostname: isSet(object.hostname) ? String(object.hostname) : "",
+      addresses: Array.isArray(object?.addresses)
+        ? object.addresses.map((e: any) => String(e))
+        : [],
+    };
+  },
+
+  toJSON(message: AddressEvent): unknown {
+    const obj: any = {};
+    message.hostname !== undefined && (obj.hostname = message.hostname);
+    if (message.addresses) {
+      obj.addresses = message.addresses.map((e) => e);
+    } else {
+      obj.addresses = [];
+    }
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<AddressEvent>, I>>(
+    object: I
+  ): AddressEvent {
+    const message = createBaseAddressEvent();
+    message.hostname = object.hostname ?? "";
+    message.addresses = object.addresses?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseEventsRequest(): EventsRequest {
+  return { tail_events: 0, tail_id: "", tail_seconds: 0 };
+}
 
 export const EventsRequest = {
   encode(message: EventsRequest, writer: Writer = Writer.create()): Writer {
@@ -2250,7 +2462,7 @@ export const EventsRequest = {
   decode(input: Reader | Uint8Array, length?: number): EventsRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseEventsRequest } as EventsRequest;
+    const message = createBaseEventsRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2272,57 +2484,39 @@ export const EventsRequest = {
   },
 
   fromJSON(object: any): EventsRequest {
-    const message = { ...baseEventsRequest } as EventsRequest;
-    if (object.tail_events !== undefined && object.tail_events !== null) {
-      message.tail_events = Number(object.tail_events);
-    } else {
-      message.tail_events = 0;
-    }
-    if (object.tail_id !== undefined && object.tail_id !== null) {
-      message.tail_id = String(object.tail_id);
-    } else {
-      message.tail_id = "";
-    }
-    if (object.tail_seconds !== undefined && object.tail_seconds !== null) {
-      message.tail_seconds = Number(object.tail_seconds);
-    } else {
-      message.tail_seconds = 0;
-    }
-    return message;
+    return {
+      tail_events: isSet(object.tail_events) ? Number(object.tail_events) : 0,
+      tail_id: isSet(object.tail_id) ? String(object.tail_id) : "",
+      tail_seconds: isSet(object.tail_seconds)
+        ? Number(object.tail_seconds)
+        : 0,
+    };
   },
 
   toJSON(message: EventsRequest): unknown {
     const obj: any = {};
     message.tail_events !== undefined &&
-      (obj.tail_events = message.tail_events);
+      (obj.tail_events = Math.round(message.tail_events));
     message.tail_id !== undefined && (obj.tail_id = message.tail_id);
     message.tail_seconds !== undefined &&
-      (obj.tail_seconds = message.tail_seconds);
+      (obj.tail_seconds = Math.round(message.tail_seconds));
     return obj;
   },
 
-  fromPartial(object: DeepPartial<EventsRequest>): EventsRequest {
-    const message = { ...baseEventsRequest } as EventsRequest;
-    if (object.tail_events !== undefined && object.tail_events !== null) {
-      message.tail_events = object.tail_events;
-    } else {
-      message.tail_events = 0;
-    }
-    if (object.tail_id !== undefined && object.tail_id !== null) {
-      message.tail_id = object.tail_id;
-    } else {
-      message.tail_id = "";
-    }
-    if (object.tail_seconds !== undefined && object.tail_seconds !== null) {
-      message.tail_seconds = object.tail_seconds;
-    } else {
-      message.tail_seconds = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<EventsRequest>, I>>(
+    object: I
+  ): EventsRequest {
+    const message = createBaseEventsRequest();
+    message.tail_events = object.tail_events ?? 0;
+    message.tail_id = object.tail_id ?? "";
+    message.tail_seconds = object.tail_seconds ?? 0;
     return message;
   },
 };
 
-const baseEvent: object = { id: "" };
+function createBaseEvent(): Event {
+  return { metadata: undefined, data: undefined, id: "" };
+}
 
 export const Event = {
   encode(message: Event, writer: Writer = Writer.create()): Writer {
@@ -2341,7 +2535,7 @@ export const Event = {
   decode(input: Reader | Uint8Array, length?: number): Event {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseEvent } as Event;
+    const message = createBaseEvent();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2363,23 +2557,13 @@ export const Event = {
   },
 
   fromJSON(object: any): Event {
-    const message = { ...baseEvent } as Event;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.data !== undefined && object.data !== null) {
-      message.data = Any.fromJSON(object.data);
-    } else {
-      message.data = undefined;
-    }
-    if (object.id !== undefined && object.id !== null) {
-      message.id = String(object.id);
-    } else {
-      message.id = "";
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      data: isSet(object.data) ? Any.fromJSON(object.data) : undefined,
+      id: isSet(object.id) ? String(object.id) : "",
+    };
   },
 
   toJSON(message: Event): unknown {
@@ -2394,28 +2578,24 @@ export const Event = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Event>): Event {
-    const message = { ...baseEvent } as Event;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.data !== undefined && object.data !== null) {
-      message.data = Any.fromPartial(object.data);
-    } else {
-      message.data = undefined;
-    }
-    if (object.id !== undefined && object.id !== null) {
-      message.id = object.id;
-    } else {
-      message.id = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<Event>, I>>(object: I): Event {
+    const message = createBaseEvent();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.data =
+      object.data !== undefined && object.data !== null
+        ? Any.fromPartial(object.data)
+        : undefined;
+    message.id = object.id ?? "";
     return message;
   },
 };
 
-const baseResetPartitionSpec: object = { label: "", wipe: false };
+function createBaseResetPartitionSpec(): ResetPartitionSpec {
+  return { label: "", wipe: false };
+}
 
 export const ResetPartitionSpec = {
   encode(
@@ -2434,7 +2614,7 @@ export const ResetPartitionSpec = {
   decode(input: Reader | Uint8Array, length?: number): ResetPartitionSpec {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseResetPartitionSpec } as ResetPartitionSpec;
+    const message = createBaseResetPartitionSpec();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2453,18 +2633,10 @@ export const ResetPartitionSpec = {
   },
 
   fromJSON(object: any): ResetPartitionSpec {
-    const message = { ...baseResetPartitionSpec } as ResetPartitionSpec;
-    if (object.label !== undefined && object.label !== null) {
-      message.label = String(object.label);
-    } else {
-      message.label = "";
-    }
-    if (object.wipe !== undefined && object.wipe !== null) {
-      message.wipe = Boolean(object.wipe);
-    } else {
-      message.wipe = false;
-    }
-    return message;
+    return {
+      label: isSet(object.label) ? String(object.label) : "",
+      wipe: isSet(object.wipe) ? Boolean(object.wipe) : false,
+    };
   },
 
   toJSON(message: ResetPartitionSpec): unknown {
@@ -2474,23 +2646,19 @@ export const ResetPartitionSpec = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ResetPartitionSpec>): ResetPartitionSpec {
-    const message = { ...baseResetPartitionSpec } as ResetPartitionSpec;
-    if (object.label !== undefined && object.label !== null) {
-      message.label = object.label;
-    } else {
-      message.label = "";
-    }
-    if (object.wipe !== undefined && object.wipe !== null) {
-      message.wipe = object.wipe;
-    } else {
-      message.wipe = false;
-    }
+  fromPartial<I extends Exact<DeepPartial<ResetPartitionSpec>, I>>(
+    object: I
+  ): ResetPartitionSpec {
+    const message = createBaseResetPartitionSpec();
+    message.label = object.label ?? "";
+    message.wipe = object.wipe ?? false;
     return message;
   },
 };
 
-const baseResetRequest: object = { graceful: false, reboot: false };
+function createBaseResetRequest(): ResetRequest {
+  return { graceful: false, reboot: false, system_partitions_to_wipe: [] };
+}
 
 export const ResetRequest = {
   encode(message: ResetRequest, writer: Writer = Writer.create()): Writer {
@@ -2509,8 +2677,7 @@ export const ResetRequest = {
   decode(input: Reader | Uint8Array, length?: number): ResetRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseResetRequest } as ResetRequest;
-    message.system_partitions_to_wipe = [];
+    const message = createBaseResetRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2534,27 +2701,17 @@ export const ResetRequest = {
   },
 
   fromJSON(object: any): ResetRequest {
-    const message = { ...baseResetRequest } as ResetRequest;
-    message.system_partitions_to_wipe = [];
-    if (object.graceful !== undefined && object.graceful !== null) {
-      message.graceful = Boolean(object.graceful);
-    } else {
-      message.graceful = false;
-    }
-    if (object.reboot !== undefined && object.reboot !== null) {
-      message.reboot = Boolean(object.reboot);
-    } else {
-      message.reboot = false;
-    }
-    if (
-      object.system_partitions_to_wipe !== undefined &&
-      object.system_partitions_to_wipe !== null
-    ) {
-      for (const e of object.system_partitions_to_wipe) {
-        message.system_partitions_to_wipe.push(ResetPartitionSpec.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      graceful: isSet(object.graceful) ? Boolean(object.graceful) : false,
+      reboot: isSet(object.reboot) ? Boolean(object.reboot) : false,
+      system_partitions_to_wipe: Array.isArray(
+        object?.system_partitions_to_wipe
+      )
+        ? object.system_partitions_to_wipe.map((e: any) =>
+            ResetPartitionSpec.fromJSON(e)
+          )
+        : [],
+    };
   },
 
   toJSON(message: ResetRequest): unknown {
@@ -2571,34 +2728,23 @@ export const ResetRequest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ResetRequest>): ResetRequest {
-    const message = { ...baseResetRequest } as ResetRequest;
-    message.system_partitions_to_wipe = [];
-    if (object.graceful !== undefined && object.graceful !== null) {
-      message.graceful = object.graceful;
-    } else {
-      message.graceful = false;
-    }
-    if (object.reboot !== undefined && object.reboot !== null) {
-      message.reboot = object.reboot;
-    } else {
-      message.reboot = false;
-    }
-    if (
-      object.system_partitions_to_wipe !== undefined &&
-      object.system_partitions_to_wipe !== null
-    ) {
-      for (const e of object.system_partitions_to_wipe) {
-        message.system_partitions_to_wipe.push(
-          ResetPartitionSpec.fromPartial(e)
-        );
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<ResetRequest>, I>>(
+    object: I
+  ): ResetRequest {
+    const message = createBaseResetRequest();
+    message.graceful = object.graceful ?? false;
+    message.reboot = object.reboot ?? false;
+    message.system_partitions_to_wipe =
+      object.system_partitions_to_wipe?.map((e) =>
+        ResetPartitionSpec.fromPartial(e)
+      ) || [];
     return message;
   },
 };
 
-const baseReset: object = {};
+function createBaseReset(): Reset {
+  return { metadata: undefined };
+}
 
 export const Reset = {
   encode(message: Reset, writer: Writer = Writer.create()): Writer {
@@ -2611,7 +2757,7 @@ export const Reset = {
   decode(input: Reader | Uint8Array, length?: number): Reset {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseReset } as Reset;
+    const message = createBaseReset();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2627,13 +2773,11 @@ export const Reset = {
   },
 
   fromJSON(object: any): Reset {
-    const message = { ...baseReset } as Reset;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+    };
   },
 
   toJSON(message: Reset): unknown {
@@ -2645,18 +2789,19 @@ export const Reset = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Reset>): Reset {
-    const message = { ...baseReset } as Reset;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<Reset>, I>>(object: I): Reset {
+    const message = createBaseReset();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
     return message;
   },
 };
 
-const baseResetResponse: object = {};
+function createBaseResetResponse(): ResetResponse {
+  return { messages: [] };
+}
 
 export const ResetResponse = {
   encode(message: ResetResponse, writer: Writer = Writer.create()): Writer {
@@ -2669,8 +2814,7 @@ export const ResetResponse = {
   decode(input: Reader | Uint8Array, length?: number): ResetResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseResetResponse } as ResetResponse;
-    message.messages = [];
+    const message = createBaseResetResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2686,14 +2830,11 @@ export const ResetResponse = {
   },
 
   fromJSON(object: any): ResetResponse {
-    const message = { ...baseResetResponse } as ResetResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Reset.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => Reset.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: ResetResponse): unknown {
@@ -2708,19 +2849,18 @@ export const ResetResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ResetResponse>): ResetResponse {
-    const message = { ...baseResetResponse } as ResetResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Reset.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<ResetResponse>, I>>(
+    object: I
+  ): ResetResponse {
+    const message = createBaseResetResponse();
+    message.messages = object.messages?.map((e) => Reset.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseShutdown: object = {};
+function createBaseShutdown(): Shutdown {
+  return { metadata: undefined };
+}
 
 export const Shutdown = {
   encode(message: Shutdown, writer: Writer = Writer.create()): Writer {
@@ -2733,7 +2873,7 @@ export const Shutdown = {
   decode(input: Reader | Uint8Array, length?: number): Shutdown {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseShutdown } as Shutdown;
+    const message = createBaseShutdown();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2749,13 +2889,11 @@ export const Shutdown = {
   },
 
   fromJSON(object: any): Shutdown {
-    const message = { ...baseShutdown } as Shutdown;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+    };
   },
 
   toJSON(message: Shutdown): unknown {
@@ -2767,18 +2905,19 @@ export const Shutdown = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Shutdown>): Shutdown {
-    const message = { ...baseShutdown } as Shutdown;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<Shutdown>, I>>(object: I): Shutdown {
+    const message = createBaseShutdown();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
     return message;
   },
 };
 
-const baseShutdownResponse: object = {};
+function createBaseShutdownResponse(): ShutdownResponse {
+  return { messages: [] };
+}
 
 export const ShutdownResponse = {
   encode(message: ShutdownResponse, writer: Writer = Writer.create()): Writer {
@@ -2791,8 +2930,7 @@ export const ShutdownResponse = {
   decode(input: Reader | Uint8Array, length?: number): ShutdownResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseShutdownResponse } as ShutdownResponse;
-    message.messages = [];
+    const message = createBaseShutdownResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2808,14 +2946,11 @@ export const ShutdownResponse = {
   },
 
   fromJSON(object: any): ShutdownResponse {
-    const message = { ...baseShutdownResponse } as ShutdownResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Shutdown.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => Shutdown.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: ShutdownResponse): unknown {
@@ -2830,24 +2965,19 @@ export const ShutdownResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ShutdownResponse>): ShutdownResponse {
-    const message = { ...baseShutdownResponse } as ShutdownResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Shutdown.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<ShutdownResponse>, I>>(
+    object: I
+  ): ShutdownResponse {
+    const message = createBaseShutdownResponse();
+    message.messages =
+      object.messages?.map((e) => Shutdown.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseUpgradeRequest: object = {
-  image: "",
-  preserve: false,
-  stage: false,
-  force: false,
-};
+function createBaseUpgradeRequest(): UpgradeRequest {
+  return { image: "", preserve: false, stage: false, force: false };
+}
 
 export const UpgradeRequest = {
   encode(message: UpgradeRequest, writer: Writer = Writer.create()): Writer {
@@ -2869,7 +2999,7 @@ export const UpgradeRequest = {
   decode(input: Reader | Uint8Array, length?: number): UpgradeRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseUpgradeRequest } as UpgradeRequest;
+    const message = createBaseUpgradeRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2894,28 +3024,12 @@ export const UpgradeRequest = {
   },
 
   fromJSON(object: any): UpgradeRequest {
-    const message = { ...baseUpgradeRequest } as UpgradeRequest;
-    if (object.image !== undefined && object.image !== null) {
-      message.image = String(object.image);
-    } else {
-      message.image = "";
-    }
-    if (object.preserve !== undefined && object.preserve !== null) {
-      message.preserve = Boolean(object.preserve);
-    } else {
-      message.preserve = false;
-    }
-    if (object.stage !== undefined && object.stage !== null) {
-      message.stage = Boolean(object.stage);
-    } else {
-      message.stage = false;
-    }
-    if (object.force !== undefined && object.force !== null) {
-      message.force = Boolean(object.force);
-    } else {
-      message.force = false;
-    }
-    return message;
+    return {
+      image: isSet(object.image) ? String(object.image) : "",
+      preserve: isSet(object.preserve) ? Boolean(object.preserve) : false,
+      stage: isSet(object.stage) ? Boolean(object.stage) : false,
+      force: isSet(object.force) ? Boolean(object.force) : false,
+    };
   },
 
   toJSON(message: UpgradeRequest): unknown {
@@ -2927,33 +3041,21 @@ export const UpgradeRequest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<UpgradeRequest>): UpgradeRequest {
-    const message = { ...baseUpgradeRequest } as UpgradeRequest;
-    if (object.image !== undefined && object.image !== null) {
-      message.image = object.image;
-    } else {
-      message.image = "";
-    }
-    if (object.preserve !== undefined && object.preserve !== null) {
-      message.preserve = object.preserve;
-    } else {
-      message.preserve = false;
-    }
-    if (object.stage !== undefined && object.stage !== null) {
-      message.stage = object.stage;
-    } else {
-      message.stage = false;
-    }
-    if (object.force !== undefined && object.force !== null) {
-      message.force = object.force;
-    } else {
-      message.force = false;
-    }
+  fromPartial<I extends Exact<DeepPartial<UpgradeRequest>, I>>(
+    object: I
+  ): UpgradeRequest {
+    const message = createBaseUpgradeRequest();
+    message.image = object.image ?? "";
+    message.preserve = object.preserve ?? false;
+    message.stage = object.stage ?? false;
+    message.force = object.force ?? false;
     return message;
   },
 };
 
-const baseUpgrade: object = { ack: "" };
+function createBaseUpgrade(): Upgrade {
+  return { metadata: undefined, ack: "" };
+}
 
 export const Upgrade = {
   encode(message: Upgrade, writer: Writer = Writer.create()): Writer {
@@ -2969,7 +3071,7 @@ export const Upgrade = {
   decode(input: Reader | Uint8Array, length?: number): Upgrade {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseUpgrade } as Upgrade;
+    const message = createBaseUpgrade();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2988,18 +3090,12 @@ export const Upgrade = {
   },
 
   fromJSON(object: any): Upgrade {
-    const message = { ...baseUpgrade } as Upgrade;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.ack !== undefined && object.ack !== null) {
-      message.ack = String(object.ack);
-    } else {
-      message.ack = "";
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      ack: isSet(object.ack) ? String(object.ack) : "",
+    };
   },
 
   toJSON(message: Upgrade): unknown {
@@ -3012,23 +3108,20 @@ export const Upgrade = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Upgrade>): Upgrade {
-    const message = { ...baseUpgrade } as Upgrade;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.ack !== undefined && object.ack !== null) {
-      message.ack = object.ack;
-    } else {
-      message.ack = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<Upgrade>, I>>(object: I): Upgrade {
+    const message = createBaseUpgrade();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.ack = object.ack ?? "";
     return message;
   },
 };
 
-const baseUpgradeResponse: object = {};
+function createBaseUpgradeResponse(): UpgradeResponse {
+  return { messages: [] };
+}
 
 export const UpgradeResponse = {
   encode(message: UpgradeResponse, writer: Writer = Writer.create()): Writer {
@@ -3041,8 +3134,7 @@ export const UpgradeResponse = {
   decode(input: Reader | Uint8Array, length?: number): UpgradeResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseUpgradeResponse } as UpgradeResponse;
-    message.messages = [];
+    const message = createBaseUpgradeResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3058,14 +3150,11 @@ export const UpgradeResponse = {
   },
 
   fromJSON(object: any): UpgradeResponse {
-    const message = { ...baseUpgradeResponse } as UpgradeResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Upgrade.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => Upgrade.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: UpgradeResponse): unknown {
@@ -3080,19 +3169,19 @@ export const UpgradeResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<UpgradeResponse>): UpgradeResponse {
-    const message = { ...baseUpgradeResponse } as UpgradeResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Upgrade.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<UpgradeResponse>, I>>(
+    object: I
+  ): UpgradeResponse {
+    const message = createBaseUpgradeResponse();
+    message.messages =
+      object.messages?.map((e) => Upgrade.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseServiceList: object = {};
+function createBaseServiceList(): ServiceList {
+  return { metadata: undefined, services: [] };
+}
 
 export const ServiceList = {
   encode(message: ServiceList, writer: Writer = Writer.create()): Writer {
@@ -3108,8 +3197,7 @@ export const ServiceList = {
   decode(input: Reader | Uint8Array, length?: number): ServiceList {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseServiceList } as ServiceList;
-    message.services = [];
+    const message = createBaseServiceList();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3128,19 +3216,14 @@ export const ServiceList = {
   },
 
   fromJSON(object: any): ServiceList {
-    const message = { ...baseServiceList } as ServiceList;
-    message.services = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.services !== undefined && object.services !== null) {
-      for (const e of object.services) {
-        message.services.push(ServiceInfo.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      services: Array.isArray(object?.services)
+        ? object.services.map((e: any) => ServiceInfo.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: ServiceList): unknown {
@@ -3159,24 +3242,23 @@ export const ServiceList = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ServiceList>): ServiceList {
-    const message = { ...baseServiceList } as ServiceList;
-    message.services = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.services !== undefined && object.services !== null) {
-      for (const e of object.services) {
-        message.services.push(ServiceInfo.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<ServiceList>, I>>(
+    object: I
+  ): ServiceList {
+    const message = createBaseServiceList();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.services =
+      object.services?.map((e) => ServiceInfo.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseServiceListResponse: object = {};
+function createBaseServiceListResponse(): ServiceListResponse {
+  return { messages: [] };
+}
 
 export const ServiceListResponse = {
   encode(
@@ -3192,8 +3274,7 @@ export const ServiceListResponse = {
   decode(input: Reader | Uint8Array, length?: number): ServiceListResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseServiceListResponse } as ServiceListResponse;
-    message.messages = [];
+    const message = createBaseServiceListResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3209,14 +3290,11 @@ export const ServiceListResponse = {
   },
 
   fromJSON(object: any): ServiceListResponse {
-    const message = { ...baseServiceListResponse } as ServiceListResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(ServiceList.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => ServiceList.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: ServiceListResponse): unknown {
@@ -3231,19 +3309,19 @@ export const ServiceListResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ServiceListResponse>): ServiceListResponse {
-    const message = { ...baseServiceListResponse } as ServiceListResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(ServiceList.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<ServiceListResponse>, I>>(
+    object: I
+  ): ServiceListResponse {
+    const message = createBaseServiceListResponse();
+    message.messages =
+      object.messages?.map((e) => ServiceList.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseServiceInfo: object = { id: "", state: "" };
+function createBaseServiceInfo(): ServiceInfo {
+  return { id: "", state: "", events: undefined, health: undefined };
+}
 
 export const ServiceInfo = {
   encode(message: ServiceInfo, writer: Writer = Writer.create()): Writer {
@@ -3265,7 +3343,7 @@ export const ServiceInfo = {
   decode(input: Reader | Uint8Array, length?: number): ServiceInfo {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseServiceInfo } as ServiceInfo;
+    const message = createBaseServiceInfo();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3290,28 +3368,16 @@ export const ServiceInfo = {
   },
 
   fromJSON(object: any): ServiceInfo {
-    const message = { ...baseServiceInfo } as ServiceInfo;
-    if (object.id !== undefined && object.id !== null) {
-      message.id = String(object.id);
-    } else {
-      message.id = "";
-    }
-    if (object.state !== undefined && object.state !== null) {
-      message.state = String(object.state);
-    } else {
-      message.state = "";
-    }
-    if (object.events !== undefined && object.events !== null) {
-      message.events = ServiceEvents.fromJSON(object.events);
-    } else {
-      message.events = undefined;
-    }
-    if (object.health !== undefined && object.health !== null) {
-      message.health = ServiceHealth.fromJSON(object.health);
-    } else {
-      message.health = undefined;
-    }
-    return message;
+    return {
+      id: isSet(object.id) ? String(object.id) : "",
+      state: isSet(object.state) ? String(object.state) : "",
+      events: isSet(object.events)
+        ? ServiceEvents.fromJSON(object.events)
+        : undefined,
+      health: isSet(object.health)
+        ? ServiceHealth.fromJSON(object.health)
+        : undefined,
+    };
   },
 
   toJSON(message: ServiceInfo): unknown {
@@ -3329,33 +3395,27 @@ export const ServiceInfo = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ServiceInfo>): ServiceInfo {
-    const message = { ...baseServiceInfo } as ServiceInfo;
-    if (object.id !== undefined && object.id !== null) {
-      message.id = object.id;
-    } else {
-      message.id = "";
-    }
-    if (object.state !== undefined && object.state !== null) {
-      message.state = object.state;
-    } else {
-      message.state = "";
-    }
-    if (object.events !== undefined && object.events !== null) {
-      message.events = ServiceEvents.fromPartial(object.events);
-    } else {
-      message.events = undefined;
-    }
-    if (object.health !== undefined && object.health !== null) {
-      message.health = ServiceHealth.fromPartial(object.health);
-    } else {
-      message.health = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<ServiceInfo>, I>>(
+    object: I
+  ): ServiceInfo {
+    const message = createBaseServiceInfo();
+    message.id = object.id ?? "";
+    message.state = object.state ?? "";
+    message.events =
+      object.events !== undefined && object.events !== null
+        ? ServiceEvents.fromPartial(object.events)
+        : undefined;
+    message.health =
+      object.health !== undefined && object.health !== null
+        ? ServiceHealth.fromPartial(object.health)
+        : undefined;
     return message;
   },
 };
 
-const baseServiceEvents: object = {};
+function createBaseServiceEvents(): ServiceEvents {
+  return { events: [] };
+}
 
 export const ServiceEvents = {
   encode(message: ServiceEvents, writer: Writer = Writer.create()): Writer {
@@ -3368,8 +3428,7 @@ export const ServiceEvents = {
   decode(input: Reader | Uint8Array, length?: number): ServiceEvents {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseServiceEvents } as ServiceEvents;
-    message.events = [];
+    const message = createBaseServiceEvents();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3385,14 +3444,11 @@ export const ServiceEvents = {
   },
 
   fromJSON(object: any): ServiceEvents {
-    const message = { ...baseServiceEvents } as ServiceEvents;
-    message.events = [];
-    if (object.events !== undefined && object.events !== null) {
-      for (const e of object.events) {
-        message.events.push(ServiceEvent.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      events: Array.isArray(object?.events)
+        ? object.events.map((e: any) => ServiceEvent.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: ServiceEvents): unknown {
@@ -3407,19 +3463,19 @@ export const ServiceEvents = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ServiceEvents>): ServiceEvents {
-    const message = { ...baseServiceEvents } as ServiceEvents;
-    message.events = [];
-    if (object.events !== undefined && object.events !== null) {
-      for (const e of object.events) {
-        message.events.push(ServiceEvent.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<ServiceEvents>, I>>(
+    object: I
+  ): ServiceEvents {
+    const message = createBaseServiceEvents();
+    message.events =
+      object.events?.map((e) => ServiceEvent.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseServiceEvent: object = { msg: "", state: "" };
+function createBaseServiceEvent(): ServiceEvent {
+  return { msg: "", state: "", ts: undefined };
+}
 
 export const ServiceEvent = {
   encode(message: ServiceEvent, writer: Writer = Writer.create()): Writer {
@@ -3441,7 +3497,7 @@ export const ServiceEvent = {
   decode(input: Reader | Uint8Array, length?: number): ServiceEvent {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseServiceEvent } as ServiceEvent;
+    const message = createBaseServiceEvent();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3463,23 +3519,11 @@ export const ServiceEvent = {
   },
 
   fromJSON(object: any): ServiceEvent {
-    const message = { ...baseServiceEvent } as ServiceEvent;
-    if (object.msg !== undefined && object.msg !== null) {
-      message.msg = String(object.msg);
-    } else {
-      message.msg = "";
-    }
-    if (object.state !== undefined && object.state !== null) {
-      message.state = String(object.state);
-    } else {
-      message.state = "";
-    }
-    if (object.ts !== undefined && object.ts !== null) {
-      message.ts = fromJsonTimestamp(object.ts);
-    } else {
-      message.ts = undefined;
-    }
-    return message;
+    return {
+      msg: isSet(object.msg) ? String(object.msg) : "",
+      state: isSet(object.state) ? String(object.state) : "",
+      ts: isSet(object.ts) ? fromJsonTimestamp(object.ts) : undefined,
+    };
   },
 
   toJSON(message: ServiceEvent): unknown {
@@ -3490,32 +3534,25 @@ export const ServiceEvent = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ServiceEvent>): ServiceEvent {
-    const message = { ...baseServiceEvent } as ServiceEvent;
-    if (object.msg !== undefined && object.msg !== null) {
-      message.msg = object.msg;
-    } else {
-      message.msg = "";
-    }
-    if (object.state !== undefined && object.state !== null) {
-      message.state = object.state;
-    } else {
-      message.state = "";
-    }
-    if (object.ts !== undefined && object.ts !== null) {
-      message.ts = object.ts;
-    } else {
-      message.ts = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<ServiceEvent>, I>>(
+    object: I
+  ): ServiceEvent {
+    const message = createBaseServiceEvent();
+    message.msg = object.msg ?? "";
+    message.state = object.state ?? "";
+    message.ts = object.ts ?? undefined;
     return message;
   },
 };
 
-const baseServiceHealth: object = {
-  unknown: false,
-  healthy: false,
-  last_message: "",
-};
+function createBaseServiceHealth(): ServiceHealth {
+  return {
+    unknown: false,
+    healthy: false,
+    last_message: "",
+    last_change: undefined,
+  };
+}
 
 export const ServiceHealth = {
   encode(message: ServiceHealth, writer: Writer = Writer.create()): Writer {
@@ -3540,7 +3577,7 @@ export const ServiceHealth = {
   decode(input: Reader | Uint8Array, length?: number): ServiceHealth {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseServiceHealth } as ServiceHealth;
+    const message = createBaseServiceHealth();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3567,28 +3604,16 @@ export const ServiceHealth = {
   },
 
   fromJSON(object: any): ServiceHealth {
-    const message = { ...baseServiceHealth } as ServiceHealth;
-    if (object.unknown !== undefined && object.unknown !== null) {
-      message.unknown = Boolean(object.unknown);
-    } else {
-      message.unknown = false;
-    }
-    if (object.healthy !== undefined && object.healthy !== null) {
-      message.healthy = Boolean(object.healthy);
-    } else {
-      message.healthy = false;
-    }
-    if (object.last_message !== undefined && object.last_message !== null) {
-      message.last_message = String(object.last_message);
-    } else {
-      message.last_message = "";
-    }
-    if (object.last_change !== undefined && object.last_change !== null) {
-      message.last_change = fromJsonTimestamp(object.last_change);
-    } else {
-      message.last_change = undefined;
-    }
-    return message;
+    return {
+      unknown: isSet(object.unknown) ? Boolean(object.unknown) : false,
+      healthy: isSet(object.healthy) ? Boolean(object.healthy) : false,
+      last_message: isSet(object.last_message)
+        ? String(object.last_message)
+        : "",
+      last_change: isSet(object.last_change)
+        ? fromJsonTimestamp(object.last_change)
+        : undefined,
+    };
   },
 
   toJSON(message: ServiceHealth): unknown {
@@ -3602,33 +3627,21 @@ export const ServiceHealth = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ServiceHealth>): ServiceHealth {
-    const message = { ...baseServiceHealth } as ServiceHealth;
-    if (object.unknown !== undefined && object.unknown !== null) {
-      message.unknown = object.unknown;
-    } else {
-      message.unknown = false;
-    }
-    if (object.healthy !== undefined && object.healthy !== null) {
-      message.healthy = object.healthy;
-    } else {
-      message.healthy = false;
-    }
-    if (object.last_message !== undefined && object.last_message !== null) {
-      message.last_message = object.last_message;
-    } else {
-      message.last_message = "";
-    }
-    if (object.last_change !== undefined && object.last_change !== null) {
-      message.last_change = object.last_change;
-    } else {
-      message.last_change = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<ServiceHealth>, I>>(
+    object: I
+  ): ServiceHealth {
+    const message = createBaseServiceHealth();
+    message.unknown = object.unknown ?? false;
+    message.healthy = object.healthy ?? false;
+    message.last_message = object.last_message ?? "";
+    message.last_change = object.last_change ?? undefined;
     return message;
   },
 };
 
-const baseServiceStartRequest: object = { id: "" };
+function createBaseServiceStartRequest(): ServiceStartRequest {
+  return { id: "" };
+}
 
 export const ServiceStartRequest = {
   encode(
@@ -3644,7 +3657,7 @@ export const ServiceStartRequest = {
   decode(input: Reader | Uint8Array, length?: number): ServiceStartRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseServiceStartRequest } as ServiceStartRequest;
+    const message = createBaseServiceStartRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3660,13 +3673,9 @@ export const ServiceStartRequest = {
   },
 
   fromJSON(object: any): ServiceStartRequest {
-    const message = { ...baseServiceStartRequest } as ServiceStartRequest;
-    if (object.id !== undefined && object.id !== null) {
-      message.id = String(object.id);
-    } else {
-      message.id = "";
-    }
-    return message;
+    return {
+      id: isSet(object.id) ? String(object.id) : "",
+    };
   },
 
   toJSON(message: ServiceStartRequest): unknown {
@@ -3675,18 +3684,18 @@ export const ServiceStartRequest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ServiceStartRequest>): ServiceStartRequest {
-    const message = { ...baseServiceStartRequest } as ServiceStartRequest;
-    if (object.id !== undefined && object.id !== null) {
-      message.id = object.id;
-    } else {
-      message.id = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<ServiceStartRequest>, I>>(
+    object: I
+  ): ServiceStartRequest {
+    const message = createBaseServiceStartRequest();
+    message.id = object.id ?? "";
     return message;
   },
 };
 
-const baseServiceStart: object = { resp: "" };
+function createBaseServiceStart(): ServiceStart {
+  return { metadata: undefined, resp: "" };
+}
 
 export const ServiceStart = {
   encode(message: ServiceStart, writer: Writer = Writer.create()): Writer {
@@ -3702,7 +3711,7 @@ export const ServiceStart = {
   decode(input: Reader | Uint8Array, length?: number): ServiceStart {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseServiceStart } as ServiceStart;
+    const message = createBaseServiceStart();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3721,18 +3730,12 @@ export const ServiceStart = {
   },
 
   fromJSON(object: any): ServiceStart {
-    const message = { ...baseServiceStart } as ServiceStart;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.resp !== undefined && object.resp !== null) {
-      message.resp = String(object.resp);
-    } else {
-      message.resp = "";
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      resp: isSet(object.resp) ? String(object.resp) : "",
+    };
   },
 
   toJSON(message: ServiceStart): unknown {
@@ -3745,23 +3748,22 @@ export const ServiceStart = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ServiceStart>): ServiceStart {
-    const message = { ...baseServiceStart } as ServiceStart;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.resp !== undefined && object.resp !== null) {
-      message.resp = object.resp;
-    } else {
-      message.resp = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<ServiceStart>, I>>(
+    object: I
+  ): ServiceStart {
+    const message = createBaseServiceStart();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.resp = object.resp ?? "";
     return message;
   },
 };
 
-const baseServiceStartResponse: object = {};
+function createBaseServiceStartResponse(): ServiceStartResponse {
+  return { messages: [] };
+}
 
 export const ServiceStartResponse = {
   encode(
@@ -3777,8 +3779,7 @@ export const ServiceStartResponse = {
   decode(input: Reader | Uint8Array, length?: number): ServiceStartResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseServiceStartResponse } as ServiceStartResponse;
-    message.messages = [];
+    const message = createBaseServiceStartResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3794,14 +3795,11 @@ export const ServiceStartResponse = {
   },
 
   fromJSON(object: any): ServiceStartResponse {
-    const message = { ...baseServiceStartResponse } as ServiceStartResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(ServiceStart.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => ServiceStart.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: ServiceStartResponse): unknown {
@@ -3816,19 +3814,19 @@ export const ServiceStartResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ServiceStartResponse>): ServiceStartResponse {
-    const message = { ...baseServiceStartResponse } as ServiceStartResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(ServiceStart.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<ServiceStartResponse>, I>>(
+    object: I
+  ): ServiceStartResponse {
+    const message = createBaseServiceStartResponse();
+    message.messages =
+      object.messages?.map((e) => ServiceStart.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseServiceStopRequest: object = { id: "" };
+function createBaseServiceStopRequest(): ServiceStopRequest {
+  return { id: "" };
+}
 
 export const ServiceStopRequest = {
   encode(
@@ -3844,7 +3842,7 @@ export const ServiceStopRequest = {
   decode(input: Reader | Uint8Array, length?: number): ServiceStopRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseServiceStopRequest } as ServiceStopRequest;
+    const message = createBaseServiceStopRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3860,13 +3858,9 @@ export const ServiceStopRequest = {
   },
 
   fromJSON(object: any): ServiceStopRequest {
-    const message = { ...baseServiceStopRequest } as ServiceStopRequest;
-    if (object.id !== undefined && object.id !== null) {
-      message.id = String(object.id);
-    } else {
-      message.id = "";
-    }
-    return message;
+    return {
+      id: isSet(object.id) ? String(object.id) : "",
+    };
   },
 
   toJSON(message: ServiceStopRequest): unknown {
@@ -3875,18 +3869,18 @@ export const ServiceStopRequest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ServiceStopRequest>): ServiceStopRequest {
-    const message = { ...baseServiceStopRequest } as ServiceStopRequest;
-    if (object.id !== undefined && object.id !== null) {
-      message.id = object.id;
-    } else {
-      message.id = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<ServiceStopRequest>, I>>(
+    object: I
+  ): ServiceStopRequest {
+    const message = createBaseServiceStopRequest();
+    message.id = object.id ?? "";
     return message;
   },
 };
 
-const baseServiceStop: object = { resp: "" };
+function createBaseServiceStop(): ServiceStop {
+  return { metadata: undefined, resp: "" };
+}
 
 export const ServiceStop = {
   encode(message: ServiceStop, writer: Writer = Writer.create()): Writer {
@@ -3902,7 +3896,7 @@ export const ServiceStop = {
   decode(input: Reader | Uint8Array, length?: number): ServiceStop {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseServiceStop } as ServiceStop;
+    const message = createBaseServiceStop();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3921,18 +3915,12 @@ export const ServiceStop = {
   },
 
   fromJSON(object: any): ServiceStop {
-    const message = { ...baseServiceStop } as ServiceStop;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.resp !== undefined && object.resp !== null) {
-      message.resp = String(object.resp);
-    } else {
-      message.resp = "";
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      resp: isSet(object.resp) ? String(object.resp) : "",
+    };
   },
 
   toJSON(message: ServiceStop): unknown {
@@ -3945,23 +3933,22 @@ export const ServiceStop = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ServiceStop>): ServiceStop {
-    const message = { ...baseServiceStop } as ServiceStop;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.resp !== undefined && object.resp !== null) {
-      message.resp = object.resp;
-    } else {
-      message.resp = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<ServiceStop>, I>>(
+    object: I
+  ): ServiceStop {
+    const message = createBaseServiceStop();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.resp = object.resp ?? "";
     return message;
   },
 };
 
-const baseServiceStopResponse: object = {};
+function createBaseServiceStopResponse(): ServiceStopResponse {
+  return { messages: [] };
+}
 
 export const ServiceStopResponse = {
   encode(
@@ -3977,8 +3964,7 @@ export const ServiceStopResponse = {
   decode(input: Reader | Uint8Array, length?: number): ServiceStopResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseServiceStopResponse } as ServiceStopResponse;
-    message.messages = [];
+    const message = createBaseServiceStopResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3994,14 +3980,11 @@ export const ServiceStopResponse = {
   },
 
   fromJSON(object: any): ServiceStopResponse {
-    const message = { ...baseServiceStopResponse } as ServiceStopResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(ServiceStop.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => ServiceStop.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: ServiceStopResponse): unknown {
@@ -4016,19 +3999,19 @@ export const ServiceStopResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ServiceStopResponse>): ServiceStopResponse {
-    const message = { ...baseServiceStopResponse } as ServiceStopResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(ServiceStop.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<ServiceStopResponse>, I>>(
+    object: I
+  ): ServiceStopResponse {
+    const message = createBaseServiceStopResponse();
+    message.messages =
+      object.messages?.map((e) => ServiceStop.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseServiceRestartRequest: object = { id: "" };
+function createBaseServiceRestartRequest(): ServiceRestartRequest {
+  return { id: "" };
+}
 
 export const ServiceRestartRequest = {
   encode(
@@ -4044,7 +4027,7 @@ export const ServiceRestartRequest = {
   decode(input: Reader | Uint8Array, length?: number): ServiceRestartRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseServiceRestartRequest } as ServiceRestartRequest;
+    const message = createBaseServiceRestartRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -4060,13 +4043,9 @@ export const ServiceRestartRequest = {
   },
 
   fromJSON(object: any): ServiceRestartRequest {
-    const message = { ...baseServiceRestartRequest } as ServiceRestartRequest;
-    if (object.id !== undefined && object.id !== null) {
-      message.id = String(object.id);
-    } else {
-      message.id = "";
-    }
-    return message;
+    return {
+      id: isSet(object.id) ? String(object.id) : "",
+    };
   },
 
   toJSON(message: ServiceRestartRequest): unknown {
@@ -4075,20 +4054,18 @@ export const ServiceRestartRequest = {
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<ServiceRestartRequest>
+  fromPartial<I extends Exact<DeepPartial<ServiceRestartRequest>, I>>(
+    object: I
   ): ServiceRestartRequest {
-    const message = { ...baseServiceRestartRequest } as ServiceRestartRequest;
-    if (object.id !== undefined && object.id !== null) {
-      message.id = object.id;
-    } else {
-      message.id = "";
-    }
+    const message = createBaseServiceRestartRequest();
+    message.id = object.id ?? "";
     return message;
   },
 };
 
-const baseServiceRestart: object = { resp: "" };
+function createBaseServiceRestart(): ServiceRestart {
+  return { metadata: undefined, resp: "" };
+}
 
 export const ServiceRestart = {
   encode(message: ServiceRestart, writer: Writer = Writer.create()): Writer {
@@ -4104,7 +4081,7 @@ export const ServiceRestart = {
   decode(input: Reader | Uint8Array, length?: number): ServiceRestart {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseServiceRestart } as ServiceRestart;
+    const message = createBaseServiceRestart();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -4123,18 +4100,12 @@ export const ServiceRestart = {
   },
 
   fromJSON(object: any): ServiceRestart {
-    const message = { ...baseServiceRestart } as ServiceRestart;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.resp !== undefined && object.resp !== null) {
-      message.resp = String(object.resp);
-    } else {
-      message.resp = "";
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      resp: isSet(object.resp) ? String(object.resp) : "",
+    };
   },
 
   toJSON(message: ServiceRestart): unknown {
@@ -4147,23 +4118,22 @@ export const ServiceRestart = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ServiceRestart>): ServiceRestart {
-    const message = { ...baseServiceRestart } as ServiceRestart;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.resp !== undefined && object.resp !== null) {
-      message.resp = object.resp;
-    } else {
-      message.resp = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<ServiceRestart>, I>>(
+    object: I
+  ): ServiceRestart {
+    const message = createBaseServiceRestart();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.resp = object.resp ?? "";
     return message;
   },
 };
 
-const baseServiceRestartResponse: object = {};
+function createBaseServiceRestartResponse(): ServiceRestartResponse {
+  return { messages: [] };
+}
 
 export const ServiceRestartResponse = {
   encode(
@@ -4179,8 +4149,7 @@ export const ServiceRestartResponse = {
   decode(input: Reader | Uint8Array, length?: number): ServiceRestartResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseServiceRestartResponse } as ServiceRestartResponse;
-    message.messages = [];
+    const message = createBaseServiceRestartResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -4196,14 +4165,11 @@ export const ServiceRestartResponse = {
   },
 
   fromJSON(object: any): ServiceRestartResponse {
-    const message = { ...baseServiceRestartResponse } as ServiceRestartResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(ServiceRestart.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => ServiceRestart.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: ServiceRestartResponse): unknown {
@@ -4218,241 +4184,19 @@ export const ServiceRestartResponse = {
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<ServiceRestartResponse>
+  fromPartial<I extends Exact<DeepPartial<ServiceRestartResponse>, I>>(
+    object: I
   ): ServiceRestartResponse {
-    const message = { ...baseServiceRestartResponse } as ServiceRestartResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(ServiceRestart.fromPartial(e));
-      }
-    }
+    const message = createBaseServiceRestartResponse();
+    message.messages =
+      object.messages?.map((e) => ServiceRestart.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseStartRequest: object = { id: "" };
-
-export const StartRequest = {
-  encode(message: StartRequest, writer: Writer = Writer.create()): Writer {
-    if (message.id !== "") {
-      writer.uint32(10).string(message.id);
-    }
-    return writer;
-  },
-
-  decode(input: Reader | Uint8Array, length?: number): StartRequest {
-    const reader = input instanceof Reader ? input : new Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseStartRequest } as StartRequest;
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.id = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): StartRequest {
-    const message = { ...baseStartRequest } as StartRequest;
-    if (object.id !== undefined && object.id !== null) {
-      message.id = String(object.id);
-    } else {
-      message.id = "";
-    }
-    return message;
-  },
-
-  toJSON(message: StartRequest): unknown {
-    const obj: any = {};
-    message.id !== undefined && (obj.id = message.id);
-    return obj;
-  },
-
-  fromPartial(object: DeepPartial<StartRequest>): StartRequest {
-    const message = { ...baseStartRequest } as StartRequest;
-    if (object.id !== undefined && object.id !== null) {
-      message.id = object.id;
-    } else {
-      message.id = "";
-    }
-    return message;
-  },
-};
-
-const baseStartResponse: object = { resp: "" };
-
-export const StartResponse = {
-  encode(message: StartResponse, writer: Writer = Writer.create()): Writer {
-    if (message.resp !== "") {
-      writer.uint32(10).string(message.resp);
-    }
-    return writer;
-  },
-
-  decode(input: Reader | Uint8Array, length?: number): StartResponse {
-    const reader = input instanceof Reader ? input : new Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseStartResponse } as StartResponse;
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.resp = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): StartResponse {
-    const message = { ...baseStartResponse } as StartResponse;
-    if (object.resp !== undefined && object.resp !== null) {
-      message.resp = String(object.resp);
-    } else {
-      message.resp = "";
-    }
-    return message;
-  },
-
-  toJSON(message: StartResponse): unknown {
-    const obj: any = {};
-    message.resp !== undefined && (obj.resp = message.resp);
-    return obj;
-  },
-
-  fromPartial(object: DeepPartial<StartResponse>): StartResponse {
-    const message = { ...baseStartResponse } as StartResponse;
-    if (object.resp !== undefined && object.resp !== null) {
-      message.resp = object.resp;
-    } else {
-      message.resp = "";
-    }
-    return message;
-  },
-};
-
-const baseStopRequest: object = { id: "" };
-
-export const StopRequest = {
-  encode(message: StopRequest, writer: Writer = Writer.create()): Writer {
-    if (message.id !== "") {
-      writer.uint32(10).string(message.id);
-    }
-    return writer;
-  },
-
-  decode(input: Reader | Uint8Array, length?: number): StopRequest {
-    const reader = input instanceof Reader ? input : new Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseStopRequest } as StopRequest;
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.id = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): StopRequest {
-    const message = { ...baseStopRequest } as StopRequest;
-    if (object.id !== undefined && object.id !== null) {
-      message.id = String(object.id);
-    } else {
-      message.id = "";
-    }
-    return message;
-  },
-
-  toJSON(message: StopRequest): unknown {
-    const obj: any = {};
-    message.id !== undefined && (obj.id = message.id);
-    return obj;
-  },
-
-  fromPartial(object: DeepPartial<StopRequest>): StopRequest {
-    const message = { ...baseStopRequest } as StopRequest;
-    if (object.id !== undefined && object.id !== null) {
-      message.id = object.id;
-    } else {
-      message.id = "";
-    }
-    return message;
-  },
-};
-
-const baseStopResponse: object = { resp: "" };
-
-export const StopResponse = {
-  encode(message: StopResponse, writer: Writer = Writer.create()): Writer {
-    if (message.resp !== "") {
-      writer.uint32(10).string(message.resp);
-    }
-    return writer;
-  },
-
-  decode(input: Reader | Uint8Array, length?: number): StopResponse {
-    const reader = input instanceof Reader ? input : new Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseStopResponse } as StopResponse;
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.resp = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): StopResponse {
-    const message = { ...baseStopResponse } as StopResponse;
-    if (object.resp !== undefined && object.resp !== null) {
-      message.resp = String(object.resp);
-    } else {
-      message.resp = "";
-    }
-    return message;
-  },
-
-  toJSON(message: StopResponse): unknown {
-    const obj: any = {};
-    message.resp !== undefined && (obj.resp = message.resp);
-    return obj;
-  },
-
-  fromPartial(object: DeepPartial<StopResponse>): StopResponse {
-    const message = { ...baseStopResponse } as StopResponse;
-    if (object.resp !== undefined && object.resp !== null) {
-      message.resp = object.resp;
-    } else {
-      message.resp = "";
-    }
-    return message;
-  },
-};
-
-const baseCopyRequest: object = { root_path: "" };
+function createBaseCopyRequest(): CopyRequest {
+  return { root_path: "" };
+}
 
 export const CopyRequest = {
   encode(message: CopyRequest, writer: Writer = Writer.create()): Writer {
@@ -4465,7 +4209,7 @@ export const CopyRequest = {
   decode(input: Reader | Uint8Array, length?: number): CopyRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseCopyRequest } as CopyRequest;
+    const message = createBaseCopyRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -4481,13 +4225,9 @@ export const CopyRequest = {
   },
 
   fromJSON(object: any): CopyRequest {
-    const message = { ...baseCopyRequest } as CopyRequest;
-    if (object.root_path !== undefined && object.root_path !== null) {
-      message.root_path = String(object.root_path);
-    } else {
-      message.root_path = "";
-    }
-    return message;
+    return {
+      root_path: isSet(object.root_path) ? String(object.root_path) : "",
+    };
   },
 
   toJSON(message: CopyRequest): unknown {
@@ -4496,23 +4236,18 @@ export const CopyRequest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<CopyRequest>): CopyRequest {
-    const message = { ...baseCopyRequest } as CopyRequest;
-    if (object.root_path !== undefined && object.root_path !== null) {
-      message.root_path = object.root_path;
-    } else {
-      message.root_path = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<CopyRequest>, I>>(
+    object: I
+  ): CopyRequest {
+    const message = createBaseCopyRequest();
+    message.root_path = object.root_path ?? "";
     return message;
   },
 };
 
-const baseListRequest: object = {
-  root: "",
-  recurse: false,
-  recursion_depth: 0,
-  types: 0,
-};
+function createBaseListRequest(): ListRequest {
+  return { root: "", recurse: false, recursion_depth: 0, types: [] };
+}
 
 export const ListRequest = {
   encode(message: ListRequest, writer: Writer = Writer.create()): Writer {
@@ -4536,8 +4271,7 @@ export const ListRequest = {
   decode(input: Reader | Uint8Array, length?: number): ListRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseListRequest } as ListRequest;
-    message.types = [];
+    const message = createBaseListRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -4569,32 +4303,16 @@ export const ListRequest = {
   },
 
   fromJSON(object: any): ListRequest {
-    const message = { ...baseListRequest } as ListRequest;
-    message.types = [];
-    if (object.root !== undefined && object.root !== null) {
-      message.root = String(object.root);
-    } else {
-      message.root = "";
-    }
-    if (object.recurse !== undefined && object.recurse !== null) {
-      message.recurse = Boolean(object.recurse);
-    } else {
-      message.recurse = false;
-    }
-    if (
-      object.recursion_depth !== undefined &&
-      object.recursion_depth !== null
-    ) {
-      message.recursion_depth = Number(object.recursion_depth);
-    } else {
-      message.recursion_depth = 0;
-    }
-    if (object.types !== undefined && object.types !== null) {
-      for (const e of object.types) {
-        message.types.push(listRequest_TypeFromJSON(e));
-      }
-    }
-    return message;
+    return {
+      root: isSet(object.root) ? String(object.root) : "",
+      recurse: isSet(object.recurse) ? Boolean(object.recurse) : false,
+      recursion_depth: isSet(object.recursion_depth)
+        ? Number(object.recursion_depth)
+        : 0,
+      types: Array.isArray(object?.types)
+        ? object.types.map((e: any) => listRequest_TypeFromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: ListRequest): unknown {
@@ -4602,7 +4320,7 @@ export const ListRequest = {
     message.root !== undefined && (obj.root = message.root);
     message.recurse !== undefined && (obj.recurse = message.recurse);
     message.recursion_depth !== undefined &&
-      (obj.recursion_depth = message.recursion_depth);
+      (obj.recursion_depth = Math.round(message.recursion_depth));
     if (message.types) {
       obj.types = message.types.map((e) => listRequest_TypeToJSON(e));
     } else {
@@ -4611,42 +4329,21 @@ export const ListRequest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ListRequest>): ListRequest {
-    const message = { ...baseListRequest } as ListRequest;
-    message.types = [];
-    if (object.root !== undefined && object.root !== null) {
-      message.root = object.root;
-    } else {
-      message.root = "";
-    }
-    if (object.recurse !== undefined && object.recurse !== null) {
-      message.recurse = object.recurse;
-    } else {
-      message.recurse = false;
-    }
-    if (
-      object.recursion_depth !== undefined &&
-      object.recursion_depth !== null
-    ) {
-      message.recursion_depth = object.recursion_depth;
-    } else {
-      message.recursion_depth = 0;
-    }
-    if (object.types !== undefined && object.types !== null) {
-      for (const e of object.types) {
-        message.types.push(e);
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<ListRequest>, I>>(
+    object: I
+  ): ListRequest {
+    const message = createBaseListRequest();
+    message.root = object.root ?? "";
+    message.recurse = object.recurse ?? false;
+    message.recursion_depth = object.recursion_depth ?? 0;
+    message.types = object.types?.map((e) => e) || [];
     return message;
   },
 };
 
-const baseDiskUsageRequest: object = {
-  recursion_depth: 0,
-  all: false,
-  threshold: 0,
-  paths: "",
-};
+function createBaseDiskUsageRequest(): DiskUsageRequest {
+  return { recursion_depth: 0, all: false, threshold: 0, paths: [] };
+}
 
 export const DiskUsageRequest = {
   encode(message: DiskUsageRequest, writer: Writer = Writer.create()): Writer {
@@ -4668,8 +4365,7 @@ export const DiskUsageRequest = {
   decode(input: Reader | Uint8Array, length?: number): DiskUsageRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseDiskUsageRequest } as DiskUsageRequest;
-    message.paths = [];
+    const message = createBaseDiskUsageRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -4694,40 +4390,25 @@ export const DiskUsageRequest = {
   },
 
   fromJSON(object: any): DiskUsageRequest {
-    const message = { ...baseDiskUsageRequest } as DiskUsageRequest;
-    message.paths = [];
-    if (
-      object.recursion_depth !== undefined &&
-      object.recursion_depth !== null
-    ) {
-      message.recursion_depth = Number(object.recursion_depth);
-    } else {
-      message.recursion_depth = 0;
-    }
-    if (object.all !== undefined && object.all !== null) {
-      message.all = Boolean(object.all);
-    } else {
-      message.all = false;
-    }
-    if (object.threshold !== undefined && object.threshold !== null) {
-      message.threshold = Number(object.threshold);
-    } else {
-      message.threshold = 0;
-    }
-    if (object.paths !== undefined && object.paths !== null) {
-      for (const e of object.paths) {
-        message.paths.push(String(e));
-      }
-    }
-    return message;
+    return {
+      recursion_depth: isSet(object.recursion_depth)
+        ? Number(object.recursion_depth)
+        : 0,
+      all: isSet(object.all) ? Boolean(object.all) : false,
+      threshold: isSet(object.threshold) ? Number(object.threshold) : 0,
+      paths: Array.isArray(object?.paths)
+        ? object.paths.map((e: any) => String(e))
+        : [],
+    };
   },
 
   toJSON(message: DiskUsageRequest): unknown {
     const obj: any = {};
     message.recursion_depth !== undefined &&
-      (obj.recursion_depth = message.recursion_depth);
+      (obj.recursion_depth = Math.round(message.recursion_depth));
     message.all !== undefined && (obj.all = message.all);
-    message.threshold !== undefined && (obj.threshold = message.threshold);
+    message.threshold !== undefined &&
+      (obj.threshold = Math.round(message.threshold));
     if (message.paths) {
       obj.paths = message.paths.map((e) => e);
     } else {
@@ -4736,46 +4417,33 @@ export const DiskUsageRequest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<DiskUsageRequest>): DiskUsageRequest {
-    const message = { ...baseDiskUsageRequest } as DiskUsageRequest;
-    message.paths = [];
-    if (
-      object.recursion_depth !== undefined &&
-      object.recursion_depth !== null
-    ) {
-      message.recursion_depth = object.recursion_depth;
-    } else {
-      message.recursion_depth = 0;
-    }
-    if (object.all !== undefined && object.all !== null) {
-      message.all = object.all;
-    } else {
-      message.all = false;
-    }
-    if (object.threshold !== undefined && object.threshold !== null) {
-      message.threshold = object.threshold;
-    } else {
-      message.threshold = 0;
-    }
-    if (object.paths !== undefined && object.paths !== null) {
-      for (const e of object.paths) {
-        message.paths.push(e);
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<DiskUsageRequest>, I>>(
+    object: I
+  ): DiskUsageRequest {
+    const message = createBaseDiskUsageRequest();
+    message.recursion_depth = object.recursion_depth ?? 0;
+    message.all = object.all ?? false;
+    message.threshold = object.threshold ?? 0;
+    message.paths = object.paths?.map((e) => e) || [];
     return message;
   },
 };
 
-const baseFileInfo: object = {
-  name: "",
-  size: 0,
-  mode: 0,
-  modified: 0,
-  is_dir: false,
-  error: "",
-  link: "",
-  relative_name: "",
-};
+function createBaseFileInfo(): FileInfo {
+  return {
+    metadata: undefined,
+    name: "",
+    size: 0,
+    mode: 0,
+    modified: 0,
+    is_dir: false,
+    error: "",
+    link: "",
+    relative_name: "",
+    uid: 0,
+    gid: 0,
+  };
+}
 
 export const FileInfo = {
   encode(message: FileInfo, writer: Writer = Writer.create()): Writer {
@@ -4806,13 +4474,19 @@ export const FileInfo = {
     if (message.relative_name !== "") {
       writer.uint32(74).string(message.relative_name);
     }
+    if (message.uid !== 0) {
+      writer.uint32(80).uint32(message.uid);
+    }
+    if (message.gid !== 0) {
+      writer.uint32(88).uint32(message.gid);
+    }
     return writer;
   },
 
   decode(input: Reader | Uint8Array, length?: number): FileInfo {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseFileInfo } as FileInfo;
+    const message = createBaseFileInfo();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -4843,6 +4517,12 @@ export const FileInfo = {
         case 9:
           message.relative_name = reader.string();
           break;
+        case 10:
+          message.uid = reader.uint32();
+          break;
+        case 11:
+          message.gid = reader.uint32();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -4852,53 +4532,23 @@ export const FileInfo = {
   },
 
   fromJSON(object: any): FileInfo {
-    const message = { ...baseFileInfo } as FileInfo;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.name !== undefined && object.name !== null) {
-      message.name = String(object.name);
-    } else {
-      message.name = "";
-    }
-    if (object.size !== undefined && object.size !== null) {
-      message.size = Number(object.size);
-    } else {
-      message.size = 0;
-    }
-    if (object.mode !== undefined && object.mode !== null) {
-      message.mode = Number(object.mode);
-    } else {
-      message.mode = 0;
-    }
-    if (object.modified !== undefined && object.modified !== null) {
-      message.modified = Number(object.modified);
-    } else {
-      message.modified = 0;
-    }
-    if (object.is_dir !== undefined && object.is_dir !== null) {
-      message.is_dir = Boolean(object.is_dir);
-    } else {
-      message.is_dir = false;
-    }
-    if (object.error !== undefined && object.error !== null) {
-      message.error = String(object.error);
-    } else {
-      message.error = "";
-    }
-    if (object.link !== undefined && object.link !== null) {
-      message.link = String(object.link);
-    } else {
-      message.link = "";
-    }
-    if (object.relative_name !== undefined && object.relative_name !== null) {
-      message.relative_name = String(object.relative_name);
-    } else {
-      message.relative_name = "";
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      name: isSet(object.name) ? String(object.name) : "",
+      size: isSet(object.size) ? Number(object.size) : 0,
+      mode: isSet(object.mode) ? Number(object.mode) : 0,
+      modified: isSet(object.modified) ? Number(object.modified) : 0,
+      is_dir: isSet(object.is_dir) ? Boolean(object.is_dir) : false,
+      error: isSet(object.error) ? String(object.error) : "",
+      link: isSet(object.link) ? String(object.link) : "",
+      relative_name: isSet(object.relative_name)
+        ? String(object.relative_name)
+        : "",
+      uid: isSet(object.uid) ? Number(object.uid) : 0,
+      gid: isSet(object.gid) ? Number(object.gid) : 0,
+    };
   },
 
   toJSON(message: FileInfo): unknown {
@@ -4908,74 +4558,49 @@ export const FileInfo = {
         ? Metadata.toJSON(message.metadata)
         : undefined);
     message.name !== undefined && (obj.name = message.name);
-    message.size !== undefined && (obj.size = message.size);
-    message.mode !== undefined && (obj.mode = message.mode);
-    message.modified !== undefined && (obj.modified = message.modified);
+    message.size !== undefined && (obj.size = Math.round(message.size));
+    message.mode !== undefined && (obj.mode = Math.round(message.mode));
+    message.modified !== undefined &&
+      (obj.modified = Math.round(message.modified));
     message.is_dir !== undefined && (obj.is_dir = message.is_dir);
     message.error !== undefined && (obj.error = message.error);
     message.link !== undefined && (obj.link = message.link);
     message.relative_name !== undefined &&
       (obj.relative_name = message.relative_name);
+    message.uid !== undefined && (obj.uid = Math.round(message.uid));
+    message.gid !== undefined && (obj.gid = Math.round(message.gid));
     return obj;
   },
 
-  fromPartial(object: DeepPartial<FileInfo>): FileInfo {
-    const message = { ...baseFileInfo } as FileInfo;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.name !== undefined && object.name !== null) {
-      message.name = object.name;
-    } else {
-      message.name = "";
-    }
-    if (object.size !== undefined && object.size !== null) {
-      message.size = object.size;
-    } else {
-      message.size = 0;
-    }
-    if (object.mode !== undefined && object.mode !== null) {
-      message.mode = object.mode;
-    } else {
-      message.mode = 0;
-    }
-    if (object.modified !== undefined && object.modified !== null) {
-      message.modified = object.modified;
-    } else {
-      message.modified = 0;
-    }
-    if (object.is_dir !== undefined && object.is_dir !== null) {
-      message.is_dir = object.is_dir;
-    } else {
-      message.is_dir = false;
-    }
-    if (object.error !== undefined && object.error !== null) {
-      message.error = object.error;
-    } else {
-      message.error = "";
-    }
-    if (object.link !== undefined && object.link !== null) {
-      message.link = object.link;
-    } else {
-      message.link = "";
-    }
-    if (object.relative_name !== undefined && object.relative_name !== null) {
-      message.relative_name = object.relative_name;
-    } else {
-      message.relative_name = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<FileInfo>, I>>(object: I): FileInfo {
+    const message = createBaseFileInfo();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.name = object.name ?? "";
+    message.size = object.size ?? 0;
+    message.mode = object.mode ?? 0;
+    message.modified = object.modified ?? 0;
+    message.is_dir = object.is_dir ?? false;
+    message.error = object.error ?? "";
+    message.link = object.link ?? "";
+    message.relative_name = object.relative_name ?? "";
+    message.uid = object.uid ?? 0;
+    message.gid = object.gid ?? 0;
     return message;
   },
 };
 
-const baseDiskUsageInfo: object = {
-  name: "",
-  size: 0,
-  error: "",
-  relative_name: "",
-};
+function createBaseDiskUsageInfo(): DiskUsageInfo {
+  return {
+    metadata: undefined,
+    name: "",
+    size: 0,
+    error: "",
+    relative_name: "",
+  };
+}
 
 export const DiskUsageInfo = {
   encode(message: DiskUsageInfo, writer: Writer = Writer.create()): Writer {
@@ -5000,7 +4625,7 @@ export const DiskUsageInfo = {
   decode(input: Reader | Uint8Array, length?: number): DiskUsageInfo {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseDiskUsageInfo } as DiskUsageInfo;
+    const message = createBaseDiskUsageInfo();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -5028,33 +4653,17 @@ export const DiskUsageInfo = {
   },
 
   fromJSON(object: any): DiskUsageInfo {
-    const message = { ...baseDiskUsageInfo } as DiskUsageInfo;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.name !== undefined && object.name !== null) {
-      message.name = String(object.name);
-    } else {
-      message.name = "";
-    }
-    if (object.size !== undefined && object.size !== null) {
-      message.size = Number(object.size);
-    } else {
-      message.size = 0;
-    }
-    if (object.error !== undefined && object.error !== null) {
-      message.error = String(object.error);
-    } else {
-      message.error = "";
-    }
-    if (object.relative_name !== undefined && object.relative_name !== null) {
-      message.relative_name = String(object.relative_name);
-    } else {
-      message.relative_name = "";
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      name: isSet(object.name) ? String(object.name) : "",
+      size: isSet(object.size) ? Number(object.size) : 0,
+      error: isSet(object.error) ? String(object.error) : "",
+      relative_name: isSet(object.relative_name)
+        ? String(object.relative_name)
+        : "",
+    };
   },
 
   toJSON(message: DiskUsageInfo): unknown {
@@ -5064,45 +4673,32 @@ export const DiskUsageInfo = {
         ? Metadata.toJSON(message.metadata)
         : undefined);
     message.name !== undefined && (obj.name = message.name);
-    message.size !== undefined && (obj.size = message.size);
+    message.size !== undefined && (obj.size = Math.round(message.size));
     message.error !== undefined && (obj.error = message.error);
     message.relative_name !== undefined &&
       (obj.relative_name = message.relative_name);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<DiskUsageInfo>): DiskUsageInfo {
-    const message = { ...baseDiskUsageInfo } as DiskUsageInfo;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.name !== undefined && object.name !== null) {
-      message.name = object.name;
-    } else {
-      message.name = "";
-    }
-    if (object.size !== undefined && object.size !== null) {
-      message.size = object.size;
-    } else {
-      message.size = 0;
-    }
-    if (object.error !== undefined && object.error !== null) {
-      message.error = object.error;
-    } else {
-      message.error = "";
-    }
-    if (object.relative_name !== undefined && object.relative_name !== null) {
-      message.relative_name = object.relative_name;
-    } else {
-      message.relative_name = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<DiskUsageInfo>, I>>(
+    object: I
+  ): DiskUsageInfo {
+    const message = createBaseDiskUsageInfo();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.name = object.name ?? "";
+    message.size = object.size ?? 0;
+    message.error = object.error ?? "";
+    message.relative_name = object.relative_name ?? "";
     return message;
   },
 };
 
-const baseMounts: object = {};
+function createBaseMounts(): Mounts {
+  return { metadata: undefined, stats: [] };
+}
 
 export const Mounts = {
   encode(message: Mounts, writer: Writer = Writer.create()): Writer {
@@ -5118,8 +4714,7 @@ export const Mounts = {
   decode(input: Reader | Uint8Array, length?: number): Mounts {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMounts } as Mounts;
-    message.stats = [];
+    const message = createBaseMounts();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -5138,19 +4733,14 @@ export const Mounts = {
   },
 
   fromJSON(object: any): Mounts {
-    const message = { ...baseMounts } as Mounts;
-    message.stats = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.stats !== undefined && object.stats !== null) {
-      for (const e of object.stats) {
-        message.stats.push(MountStat.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      stats: Array.isArray(object?.stats)
+        ? object.stats.map((e: any) => MountStat.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: Mounts): unknown {
@@ -5169,24 +4759,20 @@ export const Mounts = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Mounts>): Mounts {
-    const message = { ...baseMounts } as Mounts;
-    message.stats = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.stats !== undefined && object.stats !== null) {
-      for (const e of object.stats) {
-        message.stats.push(MountStat.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<Mounts>, I>>(object: I): Mounts {
+    const message = createBaseMounts();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.stats = object.stats?.map((e) => MountStat.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseMountsResponse: object = {};
+function createBaseMountsResponse(): MountsResponse {
+  return { messages: [] };
+}
 
 export const MountsResponse = {
   encode(message: MountsResponse, writer: Writer = Writer.create()): Writer {
@@ -5199,8 +4785,7 @@ export const MountsResponse = {
   decode(input: Reader | Uint8Array, length?: number): MountsResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMountsResponse } as MountsResponse;
-    message.messages = [];
+    const message = createBaseMountsResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -5216,14 +4801,11 @@ export const MountsResponse = {
   },
 
   fromJSON(object: any): MountsResponse {
-    const message = { ...baseMountsResponse } as MountsResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Mounts.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => Mounts.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: MountsResponse): unknown {
@@ -5238,24 +4820,18 @@ export const MountsResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<MountsResponse>): MountsResponse {
-    const message = { ...baseMountsResponse } as MountsResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Mounts.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<MountsResponse>, I>>(
+    object: I
+  ): MountsResponse {
+    const message = createBaseMountsResponse();
+    message.messages = object.messages?.map((e) => Mounts.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseMountStat: object = {
-  filesystem: "",
-  size: 0,
-  available: 0,
-  mounted_on: "",
-};
+function createBaseMountStat(): MountStat {
+  return { filesystem: "", size: 0, available: 0, mounted_on: "" };
+}
 
 export const MountStat = {
   encode(message: MountStat, writer: Writer = Writer.create()): Writer {
@@ -5277,7 +4853,7 @@ export const MountStat = {
   decode(input: Reader | Uint8Array, length?: number): MountStat {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMountStat } as MountStat;
+    const message = createBaseMountStat();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -5302,66 +4878,44 @@ export const MountStat = {
   },
 
   fromJSON(object: any): MountStat {
-    const message = { ...baseMountStat } as MountStat;
-    if (object.filesystem !== undefined && object.filesystem !== null) {
-      message.filesystem = String(object.filesystem);
-    } else {
-      message.filesystem = "";
-    }
-    if (object.size !== undefined && object.size !== null) {
-      message.size = Number(object.size);
-    } else {
-      message.size = 0;
-    }
-    if (object.available !== undefined && object.available !== null) {
-      message.available = Number(object.available);
-    } else {
-      message.available = 0;
-    }
-    if (object.mounted_on !== undefined && object.mounted_on !== null) {
-      message.mounted_on = String(object.mounted_on);
-    } else {
-      message.mounted_on = "";
-    }
-    return message;
+    return {
+      filesystem: isSet(object.filesystem) ? String(object.filesystem) : "",
+      size: isSet(object.size) ? Number(object.size) : 0,
+      available: isSet(object.available) ? Number(object.available) : 0,
+      mounted_on: isSet(object.mounted_on) ? String(object.mounted_on) : "",
+    };
   },
 
   toJSON(message: MountStat): unknown {
     const obj: any = {};
     message.filesystem !== undefined && (obj.filesystem = message.filesystem);
-    message.size !== undefined && (obj.size = message.size);
-    message.available !== undefined && (obj.available = message.available);
+    message.size !== undefined && (obj.size = Math.round(message.size));
+    message.available !== undefined &&
+      (obj.available = Math.round(message.available));
     message.mounted_on !== undefined && (obj.mounted_on = message.mounted_on);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<MountStat>): MountStat {
-    const message = { ...baseMountStat } as MountStat;
-    if (object.filesystem !== undefined && object.filesystem !== null) {
-      message.filesystem = object.filesystem;
-    } else {
-      message.filesystem = "";
-    }
-    if (object.size !== undefined && object.size !== null) {
-      message.size = object.size;
-    } else {
-      message.size = 0;
-    }
-    if (object.available !== undefined && object.available !== null) {
-      message.available = object.available;
-    } else {
-      message.available = 0;
-    }
-    if (object.mounted_on !== undefined && object.mounted_on !== null) {
-      message.mounted_on = object.mounted_on;
-    } else {
-      message.mounted_on = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<MountStat>, I>>(
+    object: I
+  ): MountStat {
+    const message = createBaseMountStat();
+    message.filesystem = object.filesystem ?? "";
+    message.size = object.size ?? 0;
+    message.available = object.available ?? 0;
+    message.mounted_on = object.mounted_on ?? "";
     return message;
   },
 };
 
-const baseVersion: object = {};
+function createBaseVersion(): Version {
+  return {
+    metadata: undefined,
+    version: undefined,
+    platform: undefined,
+    features: undefined,
+  };
+}
 
 export const Version = {
   encode(message: Version, writer: Writer = Writer.create()): Writer {
@@ -5383,7 +4937,7 @@ export const Version = {
   decode(input: Reader | Uint8Array, length?: number): Version {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseVersion } as Version;
+    const message = createBaseVersion();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -5408,28 +4962,20 @@ export const Version = {
   },
 
   fromJSON(object: any): Version {
-    const message = { ...baseVersion } as Version;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.version !== undefined && object.version !== null) {
-      message.version = VersionInfo.fromJSON(object.version);
-    } else {
-      message.version = undefined;
-    }
-    if (object.platform !== undefined && object.platform !== null) {
-      message.platform = PlatformInfo.fromJSON(object.platform);
-    } else {
-      message.platform = undefined;
-    }
-    if (object.features !== undefined && object.features !== null) {
-      message.features = FeaturesInfo.fromJSON(object.features);
-    } else {
-      message.features = undefined;
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      version: isSet(object.version)
+        ? VersionInfo.fromJSON(object.version)
+        : undefined,
+      platform: isSet(object.platform)
+        ? PlatformInfo.fromJSON(object.platform)
+        : undefined,
+      features: isSet(object.features)
+        ? FeaturesInfo.fromJSON(object.features)
+        : undefined,
+    };
   },
 
   toJSON(message: Version): unknown {
@@ -5453,33 +4999,31 @@ export const Version = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Version>): Version {
-    const message = { ...baseVersion } as Version;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.version !== undefined && object.version !== null) {
-      message.version = VersionInfo.fromPartial(object.version);
-    } else {
-      message.version = undefined;
-    }
-    if (object.platform !== undefined && object.platform !== null) {
-      message.platform = PlatformInfo.fromPartial(object.platform);
-    } else {
-      message.platform = undefined;
-    }
-    if (object.features !== undefined && object.features !== null) {
-      message.features = FeaturesInfo.fromPartial(object.features);
-    } else {
-      message.features = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<Version>, I>>(object: I): Version {
+    const message = createBaseVersion();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.version =
+      object.version !== undefined && object.version !== null
+        ? VersionInfo.fromPartial(object.version)
+        : undefined;
+    message.platform =
+      object.platform !== undefined && object.platform !== null
+        ? PlatformInfo.fromPartial(object.platform)
+        : undefined;
+    message.features =
+      object.features !== undefined && object.features !== null
+        ? FeaturesInfo.fromPartial(object.features)
+        : undefined;
     return message;
   },
 };
 
-const baseVersionResponse: object = {};
+function createBaseVersionResponse(): VersionResponse {
+  return { messages: [] };
+}
 
 export const VersionResponse = {
   encode(message: VersionResponse, writer: Writer = Writer.create()): Writer {
@@ -5492,8 +5036,7 @@ export const VersionResponse = {
   decode(input: Reader | Uint8Array, length?: number): VersionResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseVersionResponse } as VersionResponse;
-    message.messages = [];
+    const message = createBaseVersionResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -5509,14 +5052,11 @@ export const VersionResponse = {
   },
 
   fromJSON(object: any): VersionResponse {
-    const message = { ...baseVersionResponse } as VersionResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Version.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => Version.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: VersionResponse): unknown {
@@ -5531,26 +5071,19 @@ export const VersionResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<VersionResponse>): VersionResponse {
-    const message = { ...baseVersionResponse } as VersionResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Version.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<VersionResponse>, I>>(
+    object: I
+  ): VersionResponse {
+    const message = createBaseVersionResponse();
+    message.messages =
+      object.messages?.map((e) => Version.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseVersionInfo: object = {
-  tag: "",
-  sha: "",
-  built: "",
-  go_version: "",
-  os: "",
-  arch: "",
-};
+function createBaseVersionInfo(): VersionInfo {
+  return { tag: "", sha: "", built: "", go_version: "", os: "", arch: "" };
+}
 
 export const VersionInfo = {
   encode(message: VersionInfo, writer: Writer = Writer.create()): Writer {
@@ -5578,7 +5111,7 @@ export const VersionInfo = {
   decode(input: Reader | Uint8Array, length?: number): VersionInfo {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseVersionInfo } as VersionInfo;
+    const message = createBaseVersionInfo();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -5609,38 +5142,14 @@ export const VersionInfo = {
   },
 
   fromJSON(object: any): VersionInfo {
-    const message = { ...baseVersionInfo } as VersionInfo;
-    if (object.tag !== undefined && object.tag !== null) {
-      message.tag = String(object.tag);
-    } else {
-      message.tag = "";
-    }
-    if (object.sha !== undefined && object.sha !== null) {
-      message.sha = String(object.sha);
-    } else {
-      message.sha = "";
-    }
-    if (object.built !== undefined && object.built !== null) {
-      message.built = String(object.built);
-    } else {
-      message.built = "";
-    }
-    if (object.go_version !== undefined && object.go_version !== null) {
-      message.go_version = String(object.go_version);
-    } else {
-      message.go_version = "";
-    }
-    if (object.os !== undefined && object.os !== null) {
-      message.os = String(object.os);
-    } else {
-      message.os = "";
-    }
-    if (object.arch !== undefined && object.arch !== null) {
-      message.arch = String(object.arch);
-    } else {
-      message.arch = "";
-    }
-    return message;
+    return {
+      tag: isSet(object.tag) ? String(object.tag) : "",
+      sha: isSet(object.sha) ? String(object.sha) : "",
+      built: isSet(object.built) ? String(object.built) : "",
+      go_version: isSet(object.go_version) ? String(object.go_version) : "",
+      os: isSet(object.os) ? String(object.os) : "",
+      arch: isSet(object.arch) ? String(object.arch) : "",
+    };
   },
 
   toJSON(message: VersionInfo): unknown {
@@ -5654,43 +5163,23 @@ export const VersionInfo = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<VersionInfo>): VersionInfo {
-    const message = { ...baseVersionInfo } as VersionInfo;
-    if (object.tag !== undefined && object.tag !== null) {
-      message.tag = object.tag;
-    } else {
-      message.tag = "";
-    }
-    if (object.sha !== undefined && object.sha !== null) {
-      message.sha = object.sha;
-    } else {
-      message.sha = "";
-    }
-    if (object.built !== undefined && object.built !== null) {
-      message.built = object.built;
-    } else {
-      message.built = "";
-    }
-    if (object.go_version !== undefined && object.go_version !== null) {
-      message.go_version = object.go_version;
-    } else {
-      message.go_version = "";
-    }
-    if (object.os !== undefined && object.os !== null) {
-      message.os = object.os;
-    } else {
-      message.os = "";
-    }
-    if (object.arch !== undefined && object.arch !== null) {
-      message.arch = object.arch;
-    } else {
-      message.arch = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<VersionInfo>, I>>(
+    object: I
+  ): VersionInfo {
+    const message = createBaseVersionInfo();
+    message.tag = object.tag ?? "";
+    message.sha = object.sha ?? "";
+    message.built = object.built ?? "";
+    message.go_version = object.go_version ?? "";
+    message.os = object.os ?? "";
+    message.arch = object.arch ?? "";
     return message;
   },
 };
 
-const basePlatformInfo: object = { name: "", mode: "" };
+function createBasePlatformInfo(): PlatformInfo {
+  return { name: "", mode: "" };
+}
 
 export const PlatformInfo = {
   encode(message: PlatformInfo, writer: Writer = Writer.create()): Writer {
@@ -5706,7 +5195,7 @@ export const PlatformInfo = {
   decode(input: Reader | Uint8Array, length?: number): PlatformInfo {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...basePlatformInfo } as PlatformInfo;
+    const message = createBasePlatformInfo();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -5725,18 +5214,10 @@ export const PlatformInfo = {
   },
 
   fromJSON(object: any): PlatformInfo {
-    const message = { ...basePlatformInfo } as PlatformInfo;
-    if (object.name !== undefined && object.name !== null) {
-      message.name = String(object.name);
-    } else {
-      message.name = "";
-    }
-    if (object.mode !== undefined && object.mode !== null) {
-      message.mode = String(object.mode);
-    } else {
-      message.mode = "";
-    }
-    return message;
+    return {
+      name: isSet(object.name) ? String(object.name) : "",
+      mode: isSet(object.mode) ? String(object.mode) : "",
+    };
   },
 
   toJSON(message: PlatformInfo): unknown {
@@ -5746,23 +5227,19 @@ export const PlatformInfo = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<PlatformInfo>): PlatformInfo {
-    const message = { ...basePlatformInfo } as PlatformInfo;
-    if (object.name !== undefined && object.name !== null) {
-      message.name = object.name;
-    } else {
-      message.name = "";
-    }
-    if (object.mode !== undefined && object.mode !== null) {
-      message.mode = object.mode;
-    } else {
-      message.mode = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<PlatformInfo>, I>>(
+    object: I
+  ): PlatformInfo {
+    const message = createBasePlatformInfo();
+    message.name = object.name ?? "";
+    message.mode = object.mode ?? "";
     return message;
   },
 };
 
-const baseFeaturesInfo: object = { rbac: false };
+function createBaseFeaturesInfo(): FeaturesInfo {
+  return { rbac: false };
+}
 
 export const FeaturesInfo = {
   encode(message: FeaturesInfo, writer: Writer = Writer.create()): Writer {
@@ -5775,7 +5252,7 @@ export const FeaturesInfo = {
   decode(input: Reader | Uint8Array, length?: number): FeaturesInfo {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseFeaturesInfo } as FeaturesInfo;
+    const message = createBaseFeaturesInfo();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -5791,13 +5268,9 @@ export const FeaturesInfo = {
   },
 
   fromJSON(object: any): FeaturesInfo {
-    const message = { ...baseFeaturesInfo } as FeaturesInfo;
-    if (object.rbac !== undefined && object.rbac !== null) {
-      message.rbac = Boolean(object.rbac);
-    } else {
-      message.rbac = false;
-    }
-    return message;
+    return {
+      rbac: isSet(object.rbac) ? Boolean(object.rbac) : false,
+    };
   },
 
   toJSON(message: FeaturesInfo): unknown {
@@ -5806,24 +5279,18 @@ export const FeaturesInfo = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<FeaturesInfo>): FeaturesInfo {
-    const message = { ...baseFeaturesInfo } as FeaturesInfo;
-    if (object.rbac !== undefined && object.rbac !== null) {
-      message.rbac = object.rbac;
-    } else {
-      message.rbac = false;
-    }
+  fromPartial<I extends Exact<DeepPartial<FeaturesInfo>, I>>(
+    object: I
+  ): FeaturesInfo {
+    const message = createBaseFeaturesInfo();
+    message.rbac = object.rbac ?? false;
     return message;
   },
 };
 
-const baseLogsRequest: object = {
-  namespace: "",
-  id: "",
-  driver: 0,
-  follow: false,
-  tail_lines: 0,
-};
+function createBaseLogsRequest(): LogsRequest {
+  return { namespace: "", id: "", driver: 0, follow: false, tail_lines: 0 };
+}
 
 export const LogsRequest = {
   encode(message: LogsRequest, writer: Writer = Writer.create()): Writer {
@@ -5848,7 +5315,7 @@ export const LogsRequest = {
   decode(input: Reader | Uint8Array, length?: number): LogsRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseLogsRequest } as LogsRequest;
+    const message = createBaseLogsRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -5876,33 +5343,13 @@ export const LogsRequest = {
   },
 
   fromJSON(object: any): LogsRequest {
-    const message = { ...baseLogsRequest } as LogsRequest;
-    if (object.namespace !== undefined && object.namespace !== null) {
-      message.namespace = String(object.namespace);
-    } else {
-      message.namespace = "";
-    }
-    if (object.id !== undefined && object.id !== null) {
-      message.id = String(object.id);
-    } else {
-      message.id = "";
-    }
-    if (object.driver !== undefined && object.driver !== null) {
-      message.driver = containerDriverFromJSON(object.driver);
-    } else {
-      message.driver = 0;
-    }
-    if (object.follow !== undefined && object.follow !== null) {
-      message.follow = Boolean(object.follow);
-    } else {
-      message.follow = false;
-    }
-    if (object.tail_lines !== undefined && object.tail_lines !== null) {
-      message.tail_lines = Number(object.tail_lines);
-    } else {
-      message.tail_lines = 0;
-    }
-    return message;
+    return {
+      namespace: isSet(object.namespace) ? String(object.namespace) : "",
+      id: isSet(object.id) ? String(object.id) : "",
+      driver: isSet(object.driver) ? containerDriverFromJSON(object.driver) : 0,
+      follow: isSet(object.follow) ? Boolean(object.follow) : false,
+      tail_lines: isSet(object.tail_lines) ? Number(object.tail_lines) : 0,
+    };
   },
 
   toJSON(message: LogsRequest): unknown {
@@ -5912,42 +5359,27 @@ export const LogsRequest = {
     message.driver !== undefined &&
       (obj.driver = containerDriverToJSON(message.driver));
     message.follow !== undefined && (obj.follow = message.follow);
-    message.tail_lines !== undefined && (obj.tail_lines = message.tail_lines);
+    message.tail_lines !== undefined &&
+      (obj.tail_lines = Math.round(message.tail_lines));
     return obj;
   },
 
-  fromPartial(object: DeepPartial<LogsRequest>): LogsRequest {
-    const message = { ...baseLogsRequest } as LogsRequest;
-    if (object.namespace !== undefined && object.namespace !== null) {
-      message.namespace = object.namespace;
-    } else {
-      message.namespace = "";
-    }
-    if (object.id !== undefined && object.id !== null) {
-      message.id = object.id;
-    } else {
-      message.id = "";
-    }
-    if (object.driver !== undefined && object.driver !== null) {
-      message.driver = object.driver;
-    } else {
-      message.driver = 0;
-    }
-    if (object.follow !== undefined && object.follow !== null) {
-      message.follow = object.follow;
-    } else {
-      message.follow = false;
-    }
-    if (object.tail_lines !== undefined && object.tail_lines !== null) {
-      message.tail_lines = object.tail_lines;
-    } else {
-      message.tail_lines = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<LogsRequest>, I>>(
+    object: I
+  ): LogsRequest {
+    const message = createBaseLogsRequest();
+    message.namespace = object.namespace ?? "";
+    message.id = object.id ?? "";
+    message.driver = object.driver ?? 0;
+    message.follow = object.follow ?? false;
+    message.tail_lines = object.tail_lines ?? 0;
     return message;
   },
 };
 
-const baseReadRequest: object = { path: "" };
+function createBaseReadRequest(): ReadRequest {
+  return { path: "" };
+}
 
 export const ReadRequest = {
   encode(message: ReadRequest, writer: Writer = Writer.create()): Writer {
@@ -5960,7 +5392,7 @@ export const ReadRequest = {
   decode(input: Reader | Uint8Array, length?: number): ReadRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseReadRequest } as ReadRequest;
+    const message = createBaseReadRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -5976,13 +5408,9 @@ export const ReadRequest = {
   },
 
   fromJSON(object: any): ReadRequest {
-    const message = { ...baseReadRequest } as ReadRequest;
-    if (object.path !== undefined && object.path !== null) {
-      message.path = String(object.path);
-    } else {
-      message.path = "";
-    }
-    return message;
+    return {
+      path: isSet(object.path) ? String(object.path) : "",
+    };
   },
 
   toJSON(message: ReadRequest): unknown {
@@ -5991,18 +5419,18 @@ export const ReadRequest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ReadRequest>): ReadRequest {
-    const message = { ...baseReadRequest } as ReadRequest;
-    if (object.path !== undefined && object.path !== null) {
-      message.path = object.path;
-    } else {
-      message.path = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<ReadRequest>, I>>(
+    object: I
+  ): ReadRequest {
+    const message = createBaseReadRequest();
+    message.path = object.path ?? "";
     return message;
   },
 };
 
-const baseRollbackRequest: object = {};
+function createBaseRollbackRequest(): RollbackRequest {
+  return {};
+}
 
 export const RollbackRequest = {
   encode(_: RollbackRequest, writer: Writer = Writer.create()): Writer {
@@ -6012,7 +5440,7 @@ export const RollbackRequest = {
   decode(input: Reader | Uint8Array, length?: number): RollbackRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseRollbackRequest } as RollbackRequest;
+    const message = createBaseRollbackRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -6025,8 +5453,7 @@ export const RollbackRequest = {
   },
 
   fromJSON(_: any): RollbackRequest {
-    const message = { ...baseRollbackRequest } as RollbackRequest;
-    return message;
+    return {};
   },
 
   toJSON(_: RollbackRequest): unknown {
@@ -6034,13 +5461,17 @@ export const RollbackRequest = {
     return obj;
   },
 
-  fromPartial(_: DeepPartial<RollbackRequest>): RollbackRequest {
-    const message = { ...baseRollbackRequest } as RollbackRequest;
+  fromPartial<I extends Exact<DeepPartial<RollbackRequest>, I>>(
+    _: I
+  ): RollbackRequest {
+    const message = createBaseRollbackRequest();
     return message;
   },
 };
 
-const baseRollback: object = {};
+function createBaseRollback(): Rollback {
+  return { metadata: undefined };
+}
 
 export const Rollback = {
   encode(message: Rollback, writer: Writer = Writer.create()): Writer {
@@ -6053,7 +5484,7 @@ export const Rollback = {
   decode(input: Reader | Uint8Array, length?: number): Rollback {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseRollback } as Rollback;
+    const message = createBaseRollback();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -6069,13 +5500,11 @@ export const Rollback = {
   },
 
   fromJSON(object: any): Rollback {
-    const message = { ...baseRollback } as Rollback;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+    };
   },
 
   toJSON(message: Rollback): unknown {
@@ -6087,18 +5516,19 @@ export const Rollback = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Rollback>): Rollback {
-    const message = { ...baseRollback } as Rollback;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<Rollback>, I>>(object: I): Rollback {
+    const message = createBaseRollback();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
     return message;
   },
 };
 
-const baseRollbackResponse: object = {};
+function createBaseRollbackResponse(): RollbackResponse {
+  return { messages: [] };
+}
 
 export const RollbackResponse = {
   encode(message: RollbackResponse, writer: Writer = Writer.create()): Writer {
@@ -6111,8 +5541,7 @@ export const RollbackResponse = {
   decode(input: Reader | Uint8Array, length?: number): RollbackResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseRollbackResponse } as RollbackResponse;
-    message.messages = [];
+    const message = createBaseRollbackResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -6128,14 +5557,11 @@ export const RollbackResponse = {
   },
 
   fromJSON(object: any): RollbackResponse {
-    const message = { ...baseRollbackResponse } as RollbackResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Rollback.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => Rollback.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: RollbackResponse): unknown {
@@ -6150,19 +5576,19 @@ export const RollbackResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<RollbackResponse>): RollbackResponse {
-    const message = { ...baseRollbackResponse } as RollbackResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Rollback.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<RollbackResponse>, I>>(
+    object: I
+  ): RollbackResponse {
+    const message = createBaseRollbackResponse();
+    message.messages =
+      object.messages?.map((e) => Rollback.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseContainersRequest: object = { namespace: "", driver: 0 };
+function createBaseContainersRequest(): ContainersRequest {
+  return { namespace: "", driver: 0 };
+}
 
 export const ContainersRequest = {
   encode(message: ContainersRequest, writer: Writer = Writer.create()): Writer {
@@ -6178,7 +5604,7 @@ export const ContainersRequest = {
   decode(input: Reader | Uint8Array, length?: number): ContainersRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseContainersRequest } as ContainersRequest;
+    const message = createBaseContainersRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -6197,18 +5623,10 @@ export const ContainersRequest = {
   },
 
   fromJSON(object: any): ContainersRequest {
-    const message = { ...baseContainersRequest } as ContainersRequest;
-    if (object.namespace !== undefined && object.namespace !== null) {
-      message.namespace = String(object.namespace);
-    } else {
-      message.namespace = "";
-    }
-    if (object.driver !== undefined && object.driver !== null) {
-      message.driver = containerDriverFromJSON(object.driver);
-    } else {
-      message.driver = 0;
-    }
-    return message;
+    return {
+      namespace: isSet(object.namespace) ? String(object.namespace) : "",
+      driver: isSet(object.driver) ? containerDriverFromJSON(object.driver) : 0,
+    };
   },
 
   toJSON(message: ContainersRequest): unknown {
@@ -6219,31 +5637,27 @@ export const ContainersRequest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ContainersRequest>): ContainersRequest {
-    const message = { ...baseContainersRequest } as ContainersRequest;
-    if (object.namespace !== undefined && object.namespace !== null) {
-      message.namespace = object.namespace;
-    } else {
-      message.namespace = "";
-    }
-    if (object.driver !== undefined && object.driver !== null) {
-      message.driver = object.driver;
-    } else {
-      message.driver = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<ContainersRequest>, I>>(
+    object: I
+  ): ContainersRequest {
+    const message = createBaseContainersRequest();
+    message.namespace = object.namespace ?? "";
+    message.driver = object.driver ?? 0;
     return message;
   },
 };
 
-const baseContainerInfo: object = {
-  namespace: "",
-  id: "",
-  image: "",
-  pid: 0,
-  status: "",
-  pod_id: "",
-  name: "",
-};
+function createBaseContainerInfo(): ContainerInfo {
+  return {
+    namespace: "",
+    id: "",
+    image: "",
+    pid: 0,
+    status: "",
+    pod_id: "",
+    name: "",
+  };
+}
 
 export const ContainerInfo = {
   encode(message: ContainerInfo, writer: Writer = Writer.create()): Writer {
@@ -6274,7 +5688,7 @@ export const ContainerInfo = {
   decode(input: Reader | Uint8Array, length?: number): ContainerInfo {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseContainerInfo } as ContainerInfo;
+    const message = createBaseContainerInfo();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -6308,43 +5722,15 @@ export const ContainerInfo = {
   },
 
   fromJSON(object: any): ContainerInfo {
-    const message = { ...baseContainerInfo } as ContainerInfo;
-    if (object.namespace !== undefined && object.namespace !== null) {
-      message.namespace = String(object.namespace);
-    } else {
-      message.namespace = "";
-    }
-    if (object.id !== undefined && object.id !== null) {
-      message.id = String(object.id);
-    } else {
-      message.id = "";
-    }
-    if (object.image !== undefined && object.image !== null) {
-      message.image = String(object.image);
-    } else {
-      message.image = "";
-    }
-    if (object.pid !== undefined && object.pid !== null) {
-      message.pid = Number(object.pid);
-    } else {
-      message.pid = 0;
-    }
-    if (object.status !== undefined && object.status !== null) {
-      message.status = String(object.status);
-    } else {
-      message.status = "";
-    }
-    if (object.pod_id !== undefined && object.pod_id !== null) {
-      message.pod_id = String(object.pod_id);
-    } else {
-      message.pod_id = "";
-    }
-    if (object.name !== undefined && object.name !== null) {
-      message.name = String(object.name);
-    } else {
-      message.name = "";
-    }
-    return message;
+    return {
+      namespace: isSet(object.namespace) ? String(object.namespace) : "",
+      id: isSet(object.id) ? String(object.id) : "",
+      image: isSet(object.image) ? String(object.image) : "",
+      pid: isSet(object.pid) ? Number(object.pid) : 0,
+      status: isSet(object.status) ? String(object.status) : "",
+      pod_id: isSet(object.pod_id) ? String(object.pod_id) : "",
+      name: isSet(object.name) ? String(object.name) : "",
+    };
   },
 
   toJSON(message: ContainerInfo): unknown {
@@ -6352,55 +5738,31 @@ export const ContainerInfo = {
     message.namespace !== undefined && (obj.namespace = message.namespace);
     message.id !== undefined && (obj.id = message.id);
     message.image !== undefined && (obj.image = message.image);
-    message.pid !== undefined && (obj.pid = message.pid);
+    message.pid !== undefined && (obj.pid = Math.round(message.pid));
     message.status !== undefined && (obj.status = message.status);
     message.pod_id !== undefined && (obj.pod_id = message.pod_id);
     message.name !== undefined && (obj.name = message.name);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ContainerInfo>): ContainerInfo {
-    const message = { ...baseContainerInfo } as ContainerInfo;
-    if (object.namespace !== undefined && object.namespace !== null) {
-      message.namespace = object.namespace;
-    } else {
-      message.namespace = "";
-    }
-    if (object.id !== undefined && object.id !== null) {
-      message.id = object.id;
-    } else {
-      message.id = "";
-    }
-    if (object.image !== undefined && object.image !== null) {
-      message.image = object.image;
-    } else {
-      message.image = "";
-    }
-    if (object.pid !== undefined && object.pid !== null) {
-      message.pid = object.pid;
-    } else {
-      message.pid = 0;
-    }
-    if (object.status !== undefined && object.status !== null) {
-      message.status = object.status;
-    } else {
-      message.status = "";
-    }
-    if (object.pod_id !== undefined && object.pod_id !== null) {
-      message.pod_id = object.pod_id;
-    } else {
-      message.pod_id = "";
-    }
-    if (object.name !== undefined && object.name !== null) {
-      message.name = object.name;
-    } else {
-      message.name = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<ContainerInfo>, I>>(
+    object: I
+  ): ContainerInfo {
+    const message = createBaseContainerInfo();
+    message.namespace = object.namespace ?? "";
+    message.id = object.id ?? "";
+    message.image = object.image ?? "";
+    message.pid = object.pid ?? 0;
+    message.status = object.status ?? "";
+    message.pod_id = object.pod_id ?? "";
+    message.name = object.name ?? "";
     return message;
   },
 };
 
-const baseContainer: object = {};
+function createBaseContainer(): Container {
+  return { metadata: undefined, containers: [] };
+}
 
 export const Container = {
   encode(message: Container, writer: Writer = Writer.create()): Writer {
@@ -6416,8 +5778,7 @@ export const Container = {
   decode(input: Reader | Uint8Array, length?: number): Container {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseContainer } as Container;
-    message.containers = [];
+    const message = createBaseContainer();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -6438,19 +5799,14 @@ export const Container = {
   },
 
   fromJSON(object: any): Container {
-    const message = { ...baseContainer } as Container;
-    message.containers = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.containers !== undefined && object.containers !== null) {
-      for (const e of object.containers) {
-        message.containers.push(ContainerInfo.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      containers: Array.isArray(object?.containers)
+        ? object.containers.map((e: any) => ContainerInfo.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: Container): unknown {
@@ -6469,24 +5825,23 @@ export const Container = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Container>): Container {
-    const message = { ...baseContainer } as Container;
-    message.containers = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.containers !== undefined && object.containers !== null) {
-      for (const e of object.containers) {
-        message.containers.push(ContainerInfo.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<Container>, I>>(
+    object: I
+  ): Container {
+    const message = createBaseContainer();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.containers =
+      object.containers?.map((e) => ContainerInfo.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseContainersResponse: object = {};
+function createBaseContainersResponse(): ContainersResponse {
+  return { messages: [] };
+}
 
 export const ContainersResponse = {
   encode(
@@ -6502,8 +5857,7 @@ export const ContainersResponse = {
   decode(input: Reader | Uint8Array, length?: number): ContainersResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseContainersResponse } as ContainersResponse;
-    message.messages = [];
+    const message = createBaseContainersResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -6519,14 +5873,11 @@ export const ContainersResponse = {
   },
 
   fromJSON(object: any): ContainersResponse {
-    const message = { ...baseContainersResponse } as ContainersResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Container.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => Container.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: ContainersResponse): unknown {
@@ -6541,19 +5892,19 @@ export const ContainersResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ContainersResponse>): ContainersResponse {
-    const message = { ...baseContainersResponse } as ContainersResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Container.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<ContainersResponse>, I>>(
+    object: I
+  ): ContainersResponse {
+    const message = createBaseContainersResponse();
+    message.messages =
+      object.messages?.map((e) => Container.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseDmesgRequest: object = { follow: false, tail: false };
+function createBaseDmesgRequest(): DmesgRequest {
+  return { follow: false, tail: false };
+}
 
 export const DmesgRequest = {
   encode(message: DmesgRequest, writer: Writer = Writer.create()): Writer {
@@ -6569,7 +5920,7 @@ export const DmesgRequest = {
   decode(input: Reader | Uint8Array, length?: number): DmesgRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseDmesgRequest } as DmesgRequest;
+    const message = createBaseDmesgRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -6588,18 +5939,10 @@ export const DmesgRequest = {
   },
 
   fromJSON(object: any): DmesgRequest {
-    const message = { ...baseDmesgRequest } as DmesgRequest;
-    if (object.follow !== undefined && object.follow !== null) {
-      message.follow = Boolean(object.follow);
-    } else {
-      message.follow = false;
-    }
-    if (object.tail !== undefined && object.tail !== null) {
-      message.tail = Boolean(object.tail);
-    } else {
-      message.tail = false;
-    }
-    return message;
+    return {
+      follow: isSet(object.follow) ? Boolean(object.follow) : false,
+      tail: isSet(object.tail) ? Boolean(object.tail) : false,
+    };
   },
 
   toJSON(message: DmesgRequest): unknown {
@@ -6609,23 +5952,19 @@ export const DmesgRequest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<DmesgRequest>): DmesgRequest {
-    const message = { ...baseDmesgRequest } as DmesgRequest;
-    if (object.follow !== undefined && object.follow !== null) {
-      message.follow = object.follow;
-    } else {
-      message.follow = false;
-    }
-    if (object.tail !== undefined && object.tail !== null) {
-      message.tail = object.tail;
-    } else {
-      message.tail = false;
-    }
+  fromPartial<I extends Exact<DeepPartial<DmesgRequest>, I>>(
+    object: I
+  ): DmesgRequest {
+    const message = createBaseDmesgRequest();
+    message.follow = object.follow ?? false;
+    message.tail = object.tail ?? false;
     return message;
   },
 };
 
-const baseProcessesResponse: object = {};
+function createBaseProcessesResponse(): ProcessesResponse {
+  return { messages: [] };
+}
 
 export const ProcessesResponse = {
   encode(message: ProcessesResponse, writer: Writer = Writer.create()): Writer {
@@ -6638,8 +5977,7 @@ export const ProcessesResponse = {
   decode(input: Reader | Uint8Array, length?: number): ProcessesResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseProcessesResponse } as ProcessesResponse;
-    message.messages = [];
+    const message = createBaseProcessesResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -6655,14 +5993,11 @@ export const ProcessesResponse = {
   },
 
   fromJSON(object: any): ProcessesResponse {
-    const message = { ...baseProcessesResponse } as ProcessesResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Process.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => Process.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: ProcessesResponse): unknown {
@@ -6677,19 +6012,19 @@ export const ProcessesResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ProcessesResponse>): ProcessesResponse {
-    const message = { ...baseProcessesResponse } as ProcessesResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Process.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<ProcessesResponse>, I>>(
+    object: I
+  ): ProcessesResponse {
+    const message = createBaseProcessesResponse();
+    message.messages =
+      object.messages?.map((e) => Process.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseProcess: object = {};
+function createBaseProcess(): Process {
+  return { metadata: undefined, processes: [] };
+}
 
 export const Process = {
   encode(message: Process, writer: Writer = Writer.create()): Writer {
@@ -6705,8 +6040,7 @@ export const Process = {
   decode(input: Reader | Uint8Array, length?: number): Process {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseProcess } as Process;
-    message.processes = [];
+    const message = createBaseProcess();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -6725,19 +6059,14 @@ export const Process = {
   },
 
   fromJSON(object: any): Process {
-    const message = { ...baseProcess } as Process;
-    message.processes = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.processes !== undefined && object.processes !== null) {
-      for (const e of object.processes) {
-        message.processes.push(ProcessInfo.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      processes: Array.isArray(object?.processes)
+        ? object.processes.map((e: any) => ProcessInfo.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: Process): unknown {
@@ -6756,35 +6085,32 @@ export const Process = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Process>): Process {
-    const message = { ...baseProcess } as Process;
-    message.processes = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.processes !== undefined && object.processes !== null) {
-      for (const e of object.processes) {
-        message.processes.push(ProcessInfo.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<Process>, I>>(object: I): Process {
+    const message = createBaseProcess();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.processes =
+      object.processes?.map((e) => ProcessInfo.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseProcessInfo: object = {
-  pid: 0,
-  ppid: 0,
-  state: "",
-  threads: 0,
-  cpu_time: 0,
-  virtual_memory: 0,
-  resident_memory: 0,
-  command: "",
-  executable: "",
-  args: "",
-};
+function createBaseProcessInfo(): ProcessInfo {
+  return {
+    pid: 0,
+    ppid: 0,
+    state: "",
+    threads: 0,
+    cpu_time: 0,
+    virtual_memory: 0,
+    resident_memory: 0,
+    command: "",
+    executable: "",
+    args: "",
+  };
+}
 
 export const ProcessInfo = {
   encode(message: ProcessInfo, writer: Writer = Writer.create()): Writer {
@@ -6824,7 +6150,7 @@ export const ProcessInfo = {
   decode(input: Reader | Uint8Array, length?: number): ProcessInfo {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseProcessInfo } as ProcessInfo;
+    const message = createBaseProcessInfo();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -6867,140 +6193,63 @@ export const ProcessInfo = {
   },
 
   fromJSON(object: any): ProcessInfo {
-    const message = { ...baseProcessInfo } as ProcessInfo;
-    if (object.pid !== undefined && object.pid !== null) {
-      message.pid = Number(object.pid);
-    } else {
-      message.pid = 0;
-    }
-    if (object.ppid !== undefined && object.ppid !== null) {
-      message.ppid = Number(object.ppid);
-    } else {
-      message.ppid = 0;
-    }
-    if (object.state !== undefined && object.state !== null) {
-      message.state = String(object.state);
-    } else {
-      message.state = "";
-    }
-    if (object.threads !== undefined && object.threads !== null) {
-      message.threads = Number(object.threads);
-    } else {
-      message.threads = 0;
-    }
-    if (object.cpu_time !== undefined && object.cpu_time !== null) {
-      message.cpu_time = Number(object.cpu_time);
-    } else {
-      message.cpu_time = 0;
-    }
-    if (object.virtual_memory !== undefined && object.virtual_memory !== null) {
-      message.virtual_memory = Number(object.virtual_memory);
-    } else {
-      message.virtual_memory = 0;
-    }
-    if (
-      object.resident_memory !== undefined &&
-      object.resident_memory !== null
-    ) {
-      message.resident_memory = Number(object.resident_memory);
-    } else {
-      message.resident_memory = 0;
-    }
-    if (object.command !== undefined && object.command !== null) {
-      message.command = String(object.command);
-    } else {
-      message.command = "";
-    }
-    if (object.executable !== undefined && object.executable !== null) {
-      message.executable = String(object.executable);
-    } else {
-      message.executable = "";
-    }
-    if (object.args !== undefined && object.args !== null) {
-      message.args = String(object.args);
-    } else {
-      message.args = "";
-    }
-    return message;
+    return {
+      pid: isSet(object.pid) ? Number(object.pid) : 0,
+      ppid: isSet(object.ppid) ? Number(object.ppid) : 0,
+      state: isSet(object.state) ? String(object.state) : "",
+      threads: isSet(object.threads) ? Number(object.threads) : 0,
+      cpu_time: isSet(object.cpu_time) ? Number(object.cpu_time) : 0,
+      virtual_memory: isSet(object.virtual_memory)
+        ? Number(object.virtual_memory)
+        : 0,
+      resident_memory: isSet(object.resident_memory)
+        ? Number(object.resident_memory)
+        : 0,
+      command: isSet(object.command) ? String(object.command) : "",
+      executable: isSet(object.executable) ? String(object.executable) : "",
+      args: isSet(object.args) ? String(object.args) : "",
+    };
   },
 
   toJSON(message: ProcessInfo): unknown {
     const obj: any = {};
-    message.pid !== undefined && (obj.pid = message.pid);
-    message.ppid !== undefined && (obj.ppid = message.ppid);
+    message.pid !== undefined && (obj.pid = Math.round(message.pid));
+    message.ppid !== undefined && (obj.ppid = Math.round(message.ppid));
     message.state !== undefined && (obj.state = message.state);
-    message.threads !== undefined && (obj.threads = message.threads);
+    message.threads !== undefined &&
+      (obj.threads = Math.round(message.threads));
     message.cpu_time !== undefined && (obj.cpu_time = message.cpu_time);
     message.virtual_memory !== undefined &&
-      (obj.virtual_memory = message.virtual_memory);
+      (obj.virtual_memory = Math.round(message.virtual_memory));
     message.resident_memory !== undefined &&
-      (obj.resident_memory = message.resident_memory);
+      (obj.resident_memory = Math.round(message.resident_memory));
     message.command !== undefined && (obj.command = message.command);
     message.executable !== undefined && (obj.executable = message.executable);
     message.args !== undefined && (obj.args = message.args);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ProcessInfo>): ProcessInfo {
-    const message = { ...baseProcessInfo } as ProcessInfo;
-    if (object.pid !== undefined && object.pid !== null) {
-      message.pid = object.pid;
-    } else {
-      message.pid = 0;
-    }
-    if (object.ppid !== undefined && object.ppid !== null) {
-      message.ppid = object.ppid;
-    } else {
-      message.ppid = 0;
-    }
-    if (object.state !== undefined && object.state !== null) {
-      message.state = object.state;
-    } else {
-      message.state = "";
-    }
-    if (object.threads !== undefined && object.threads !== null) {
-      message.threads = object.threads;
-    } else {
-      message.threads = 0;
-    }
-    if (object.cpu_time !== undefined && object.cpu_time !== null) {
-      message.cpu_time = object.cpu_time;
-    } else {
-      message.cpu_time = 0;
-    }
-    if (object.virtual_memory !== undefined && object.virtual_memory !== null) {
-      message.virtual_memory = object.virtual_memory;
-    } else {
-      message.virtual_memory = 0;
-    }
-    if (
-      object.resident_memory !== undefined &&
-      object.resident_memory !== null
-    ) {
-      message.resident_memory = object.resident_memory;
-    } else {
-      message.resident_memory = 0;
-    }
-    if (object.command !== undefined && object.command !== null) {
-      message.command = object.command;
-    } else {
-      message.command = "";
-    }
-    if (object.executable !== undefined && object.executable !== null) {
-      message.executable = object.executable;
-    } else {
-      message.executable = "";
-    }
-    if (object.args !== undefined && object.args !== null) {
-      message.args = object.args;
-    } else {
-      message.args = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<ProcessInfo>, I>>(
+    object: I
+  ): ProcessInfo {
+    const message = createBaseProcessInfo();
+    message.pid = object.pid ?? 0;
+    message.ppid = object.ppid ?? 0;
+    message.state = object.state ?? "";
+    message.threads = object.threads ?? 0;
+    message.cpu_time = object.cpu_time ?? 0;
+    message.virtual_memory = object.virtual_memory ?? 0;
+    message.resident_memory = object.resident_memory ?? 0;
+    message.command = object.command ?? "";
+    message.executable = object.executable ?? "";
+    message.args = object.args ?? "";
     return message;
   },
 };
 
-const baseRestartRequest: object = { namespace: "", id: "", driver: 0 };
+function createBaseRestartRequest(): RestartRequest {
+  return { namespace: "", id: "", driver: 0 };
+}
 
 export const RestartRequest = {
   encode(message: RestartRequest, writer: Writer = Writer.create()): Writer {
@@ -7019,7 +6268,7 @@ export const RestartRequest = {
   decode(input: Reader | Uint8Array, length?: number): RestartRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseRestartRequest } as RestartRequest;
+    const message = createBaseRestartRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -7041,23 +6290,11 @@ export const RestartRequest = {
   },
 
   fromJSON(object: any): RestartRequest {
-    const message = { ...baseRestartRequest } as RestartRequest;
-    if (object.namespace !== undefined && object.namespace !== null) {
-      message.namespace = String(object.namespace);
-    } else {
-      message.namespace = "";
-    }
-    if (object.id !== undefined && object.id !== null) {
-      message.id = String(object.id);
-    } else {
-      message.id = "";
-    }
-    if (object.driver !== undefined && object.driver !== null) {
-      message.driver = containerDriverFromJSON(object.driver);
-    } else {
-      message.driver = 0;
-    }
-    return message;
+    return {
+      namespace: isSet(object.namespace) ? String(object.namespace) : "",
+      id: isSet(object.id) ? String(object.id) : "",
+      driver: isSet(object.driver) ? containerDriverFromJSON(object.driver) : 0,
+    };
   },
 
   toJSON(message: RestartRequest): unknown {
@@ -7069,28 +6306,20 @@ export const RestartRequest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<RestartRequest>): RestartRequest {
-    const message = { ...baseRestartRequest } as RestartRequest;
-    if (object.namespace !== undefined && object.namespace !== null) {
-      message.namespace = object.namespace;
-    } else {
-      message.namespace = "";
-    }
-    if (object.id !== undefined && object.id !== null) {
-      message.id = object.id;
-    } else {
-      message.id = "";
-    }
-    if (object.driver !== undefined && object.driver !== null) {
-      message.driver = object.driver;
-    } else {
-      message.driver = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<RestartRequest>, I>>(
+    object: I
+  ): RestartRequest {
+    const message = createBaseRestartRequest();
+    message.namespace = object.namespace ?? "";
+    message.id = object.id ?? "";
+    message.driver = object.driver ?? 0;
     return message;
   },
 };
 
-const baseRestart: object = {};
+function createBaseRestart(): Restart {
+  return { metadata: undefined };
+}
 
 export const Restart = {
   encode(message: Restart, writer: Writer = Writer.create()): Writer {
@@ -7103,7 +6332,7 @@ export const Restart = {
   decode(input: Reader | Uint8Array, length?: number): Restart {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseRestart } as Restart;
+    const message = createBaseRestart();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -7119,13 +6348,11 @@ export const Restart = {
   },
 
   fromJSON(object: any): Restart {
-    const message = { ...baseRestart } as Restart;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+    };
   },
 
   toJSON(message: Restart): unknown {
@@ -7137,18 +6364,19 @@ export const Restart = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Restart>): Restart {
-    const message = { ...baseRestart } as Restart;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<Restart>, I>>(object: I): Restart {
+    const message = createBaseRestart();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
     return message;
   },
 };
 
-const baseRestartResponse: object = {};
+function createBaseRestartResponse(): RestartResponse {
+  return { messages: [] };
+}
 
 export const RestartResponse = {
   encode(message: RestartResponse, writer: Writer = Writer.create()): Writer {
@@ -7161,8 +6389,7 @@ export const RestartResponse = {
   decode(input: Reader | Uint8Array, length?: number): RestartResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseRestartResponse } as RestartResponse;
-    message.messages = [];
+    const message = createBaseRestartResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -7178,14 +6405,11 @@ export const RestartResponse = {
   },
 
   fromJSON(object: any): RestartResponse {
-    const message = { ...baseRestartResponse } as RestartResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Restart.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => Restart.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: RestartResponse): unknown {
@@ -7200,19 +6424,19 @@ export const RestartResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<RestartResponse>): RestartResponse {
-    const message = { ...baseRestartResponse } as RestartResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Restart.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<RestartResponse>, I>>(
+    object: I
+  ): RestartResponse {
+    const message = createBaseRestartResponse();
+    message.messages =
+      object.messages?.map((e) => Restart.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseStatsRequest: object = { namespace: "", driver: 0 };
+function createBaseStatsRequest(): StatsRequest {
+  return { namespace: "", driver: 0 };
+}
 
 export const StatsRequest = {
   encode(message: StatsRequest, writer: Writer = Writer.create()): Writer {
@@ -7228,7 +6452,7 @@ export const StatsRequest = {
   decode(input: Reader | Uint8Array, length?: number): StatsRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseStatsRequest } as StatsRequest;
+    const message = createBaseStatsRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -7247,18 +6471,10 @@ export const StatsRequest = {
   },
 
   fromJSON(object: any): StatsRequest {
-    const message = { ...baseStatsRequest } as StatsRequest;
-    if (object.namespace !== undefined && object.namespace !== null) {
-      message.namespace = String(object.namespace);
-    } else {
-      message.namespace = "";
-    }
-    if (object.driver !== undefined && object.driver !== null) {
-      message.driver = containerDriverFromJSON(object.driver);
-    } else {
-      message.driver = 0;
-    }
-    return message;
+    return {
+      namespace: isSet(object.namespace) ? String(object.namespace) : "",
+      driver: isSet(object.driver) ? containerDriverFromJSON(object.driver) : 0,
+    };
   },
 
   toJSON(message: StatsRequest): unknown {
@@ -7269,23 +6485,19 @@ export const StatsRequest = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<StatsRequest>): StatsRequest {
-    const message = { ...baseStatsRequest } as StatsRequest;
-    if (object.namespace !== undefined && object.namespace !== null) {
-      message.namespace = object.namespace;
-    } else {
-      message.namespace = "";
-    }
-    if (object.driver !== undefined && object.driver !== null) {
-      message.driver = object.driver;
-    } else {
-      message.driver = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<StatsRequest>, I>>(
+    object: I
+  ): StatsRequest {
+    const message = createBaseStatsRequest();
+    message.namespace = object.namespace ?? "";
+    message.driver = object.driver ?? 0;
     return message;
   },
 };
 
-const baseStats: object = {};
+function createBaseStats(): Stats {
+  return { metadata: undefined, stats: [] };
+}
 
 export const Stats = {
   encode(message: Stats, writer: Writer = Writer.create()): Writer {
@@ -7301,8 +6513,7 @@ export const Stats = {
   decode(input: Reader | Uint8Array, length?: number): Stats {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseStats } as Stats;
-    message.stats = [];
+    const message = createBaseStats();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -7321,19 +6532,14 @@ export const Stats = {
   },
 
   fromJSON(object: any): Stats {
-    const message = { ...baseStats } as Stats;
-    message.stats = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.stats !== undefined && object.stats !== null) {
-      for (const e of object.stats) {
-        message.stats.push(Stat.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      stats: Array.isArray(object?.stats)
+        ? object.stats.map((e: any) => Stat.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: Stats): unknown {
@@ -7350,24 +6556,20 @@ export const Stats = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Stats>): Stats {
-    const message = { ...baseStats } as Stats;
-    message.stats = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.stats !== undefined && object.stats !== null) {
-      for (const e of object.stats) {
-        message.stats.push(Stat.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<Stats>, I>>(object: I): Stats {
+    const message = createBaseStats();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.stats = object.stats?.map((e) => Stat.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseStatsResponse: object = {};
+function createBaseStatsResponse(): StatsResponse {
+  return { messages: [] };
+}
 
 export const StatsResponse = {
   encode(message: StatsResponse, writer: Writer = Writer.create()): Writer {
@@ -7380,8 +6582,7 @@ export const StatsResponse = {
   decode(input: Reader | Uint8Array, length?: number): StatsResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseStatsResponse } as StatsResponse;
-    message.messages = [];
+    const message = createBaseStatsResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -7397,14 +6598,11 @@ export const StatsResponse = {
   },
 
   fromJSON(object: any): StatsResponse {
-    const message = { ...baseStatsResponse } as StatsResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Stats.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => Stats.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: StatsResponse): unknown {
@@ -7419,26 +6617,25 @@ export const StatsResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<StatsResponse>): StatsResponse {
-    const message = { ...baseStatsResponse } as StatsResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Stats.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<StatsResponse>, I>>(
+    object: I
+  ): StatsResponse {
+    const message = createBaseStatsResponse();
+    message.messages = object.messages?.map((e) => Stats.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseStat: object = {
-  namespace: "",
-  id: "",
-  memory_usage: 0,
-  cpu_usage: 0,
-  pod_id: "",
-  name: "",
-};
+function createBaseStat(): Stat {
+  return {
+    namespace: "",
+    id: "",
+    memory_usage: 0,
+    cpu_usage: 0,
+    pod_id: "",
+    name: "",
+  };
+}
 
 export const Stat = {
   encode(message: Stat, writer: Writer = Writer.create()): Writer {
@@ -7466,7 +6663,7 @@ export const Stat = {
   decode(input: Reader | Uint8Array, length?: number): Stat {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseStat } as Stat;
+    const message = createBaseStat();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -7497,38 +6694,16 @@ export const Stat = {
   },
 
   fromJSON(object: any): Stat {
-    const message = { ...baseStat } as Stat;
-    if (object.namespace !== undefined && object.namespace !== null) {
-      message.namespace = String(object.namespace);
-    } else {
-      message.namespace = "";
-    }
-    if (object.id !== undefined && object.id !== null) {
-      message.id = String(object.id);
-    } else {
-      message.id = "";
-    }
-    if (object.memory_usage !== undefined && object.memory_usage !== null) {
-      message.memory_usage = Number(object.memory_usage);
-    } else {
-      message.memory_usage = 0;
-    }
-    if (object.cpu_usage !== undefined && object.cpu_usage !== null) {
-      message.cpu_usage = Number(object.cpu_usage);
-    } else {
-      message.cpu_usage = 0;
-    }
-    if (object.pod_id !== undefined && object.pod_id !== null) {
-      message.pod_id = String(object.pod_id);
-    } else {
-      message.pod_id = "";
-    }
-    if (object.name !== undefined && object.name !== null) {
-      message.name = String(object.name);
-    } else {
-      message.name = "";
-    }
-    return message;
+    return {
+      namespace: isSet(object.namespace) ? String(object.namespace) : "",
+      id: isSet(object.id) ? String(object.id) : "",
+      memory_usage: isSet(object.memory_usage)
+        ? Number(object.memory_usage)
+        : 0,
+      cpu_usage: isSet(object.cpu_usage) ? Number(object.cpu_usage) : 0,
+      pod_id: isSet(object.pod_id) ? String(object.pod_id) : "",
+      name: isSet(object.name) ? String(object.name) : "",
+    };
   },
 
   toJSON(message: Stat): unknown {
@@ -7536,50 +6711,29 @@ export const Stat = {
     message.namespace !== undefined && (obj.namespace = message.namespace);
     message.id !== undefined && (obj.id = message.id);
     message.memory_usage !== undefined &&
-      (obj.memory_usage = message.memory_usage);
-    message.cpu_usage !== undefined && (obj.cpu_usage = message.cpu_usage);
+      (obj.memory_usage = Math.round(message.memory_usage));
+    message.cpu_usage !== undefined &&
+      (obj.cpu_usage = Math.round(message.cpu_usage));
     message.pod_id !== undefined && (obj.pod_id = message.pod_id);
     message.name !== undefined && (obj.name = message.name);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Stat>): Stat {
-    const message = { ...baseStat } as Stat;
-    if (object.namespace !== undefined && object.namespace !== null) {
-      message.namespace = object.namespace;
-    } else {
-      message.namespace = "";
-    }
-    if (object.id !== undefined && object.id !== null) {
-      message.id = object.id;
-    } else {
-      message.id = "";
-    }
-    if (object.memory_usage !== undefined && object.memory_usage !== null) {
-      message.memory_usage = object.memory_usage;
-    } else {
-      message.memory_usage = 0;
-    }
-    if (object.cpu_usage !== undefined && object.cpu_usage !== null) {
-      message.cpu_usage = object.cpu_usage;
-    } else {
-      message.cpu_usage = 0;
-    }
-    if (object.pod_id !== undefined && object.pod_id !== null) {
-      message.pod_id = object.pod_id;
-    } else {
-      message.pod_id = "";
-    }
-    if (object.name !== undefined && object.name !== null) {
-      message.name = object.name;
-    } else {
-      message.name = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<Stat>, I>>(object: I): Stat {
+    const message = createBaseStat();
+    message.namespace = object.namespace ?? "";
+    message.id = object.id ?? "";
+    message.memory_usage = object.memory_usage ?? 0;
+    message.cpu_usage = object.cpu_usage ?? 0;
+    message.pod_id = object.pod_id ?? "";
+    message.name = object.name ?? "";
     return message;
   },
 };
 
-const baseMemory: object = {};
+function createBaseMemory(): Memory {
+  return { metadata: undefined, meminfo: undefined };
+}
 
 export const Memory = {
   encode(message: Memory, writer: Writer = Writer.create()): Writer {
@@ -7595,7 +6749,7 @@ export const Memory = {
   decode(input: Reader | Uint8Array, length?: number): Memory {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMemory } as Memory;
+    const message = createBaseMemory();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -7614,18 +6768,14 @@ export const Memory = {
   },
 
   fromJSON(object: any): Memory {
-    const message = { ...baseMemory } as Memory;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.meminfo !== undefined && object.meminfo !== null) {
-      message.meminfo = MemInfo.fromJSON(object.meminfo);
-    } else {
-      message.meminfo = undefined;
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      meminfo: isSet(object.meminfo)
+        ? MemInfo.fromJSON(object.meminfo)
+        : undefined,
+    };
   },
 
   toJSON(message: Memory): unknown {
@@ -7641,23 +6791,23 @@ export const Memory = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Memory>): Memory {
-    const message = { ...baseMemory } as Memory;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.meminfo !== undefined && object.meminfo !== null) {
-      message.meminfo = MemInfo.fromPartial(object.meminfo);
-    } else {
-      message.meminfo = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<Memory>, I>>(object: I): Memory {
+    const message = createBaseMemory();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.meminfo =
+      object.meminfo !== undefined && object.meminfo !== null
+        ? MemInfo.fromPartial(object.meminfo)
+        : undefined;
     return message;
   },
 };
 
-const baseMemoryResponse: object = {};
+function createBaseMemoryResponse(): MemoryResponse {
+  return { messages: [] };
+}
 
 export const MemoryResponse = {
   encode(message: MemoryResponse, writer: Writer = Writer.create()): Writer {
@@ -7670,8 +6820,7 @@ export const MemoryResponse = {
   decode(input: Reader | Uint8Array, length?: number): MemoryResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMemoryResponse } as MemoryResponse;
-    message.messages = [];
+    const message = createBaseMemoryResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -7687,14 +6836,11 @@ export const MemoryResponse = {
   },
 
   fromJSON(object: any): MemoryResponse {
-    const message = { ...baseMemoryResponse } as MemoryResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Memory.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => Memory.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: MemoryResponse): unknown {
@@ -7709,68 +6855,67 @@ export const MemoryResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<MemoryResponse>): MemoryResponse {
-    const message = { ...baseMemoryResponse } as MemoryResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Memory.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<MemoryResponse>, I>>(
+    object: I
+  ): MemoryResponse {
+    const message = createBaseMemoryResponse();
+    message.messages = object.messages?.map((e) => Memory.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseMemInfo: object = {
-  memtotal: 0,
-  memfree: 0,
-  memavailable: 0,
-  buffers: 0,
-  cached: 0,
-  swapcached: 0,
-  active: 0,
-  inactive: 0,
-  activeanon: 0,
-  inactiveanon: 0,
-  activefile: 0,
-  inactivefile: 0,
-  unevictable: 0,
-  mlocked: 0,
-  swaptotal: 0,
-  swapfree: 0,
-  dirty: 0,
-  writeback: 0,
-  anonpages: 0,
-  mapped: 0,
-  shmem: 0,
-  slab: 0,
-  sreclaimable: 0,
-  sunreclaim: 0,
-  kernelstack: 0,
-  pagetables: 0,
-  nfsunstable: 0,
-  bounce: 0,
-  writebacktmp: 0,
-  commitlimit: 0,
-  committedas: 0,
-  vmalloctotal: 0,
-  vmallocused: 0,
-  vmallocchunk: 0,
-  hardwarecorrupted: 0,
-  anonhugepages: 0,
-  shmemhugepages: 0,
-  shmempmdmapped: 0,
-  cmatotal: 0,
-  cmafree: 0,
-  hugepagestotal: 0,
-  hugepagesfree: 0,
-  hugepagesrsvd: 0,
-  hugepagessurp: 0,
-  hugepagesize: 0,
-  directmap4k: 0,
-  directmap2m: 0,
-  directmap1g: 0,
-};
+function createBaseMemInfo(): MemInfo {
+  return {
+    memtotal: 0,
+    memfree: 0,
+    memavailable: 0,
+    buffers: 0,
+    cached: 0,
+    swapcached: 0,
+    active: 0,
+    inactive: 0,
+    activeanon: 0,
+    inactiveanon: 0,
+    activefile: 0,
+    inactivefile: 0,
+    unevictable: 0,
+    mlocked: 0,
+    swaptotal: 0,
+    swapfree: 0,
+    dirty: 0,
+    writeback: 0,
+    anonpages: 0,
+    mapped: 0,
+    shmem: 0,
+    slab: 0,
+    sreclaimable: 0,
+    sunreclaim: 0,
+    kernelstack: 0,
+    pagetables: 0,
+    nfsunstable: 0,
+    bounce: 0,
+    writebacktmp: 0,
+    commitlimit: 0,
+    committedas: 0,
+    vmalloctotal: 0,
+    vmallocused: 0,
+    vmallocchunk: 0,
+    hardwarecorrupted: 0,
+    anonhugepages: 0,
+    shmemhugepages: 0,
+    shmempmdmapped: 0,
+    cmatotal: 0,
+    cmafree: 0,
+    hugepagestotal: 0,
+    hugepagesfree: 0,
+    hugepagesrsvd: 0,
+    hugepagessurp: 0,
+    hugepagesize: 0,
+    directmap4k: 0,
+    directmap2m: 0,
+    directmap1g: 0,
+  };
+}
 
 export const MemInfo = {
   encode(message: MemInfo, writer: Writer = Writer.create()): Writer {
@@ -7924,7 +7069,7 @@ export const MemInfo = {
   decode(input: Reader | Uint8Array, length?: number): MemInfo {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMemInfo } as MemInfo;
+    const message = createBaseMemInfo();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -8081,581 +7226,241 @@ export const MemInfo = {
   },
 
   fromJSON(object: any): MemInfo {
-    const message = { ...baseMemInfo } as MemInfo;
-    if (object.memtotal !== undefined && object.memtotal !== null) {
-      message.memtotal = Number(object.memtotal);
-    } else {
-      message.memtotal = 0;
-    }
-    if (object.memfree !== undefined && object.memfree !== null) {
-      message.memfree = Number(object.memfree);
-    } else {
-      message.memfree = 0;
-    }
-    if (object.memavailable !== undefined && object.memavailable !== null) {
-      message.memavailable = Number(object.memavailable);
-    } else {
-      message.memavailable = 0;
-    }
-    if (object.buffers !== undefined && object.buffers !== null) {
-      message.buffers = Number(object.buffers);
-    } else {
-      message.buffers = 0;
-    }
-    if (object.cached !== undefined && object.cached !== null) {
-      message.cached = Number(object.cached);
-    } else {
-      message.cached = 0;
-    }
-    if (object.swapcached !== undefined && object.swapcached !== null) {
-      message.swapcached = Number(object.swapcached);
-    } else {
-      message.swapcached = 0;
-    }
-    if (object.active !== undefined && object.active !== null) {
-      message.active = Number(object.active);
-    } else {
-      message.active = 0;
-    }
-    if (object.inactive !== undefined && object.inactive !== null) {
-      message.inactive = Number(object.inactive);
-    } else {
-      message.inactive = 0;
-    }
-    if (object.activeanon !== undefined && object.activeanon !== null) {
-      message.activeanon = Number(object.activeanon);
-    } else {
-      message.activeanon = 0;
-    }
-    if (object.inactiveanon !== undefined && object.inactiveanon !== null) {
-      message.inactiveanon = Number(object.inactiveanon);
-    } else {
-      message.inactiveanon = 0;
-    }
-    if (object.activefile !== undefined && object.activefile !== null) {
-      message.activefile = Number(object.activefile);
-    } else {
-      message.activefile = 0;
-    }
-    if (object.inactivefile !== undefined && object.inactivefile !== null) {
-      message.inactivefile = Number(object.inactivefile);
-    } else {
-      message.inactivefile = 0;
-    }
-    if (object.unevictable !== undefined && object.unevictable !== null) {
-      message.unevictable = Number(object.unevictable);
-    } else {
-      message.unevictable = 0;
-    }
-    if (object.mlocked !== undefined && object.mlocked !== null) {
-      message.mlocked = Number(object.mlocked);
-    } else {
-      message.mlocked = 0;
-    }
-    if (object.swaptotal !== undefined && object.swaptotal !== null) {
-      message.swaptotal = Number(object.swaptotal);
-    } else {
-      message.swaptotal = 0;
-    }
-    if (object.swapfree !== undefined && object.swapfree !== null) {
-      message.swapfree = Number(object.swapfree);
-    } else {
-      message.swapfree = 0;
-    }
-    if (object.dirty !== undefined && object.dirty !== null) {
-      message.dirty = Number(object.dirty);
-    } else {
-      message.dirty = 0;
-    }
-    if (object.writeback !== undefined && object.writeback !== null) {
-      message.writeback = Number(object.writeback);
-    } else {
-      message.writeback = 0;
-    }
-    if (object.anonpages !== undefined && object.anonpages !== null) {
-      message.anonpages = Number(object.anonpages);
-    } else {
-      message.anonpages = 0;
-    }
-    if (object.mapped !== undefined && object.mapped !== null) {
-      message.mapped = Number(object.mapped);
-    } else {
-      message.mapped = 0;
-    }
-    if (object.shmem !== undefined && object.shmem !== null) {
-      message.shmem = Number(object.shmem);
-    } else {
-      message.shmem = 0;
-    }
-    if (object.slab !== undefined && object.slab !== null) {
-      message.slab = Number(object.slab);
-    } else {
-      message.slab = 0;
-    }
-    if (object.sreclaimable !== undefined && object.sreclaimable !== null) {
-      message.sreclaimable = Number(object.sreclaimable);
-    } else {
-      message.sreclaimable = 0;
-    }
-    if (object.sunreclaim !== undefined && object.sunreclaim !== null) {
-      message.sunreclaim = Number(object.sunreclaim);
-    } else {
-      message.sunreclaim = 0;
-    }
-    if (object.kernelstack !== undefined && object.kernelstack !== null) {
-      message.kernelstack = Number(object.kernelstack);
-    } else {
-      message.kernelstack = 0;
-    }
-    if (object.pagetables !== undefined && object.pagetables !== null) {
-      message.pagetables = Number(object.pagetables);
-    } else {
-      message.pagetables = 0;
-    }
-    if (object.nfsunstable !== undefined && object.nfsunstable !== null) {
-      message.nfsunstable = Number(object.nfsunstable);
-    } else {
-      message.nfsunstable = 0;
-    }
-    if (object.bounce !== undefined && object.bounce !== null) {
-      message.bounce = Number(object.bounce);
-    } else {
-      message.bounce = 0;
-    }
-    if (object.writebacktmp !== undefined && object.writebacktmp !== null) {
-      message.writebacktmp = Number(object.writebacktmp);
-    } else {
-      message.writebacktmp = 0;
-    }
-    if (object.commitlimit !== undefined && object.commitlimit !== null) {
-      message.commitlimit = Number(object.commitlimit);
-    } else {
-      message.commitlimit = 0;
-    }
-    if (object.committedas !== undefined && object.committedas !== null) {
-      message.committedas = Number(object.committedas);
-    } else {
-      message.committedas = 0;
-    }
-    if (object.vmalloctotal !== undefined && object.vmalloctotal !== null) {
-      message.vmalloctotal = Number(object.vmalloctotal);
-    } else {
-      message.vmalloctotal = 0;
-    }
-    if (object.vmallocused !== undefined && object.vmallocused !== null) {
-      message.vmallocused = Number(object.vmallocused);
-    } else {
-      message.vmallocused = 0;
-    }
-    if (object.vmallocchunk !== undefined && object.vmallocchunk !== null) {
-      message.vmallocchunk = Number(object.vmallocchunk);
-    } else {
-      message.vmallocchunk = 0;
-    }
-    if (
-      object.hardwarecorrupted !== undefined &&
-      object.hardwarecorrupted !== null
-    ) {
-      message.hardwarecorrupted = Number(object.hardwarecorrupted);
-    } else {
-      message.hardwarecorrupted = 0;
-    }
-    if (object.anonhugepages !== undefined && object.anonhugepages !== null) {
-      message.anonhugepages = Number(object.anonhugepages);
-    } else {
-      message.anonhugepages = 0;
-    }
-    if (object.shmemhugepages !== undefined && object.shmemhugepages !== null) {
-      message.shmemhugepages = Number(object.shmemhugepages);
-    } else {
-      message.shmemhugepages = 0;
-    }
-    if (object.shmempmdmapped !== undefined && object.shmempmdmapped !== null) {
-      message.shmempmdmapped = Number(object.shmempmdmapped);
-    } else {
-      message.shmempmdmapped = 0;
-    }
-    if (object.cmatotal !== undefined && object.cmatotal !== null) {
-      message.cmatotal = Number(object.cmatotal);
-    } else {
-      message.cmatotal = 0;
-    }
-    if (object.cmafree !== undefined && object.cmafree !== null) {
-      message.cmafree = Number(object.cmafree);
-    } else {
-      message.cmafree = 0;
-    }
-    if (object.hugepagestotal !== undefined && object.hugepagestotal !== null) {
-      message.hugepagestotal = Number(object.hugepagestotal);
-    } else {
-      message.hugepagestotal = 0;
-    }
-    if (object.hugepagesfree !== undefined && object.hugepagesfree !== null) {
-      message.hugepagesfree = Number(object.hugepagesfree);
-    } else {
-      message.hugepagesfree = 0;
-    }
-    if (object.hugepagesrsvd !== undefined && object.hugepagesrsvd !== null) {
-      message.hugepagesrsvd = Number(object.hugepagesrsvd);
-    } else {
-      message.hugepagesrsvd = 0;
-    }
-    if (object.hugepagessurp !== undefined && object.hugepagessurp !== null) {
-      message.hugepagessurp = Number(object.hugepagessurp);
-    } else {
-      message.hugepagessurp = 0;
-    }
-    if (object.hugepagesize !== undefined && object.hugepagesize !== null) {
-      message.hugepagesize = Number(object.hugepagesize);
-    } else {
-      message.hugepagesize = 0;
-    }
-    if (object.directmap4k !== undefined && object.directmap4k !== null) {
-      message.directmap4k = Number(object.directmap4k);
-    } else {
-      message.directmap4k = 0;
-    }
-    if (object.directmap2m !== undefined && object.directmap2m !== null) {
-      message.directmap2m = Number(object.directmap2m);
-    } else {
-      message.directmap2m = 0;
-    }
-    if (object.directmap1g !== undefined && object.directmap1g !== null) {
-      message.directmap1g = Number(object.directmap1g);
-    } else {
-      message.directmap1g = 0;
-    }
-    return message;
+    return {
+      memtotal: isSet(object.memtotal) ? Number(object.memtotal) : 0,
+      memfree: isSet(object.memfree) ? Number(object.memfree) : 0,
+      memavailable: isSet(object.memavailable)
+        ? Number(object.memavailable)
+        : 0,
+      buffers: isSet(object.buffers) ? Number(object.buffers) : 0,
+      cached: isSet(object.cached) ? Number(object.cached) : 0,
+      swapcached: isSet(object.swapcached) ? Number(object.swapcached) : 0,
+      active: isSet(object.active) ? Number(object.active) : 0,
+      inactive: isSet(object.inactive) ? Number(object.inactive) : 0,
+      activeanon: isSet(object.activeanon) ? Number(object.activeanon) : 0,
+      inactiveanon: isSet(object.inactiveanon)
+        ? Number(object.inactiveanon)
+        : 0,
+      activefile: isSet(object.activefile) ? Number(object.activefile) : 0,
+      inactivefile: isSet(object.inactivefile)
+        ? Number(object.inactivefile)
+        : 0,
+      unevictable: isSet(object.unevictable) ? Number(object.unevictable) : 0,
+      mlocked: isSet(object.mlocked) ? Number(object.mlocked) : 0,
+      swaptotal: isSet(object.swaptotal) ? Number(object.swaptotal) : 0,
+      swapfree: isSet(object.swapfree) ? Number(object.swapfree) : 0,
+      dirty: isSet(object.dirty) ? Number(object.dirty) : 0,
+      writeback: isSet(object.writeback) ? Number(object.writeback) : 0,
+      anonpages: isSet(object.anonpages) ? Number(object.anonpages) : 0,
+      mapped: isSet(object.mapped) ? Number(object.mapped) : 0,
+      shmem: isSet(object.shmem) ? Number(object.shmem) : 0,
+      slab: isSet(object.slab) ? Number(object.slab) : 0,
+      sreclaimable: isSet(object.sreclaimable)
+        ? Number(object.sreclaimable)
+        : 0,
+      sunreclaim: isSet(object.sunreclaim) ? Number(object.sunreclaim) : 0,
+      kernelstack: isSet(object.kernelstack) ? Number(object.kernelstack) : 0,
+      pagetables: isSet(object.pagetables) ? Number(object.pagetables) : 0,
+      nfsunstable: isSet(object.nfsunstable) ? Number(object.nfsunstable) : 0,
+      bounce: isSet(object.bounce) ? Number(object.bounce) : 0,
+      writebacktmp: isSet(object.writebacktmp)
+        ? Number(object.writebacktmp)
+        : 0,
+      commitlimit: isSet(object.commitlimit) ? Number(object.commitlimit) : 0,
+      committedas: isSet(object.committedas) ? Number(object.committedas) : 0,
+      vmalloctotal: isSet(object.vmalloctotal)
+        ? Number(object.vmalloctotal)
+        : 0,
+      vmallocused: isSet(object.vmallocused) ? Number(object.vmallocused) : 0,
+      vmallocchunk: isSet(object.vmallocchunk)
+        ? Number(object.vmallocchunk)
+        : 0,
+      hardwarecorrupted: isSet(object.hardwarecorrupted)
+        ? Number(object.hardwarecorrupted)
+        : 0,
+      anonhugepages: isSet(object.anonhugepages)
+        ? Number(object.anonhugepages)
+        : 0,
+      shmemhugepages: isSet(object.shmemhugepages)
+        ? Number(object.shmemhugepages)
+        : 0,
+      shmempmdmapped: isSet(object.shmempmdmapped)
+        ? Number(object.shmempmdmapped)
+        : 0,
+      cmatotal: isSet(object.cmatotal) ? Number(object.cmatotal) : 0,
+      cmafree: isSet(object.cmafree) ? Number(object.cmafree) : 0,
+      hugepagestotal: isSet(object.hugepagestotal)
+        ? Number(object.hugepagestotal)
+        : 0,
+      hugepagesfree: isSet(object.hugepagesfree)
+        ? Number(object.hugepagesfree)
+        : 0,
+      hugepagesrsvd: isSet(object.hugepagesrsvd)
+        ? Number(object.hugepagesrsvd)
+        : 0,
+      hugepagessurp: isSet(object.hugepagessurp)
+        ? Number(object.hugepagessurp)
+        : 0,
+      hugepagesize: isSet(object.hugepagesize)
+        ? Number(object.hugepagesize)
+        : 0,
+      directmap4k: isSet(object.directmap4k) ? Number(object.directmap4k) : 0,
+      directmap2m: isSet(object.directmap2m) ? Number(object.directmap2m) : 0,
+      directmap1g: isSet(object.directmap1g) ? Number(object.directmap1g) : 0,
+    };
   },
 
   toJSON(message: MemInfo): unknown {
     const obj: any = {};
-    message.memtotal !== undefined && (obj.memtotal = message.memtotal);
-    message.memfree !== undefined && (obj.memfree = message.memfree);
+    message.memtotal !== undefined &&
+      (obj.memtotal = Math.round(message.memtotal));
+    message.memfree !== undefined &&
+      (obj.memfree = Math.round(message.memfree));
     message.memavailable !== undefined &&
-      (obj.memavailable = message.memavailable);
-    message.buffers !== undefined && (obj.buffers = message.buffers);
-    message.cached !== undefined && (obj.cached = message.cached);
-    message.swapcached !== undefined && (obj.swapcached = message.swapcached);
-    message.active !== undefined && (obj.active = message.active);
-    message.inactive !== undefined && (obj.inactive = message.inactive);
-    message.activeanon !== undefined && (obj.activeanon = message.activeanon);
+      (obj.memavailable = Math.round(message.memavailable));
+    message.buffers !== undefined &&
+      (obj.buffers = Math.round(message.buffers));
+    message.cached !== undefined && (obj.cached = Math.round(message.cached));
+    message.swapcached !== undefined &&
+      (obj.swapcached = Math.round(message.swapcached));
+    message.active !== undefined && (obj.active = Math.round(message.active));
+    message.inactive !== undefined &&
+      (obj.inactive = Math.round(message.inactive));
+    message.activeanon !== undefined &&
+      (obj.activeanon = Math.round(message.activeanon));
     message.inactiveanon !== undefined &&
-      (obj.inactiveanon = message.inactiveanon);
-    message.activefile !== undefined && (obj.activefile = message.activefile);
+      (obj.inactiveanon = Math.round(message.inactiveanon));
+    message.activefile !== undefined &&
+      (obj.activefile = Math.round(message.activefile));
     message.inactivefile !== undefined &&
-      (obj.inactivefile = message.inactivefile);
+      (obj.inactivefile = Math.round(message.inactivefile));
     message.unevictable !== undefined &&
-      (obj.unevictable = message.unevictable);
-    message.mlocked !== undefined && (obj.mlocked = message.mlocked);
-    message.swaptotal !== undefined && (obj.swaptotal = message.swaptotal);
-    message.swapfree !== undefined && (obj.swapfree = message.swapfree);
-    message.dirty !== undefined && (obj.dirty = message.dirty);
-    message.writeback !== undefined && (obj.writeback = message.writeback);
-    message.anonpages !== undefined && (obj.anonpages = message.anonpages);
-    message.mapped !== undefined && (obj.mapped = message.mapped);
-    message.shmem !== undefined && (obj.shmem = message.shmem);
-    message.slab !== undefined && (obj.slab = message.slab);
+      (obj.unevictable = Math.round(message.unevictable));
+    message.mlocked !== undefined &&
+      (obj.mlocked = Math.round(message.mlocked));
+    message.swaptotal !== undefined &&
+      (obj.swaptotal = Math.round(message.swaptotal));
+    message.swapfree !== undefined &&
+      (obj.swapfree = Math.round(message.swapfree));
+    message.dirty !== undefined && (obj.dirty = Math.round(message.dirty));
+    message.writeback !== undefined &&
+      (obj.writeback = Math.round(message.writeback));
+    message.anonpages !== undefined &&
+      (obj.anonpages = Math.round(message.anonpages));
+    message.mapped !== undefined && (obj.mapped = Math.round(message.mapped));
+    message.shmem !== undefined && (obj.shmem = Math.round(message.shmem));
+    message.slab !== undefined && (obj.slab = Math.round(message.slab));
     message.sreclaimable !== undefined &&
-      (obj.sreclaimable = message.sreclaimable);
-    message.sunreclaim !== undefined && (obj.sunreclaim = message.sunreclaim);
+      (obj.sreclaimable = Math.round(message.sreclaimable));
+    message.sunreclaim !== undefined &&
+      (obj.sunreclaim = Math.round(message.sunreclaim));
     message.kernelstack !== undefined &&
-      (obj.kernelstack = message.kernelstack);
-    message.pagetables !== undefined && (obj.pagetables = message.pagetables);
+      (obj.kernelstack = Math.round(message.kernelstack));
+    message.pagetables !== undefined &&
+      (obj.pagetables = Math.round(message.pagetables));
     message.nfsunstable !== undefined &&
-      (obj.nfsunstable = message.nfsunstable);
-    message.bounce !== undefined && (obj.bounce = message.bounce);
+      (obj.nfsunstable = Math.round(message.nfsunstable));
+    message.bounce !== undefined && (obj.bounce = Math.round(message.bounce));
     message.writebacktmp !== undefined &&
-      (obj.writebacktmp = message.writebacktmp);
+      (obj.writebacktmp = Math.round(message.writebacktmp));
     message.commitlimit !== undefined &&
-      (obj.commitlimit = message.commitlimit);
+      (obj.commitlimit = Math.round(message.commitlimit));
     message.committedas !== undefined &&
-      (obj.committedas = message.committedas);
+      (obj.committedas = Math.round(message.committedas));
     message.vmalloctotal !== undefined &&
-      (obj.vmalloctotal = message.vmalloctotal);
+      (obj.vmalloctotal = Math.round(message.vmalloctotal));
     message.vmallocused !== undefined &&
-      (obj.vmallocused = message.vmallocused);
+      (obj.vmallocused = Math.round(message.vmallocused));
     message.vmallocchunk !== undefined &&
-      (obj.vmallocchunk = message.vmallocchunk);
+      (obj.vmallocchunk = Math.round(message.vmallocchunk));
     message.hardwarecorrupted !== undefined &&
-      (obj.hardwarecorrupted = message.hardwarecorrupted);
+      (obj.hardwarecorrupted = Math.round(message.hardwarecorrupted));
     message.anonhugepages !== undefined &&
-      (obj.anonhugepages = message.anonhugepages);
+      (obj.anonhugepages = Math.round(message.anonhugepages));
     message.shmemhugepages !== undefined &&
-      (obj.shmemhugepages = message.shmemhugepages);
+      (obj.shmemhugepages = Math.round(message.shmemhugepages));
     message.shmempmdmapped !== undefined &&
-      (obj.shmempmdmapped = message.shmempmdmapped);
-    message.cmatotal !== undefined && (obj.cmatotal = message.cmatotal);
-    message.cmafree !== undefined && (obj.cmafree = message.cmafree);
+      (obj.shmempmdmapped = Math.round(message.shmempmdmapped));
+    message.cmatotal !== undefined &&
+      (obj.cmatotal = Math.round(message.cmatotal));
+    message.cmafree !== undefined &&
+      (obj.cmafree = Math.round(message.cmafree));
     message.hugepagestotal !== undefined &&
-      (obj.hugepagestotal = message.hugepagestotal);
+      (obj.hugepagestotal = Math.round(message.hugepagestotal));
     message.hugepagesfree !== undefined &&
-      (obj.hugepagesfree = message.hugepagesfree);
+      (obj.hugepagesfree = Math.round(message.hugepagesfree));
     message.hugepagesrsvd !== undefined &&
-      (obj.hugepagesrsvd = message.hugepagesrsvd);
+      (obj.hugepagesrsvd = Math.round(message.hugepagesrsvd));
     message.hugepagessurp !== undefined &&
-      (obj.hugepagessurp = message.hugepagessurp);
+      (obj.hugepagessurp = Math.round(message.hugepagessurp));
     message.hugepagesize !== undefined &&
-      (obj.hugepagesize = message.hugepagesize);
+      (obj.hugepagesize = Math.round(message.hugepagesize));
     message.directmap4k !== undefined &&
-      (obj.directmap4k = message.directmap4k);
+      (obj.directmap4k = Math.round(message.directmap4k));
     message.directmap2m !== undefined &&
-      (obj.directmap2m = message.directmap2m);
+      (obj.directmap2m = Math.round(message.directmap2m));
     message.directmap1g !== undefined &&
-      (obj.directmap1g = message.directmap1g);
+      (obj.directmap1g = Math.round(message.directmap1g));
     return obj;
   },
 
-  fromPartial(object: DeepPartial<MemInfo>): MemInfo {
-    const message = { ...baseMemInfo } as MemInfo;
-    if (object.memtotal !== undefined && object.memtotal !== null) {
-      message.memtotal = object.memtotal;
-    } else {
-      message.memtotal = 0;
-    }
-    if (object.memfree !== undefined && object.memfree !== null) {
-      message.memfree = object.memfree;
-    } else {
-      message.memfree = 0;
-    }
-    if (object.memavailable !== undefined && object.memavailable !== null) {
-      message.memavailable = object.memavailable;
-    } else {
-      message.memavailable = 0;
-    }
-    if (object.buffers !== undefined && object.buffers !== null) {
-      message.buffers = object.buffers;
-    } else {
-      message.buffers = 0;
-    }
-    if (object.cached !== undefined && object.cached !== null) {
-      message.cached = object.cached;
-    } else {
-      message.cached = 0;
-    }
-    if (object.swapcached !== undefined && object.swapcached !== null) {
-      message.swapcached = object.swapcached;
-    } else {
-      message.swapcached = 0;
-    }
-    if (object.active !== undefined && object.active !== null) {
-      message.active = object.active;
-    } else {
-      message.active = 0;
-    }
-    if (object.inactive !== undefined && object.inactive !== null) {
-      message.inactive = object.inactive;
-    } else {
-      message.inactive = 0;
-    }
-    if (object.activeanon !== undefined && object.activeanon !== null) {
-      message.activeanon = object.activeanon;
-    } else {
-      message.activeanon = 0;
-    }
-    if (object.inactiveanon !== undefined && object.inactiveanon !== null) {
-      message.inactiveanon = object.inactiveanon;
-    } else {
-      message.inactiveanon = 0;
-    }
-    if (object.activefile !== undefined && object.activefile !== null) {
-      message.activefile = object.activefile;
-    } else {
-      message.activefile = 0;
-    }
-    if (object.inactivefile !== undefined && object.inactivefile !== null) {
-      message.inactivefile = object.inactivefile;
-    } else {
-      message.inactivefile = 0;
-    }
-    if (object.unevictable !== undefined && object.unevictable !== null) {
-      message.unevictable = object.unevictable;
-    } else {
-      message.unevictable = 0;
-    }
-    if (object.mlocked !== undefined && object.mlocked !== null) {
-      message.mlocked = object.mlocked;
-    } else {
-      message.mlocked = 0;
-    }
-    if (object.swaptotal !== undefined && object.swaptotal !== null) {
-      message.swaptotal = object.swaptotal;
-    } else {
-      message.swaptotal = 0;
-    }
-    if (object.swapfree !== undefined && object.swapfree !== null) {
-      message.swapfree = object.swapfree;
-    } else {
-      message.swapfree = 0;
-    }
-    if (object.dirty !== undefined && object.dirty !== null) {
-      message.dirty = object.dirty;
-    } else {
-      message.dirty = 0;
-    }
-    if (object.writeback !== undefined && object.writeback !== null) {
-      message.writeback = object.writeback;
-    } else {
-      message.writeback = 0;
-    }
-    if (object.anonpages !== undefined && object.anonpages !== null) {
-      message.anonpages = object.anonpages;
-    } else {
-      message.anonpages = 0;
-    }
-    if (object.mapped !== undefined && object.mapped !== null) {
-      message.mapped = object.mapped;
-    } else {
-      message.mapped = 0;
-    }
-    if (object.shmem !== undefined && object.shmem !== null) {
-      message.shmem = object.shmem;
-    } else {
-      message.shmem = 0;
-    }
-    if (object.slab !== undefined && object.slab !== null) {
-      message.slab = object.slab;
-    } else {
-      message.slab = 0;
-    }
-    if (object.sreclaimable !== undefined && object.sreclaimable !== null) {
-      message.sreclaimable = object.sreclaimable;
-    } else {
-      message.sreclaimable = 0;
-    }
-    if (object.sunreclaim !== undefined && object.sunreclaim !== null) {
-      message.sunreclaim = object.sunreclaim;
-    } else {
-      message.sunreclaim = 0;
-    }
-    if (object.kernelstack !== undefined && object.kernelstack !== null) {
-      message.kernelstack = object.kernelstack;
-    } else {
-      message.kernelstack = 0;
-    }
-    if (object.pagetables !== undefined && object.pagetables !== null) {
-      message.pagetables = object.pagetables;
-    } else {
-      message.pagetables = 0;
-    }
-    if (object.nfsunstable !== undefined && object.nfsunstable !== null) {
-      message.nfsunstable = object.nfsunstable;
-    } else {
-      message.nfsunstable = 0;
-    }
-    if (object.bounce !== undefined && object.bounce !== null) {
-      message.bounce = object.bounce;
-    } else {
-      message.bounce = 0;
-    }
-    if (object.writebacktmp !== undefined && object.writebacktmp !== null) {
-      message.writebacktmp = object.writebacktmp;
-    } else {
-      message.writebacktmp = 0;
-    }
-    if (object.commitlimit !== undefined && object.commitlimit !== null) {
-      message.commitlimit = object.commitlimit;
-    } else {
-      message.commitlimit = 0;
-    }
-    if (object.committedas !== undefined && object.committedas !== null) {
-      message.committedas = object.committedas;
-    } else {
-      message.committedas = 0;
-    }
-    if (object.vmalloctotal !== undefined && object.vmalloctotal !== null) {
-      message.vmalloctotal = object.vmalloctotal;
-    } else {
-      message.vmalloctotal = 0;
-    }
-    if (object.vmallocused !== undefined && object.vmallocused !== null) {
-      message.vmallocused = object.vmallocused;
-    } else {
-      message.vmallocused = 0;
-    }
-    if (object.vmallocchunk !== undefined && object.vmallocchunk !== null) {
-      message.vmallocchunk = object.vmallocchunk;
-    } else {
-      message.vmallocchunk = 0;
-    }
-    if (
-      object.hardwarecorrupted !== undefined &&
-      object.hardwarecorrupted !== null
-    ) {
-      message.hardwarecorrupted = object.hardwarecorrupted;
-    } else {
-      message.hardwarecorrupted = 0;
-    }
-    if (object.anonhugepages !== undefined && object.anonhugepages !== null) {
-      message.anonhugepages = object.anonhugepages;
-    } else {
-      message.anonhugepages = 0;
-    }
-    if (object.shmemhugepages !== undefined && object.shmemhugepages !== null) {
-      message.shmemhugepages = object.shmemhugepages;
-    } else {
-      message.shmemhugepages = 0;
-    }
-    if (object.shmempmdmapped !== undefined && object.shmempmdmapped !== null) {
-      message.shmempmdmapped = object.shmempmdmapped;
-    } else {
-      message.shmempmdmapped = 0;
-    }
-    if (object.cmatotal !== undefined && object.cmatotal !== null) {
-      message.cmatotal = object.cmatotal;
-    } else {
-      message.cmatotal = 0;
-    }
-    if (object.cmafree !== undefined && object.cmafree !== null) {
-      message.cmafree = object.cmafree;
-    } else {
-      message.cmafree = 0;
-    }
-    if (object.hugepagestotal !== undefined && object.hugepagestotal !== null) {
-      message.hugepagestotal = object.hugepagestotal;
-    } else {
-      message.hugepagestotal = 0;
-    }
-    if (object.hugepagesfree !== undefined && object.hugepagesfree !== null) {
-      message.hugepagesfree = object.hugepagesfree;
-    } else {
-      message.hugepagesfree = 0;
-    }
-    if (object.hugepagesrsvd !== undefined && object.hugepagesrsvd !== null) {
-      message.hugepagesrsvd = object.hugepagesrsvd;
-    } else {
-      message.hugepagesrsvd = 0;
-    }
-    if (object.hugepagessurp !== undefined && object.hugepagessurp !== null) {
-      message.hugepagessurp = object.hugepagessurp;
-    } else {
-      message.hugepagessurp = 0;
-    }
-    if (object.hugepagesize !== undefined && object.hugepagesize !== null) {
-      message.hugepagesize = object.hugepagesize;
-    } else {
-      message.hugepagesize = 0;
-    }
-    if (object.directmap4k !== undefined && object.directmap4k !== null) {
-      message.directmap4k = object.directmap4k;
-    } else {
-      message.directmap4k = 0;
-    }
-    if (object.directmap2m !== undefined && object.directmap2m !== null) {
-      message.directmap2m = object.directmap2m;
-    } else {
-      message.directmap2m = 0;
-    }
-    if (object.directmap1g !== undefined && object.directmap1g !== null) {
-      message.directmap1g = object.directmap1g;
-    } else {
-      message.directmap1g = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<MemInfo>, I>>(object: I): MemInfo {
+    const message = createBaseMemInfo();
+    message.memtotal = object.memtotal ?? 0;
+    message.memfree = object.memfree ?? 0;
+    message.memavailable = object.memavailable ?? 0;
+    message.buffers = object.buffers ?? 0;
+    message.cached = object.cached ?? 0;
+    message.swapcached = object.swapcached ?? 0;
+    message.active = object.active ?? 0;
+    message.inactive = object.inactive ?? 0;
+    message.activeanon = object.activeanon ?? 0;
+    message.inactiveanon = object.inactiveanon ?? 0;
+    message.activefile = object.activefile ?? 0;
+    message.inactivefile = object.inactivefile ?? 0;
+    message.unevictable = object.unevictable ?? 0;
+    message.mlocked = object.mlocked ?? 0;
+    message.swaptotal = object.swaptotal ?? 0;
+    message.swapfree = object.swapfree ?? 0;
+    message.dirty = object.dirty ?? 0;
+    message.writeback = object.writeback ?? 0;
+    message.anonpages = object.anonpages ?? 0;
+    message.mapped = object.mapped ?? 0;
+    message.shmem = object.shmem ?? 0;
+    message.slab = object.slab ?? 0;
+    message.sreclaimable = object.sreclaimable ?? 0;
+    message.sunreclaim = object.sunreclaim ?? 0;
+    message.kernelstack = object.kernelstack ?? 0;
+    message.pagetables = object.pagetables ?? 0;
+    message.nfsunstable = object.nfsunstable ?? 0;
+    message.bounce = object.bounce ?? 0;
+    message.writebacktmp = object.writebacktmp ?? 0;
+    message.commitlimit = object.commitlimit ?? 0;
+    message.committedas = object.committedas ?? 0;
+    message.vmalloctotal = object.vmalloctotal ?? 0;
+    message.vmallocused = object.vmallocused ?? 0;
+    message.vmallocchunk = object.vmallocchunk ?? 0;
+    message.hardwarecorrupted = object.hardwarecorrupted ?? 0;
+    message.anonhugepages = object.anonhugepages ?? 0;
+    message.shmemhugepages = object.shmemhugepages ?? 0;
+    message.shmempmdmapped = object.shmempmdmapped ?? 0;
+    message.cmatotal = object.cmatotal ?? 0;
+    message.cmafree = object.cmafree ?? 0;
+    message.hugepagestotal = object.hugepagestotal ?? 0;
+    message.hugepagesfree = object.hugepagesfree ?? 0;
+    message.hugepagesrsvd = object.hugepagesrsvd ?? 0;
+    message.hugepagessurp = object.hugepagessurp ?? 0;
+    message.hugepagesize = object.hugepagesize ?? 0;
+    message.directmap4k = object.directmap4k ?? 0;
+    message.directmap2m = object.directmap2m ?? 0;
+    message.directmap1g = object.directmap1g ?? 0;
     return message;
   },
 };
 
-const baseHostnameResponse: object = {};
+function createBaseHostnameResponse(): HostnameResponse {
+  return { messages: [] };
+}
 
 export const HostnameResponse = {
   encode(message: HostnameResponse, writer: Writer = Writer.create()): Writer {
@@ -8668,8 +7473,7 @@ export const HostnameResponse = {
   decode(input: Reader | Uint8Array, length?: number): HostnameResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseHostnameResponse } as HostnameResponse;
-    message.messages = [];
+    const message = createBaseHostnameResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -8685,14 +7489,11 @@ export const HostnameResponse = {
   },
 
   fromJSON(object: any): HostnameResponse {
-    const message = { ...baseHostnameResponse } as HostnameResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Hostname.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => Hostname.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: HostnameResponse): unknown {
@@ -8707,19 +7508,19 @@ export const HostnameResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<HostnameResponse>): HostnameResponse {
-    const message = { ...baseHostnameResponse } as HostnameResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Hostname.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<HostnameResponse>, I>>(
+    object: I
+  ): HostnameResponse {
+    const message = createBaseHostnameResponse();
+    message.messages =
+      object.messages?.map((e) => Hostname.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseHostname: object = { hostname: "" };
+function createBaseHostname(): Hostname {
+  return { metadata: undefined, hostname: "" };
+}
 
 export const Hostname = {
   encode(message: Hostname, writer: Writer = Writer.create()): Writer {
@@ -8735,7 +7536,7 @@ export const Hostname = {
   decode(input: Reader | Uint8Array, length?: number): Hostname {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseHostname } as Hostname;
+    const message = createBaseHostname();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -8754,18 +7555,12 @@ export const Hostname = {
   },
 
   fromJSON(object: any): Hostname {
-    const message = { ...baseHostname } as Hostname;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.hostname !== undefined && object.hostname !== null) {
-      message.hostname = String(object.hostname);
-    } else {
-      message.hostname = "";
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      hostname: isSet(object.hostname) ? String(object.hostname) : "",
+    };
   },
 
   toJSON(message: Hostname): unknown {
@@ -8778,23 +7573,20 @@ export const Hostname = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Hostname>): Hostname {
-    const message = { ...baseHostname } as Hostname;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.hostname !== undefined && object.hostname !== null) {
-      message.hostname = object.hostname;
-    } else {
-      message.hostname = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<Hostname>, I>>(object: I): Hostname {
+    const message = createBaseHostname();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.hostname = object.hostname ?? "";
     return message;
   },
 };
 
-const baseLoadAvgResponse: object = {};
+function createBaseLoadAvgResponse(): LoadAvgResponse {
+  return { messages: [] };
+}
 
 export const LoadAvgResponse = {
   encode(message: LoadAvgResponse, writer: Writer = Writer.create()): Writer {
@@ -8807,8 +7599,7 @@ export const LoadAvgResponse = {
   decode(input: Reader | Uint8Array, length?: number): LoadAvgResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseLoadAvgResponse } as LoadAvgResponse;
-    message.messages = [];
+    const message = createBaseLoadAvgResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -8824,14 +7615,11 @@ export const LoadAvgResponse = {
   },
 
   fromJSON(object: any): LoadAvgResponse {
-    const message = { ...baseLoadAvgResponse } as LoadAvgResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(LoadAvg.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => LoadAvg.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: LoadAvgResponse): unknown {
@@ -8846,19 +7634,19 @@ export const LoadAvgResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<LoadAvgResponse>): LoadAvgResponse {
-    const message = { ...baseLoadAvgResponse } as LoadAvgResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(LoadAvg.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<LoadAvgResponse>, I>>(
+    object: I
+  ): LoadAvgResponse {
+    const message = createBaseLoadAvgResponse();
+    message.messages =
+      object.messages?.map((e) => LoadAvg.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseLoadAvg: object = { load1: 0, load5: 0, load15: 0 };
+function createBaseLoadAvg(): LoadAvg {
+  return { metadata: undefined, load1: 0, load5: 0, load15: 0 };
+}
 
 export const LoadAvg = {
   encode(message: LoadAvg, writer: Writer = Writer.create()): Writer {
@@ -8880,7 +7668,7 @@ export const LoadAvg = {
   decode(input: Reader | Uint8Array, length?: number): LoadAvg {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseLoadAvg } as LoadAvg;
+    const message = createBaseLoadAvg();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -8905,28 +7693,14 @@ export const LoadAvg = {
   },
 
   fromJSON(object: any): LoadAvg {
-    const message = { ...baseLoadAvg } as LoadAvg;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.load1 !== undefined && object.load1 !== null) {
-      message.load1 = Number(object.load1);
-    } else {
-      message.load1 = 0;
-    }
-    if (object.load5 !== undefined && object.load5 !== null) {
-      message.load5 = Number(object.load5);
-    } else {
-      message.load5 = 0;
-    }
-    if (object.load15 !== undefined && object.load15 !== null) {
-      message.load15 = Number(object.load15);
-    } else {
-      message.load15 = 0;
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      load1: isSet(object.load1) ? Number(object.load1) : 0,
+      load5: isSet(object.load5) ? Number(object.load5) : 0,
+      load15: isSet(object.load15) ? Number(object.load15) : 0,
+    };
   },
 
   toJSON(message: LoadAvg): unknown {
@@ -8941,33 +7715,22 @@ export const LoadAvg = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<LoadAvg>): LoadAvg {
-    const message = { ...baseLoadAvg } as LoadAvg;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.load1 !== undefined && object.load1 !== null) {
-      message.load1 = object.load1;
-    } else {
-      message.load1 = 0;
-    }
-    if (object.load5 !== undefined && object.load5 !== null) {
-      message.load5 = object.load5;
-    } else {
-      message.load5 = 0;
-    }
-    if (object.load15 !== undefined && object.load15 !== null) {
-      message.load15 = object.load15;
-    } else {
-      message.load15 = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<LoadAvg>, I>>(object: I): LoadAvg {
+    const message = createBaseLoadAvg();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.load1 = object.load1 ?? 0;
+    message.load5 = object.load5 ?? 0;
+    message.load15 = object.load15 ?? 0;
     return message;
   },
 };
 
-const baseSystemStatResponse: object = {};
+function createBaseSystemStatResponse(): SystemStatResponse {
+  return { messages: [] };
+}
 
 export const SystemStatResponse = {
   encode(
@@ -8983,8 +7746,7 @@ export const SystemStatResponse = {
   decode(input: Reader | Uint8Array, length?: number): SystemStatResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseSystemStatResponse } as SystemStatResponse;
-    message.messages = [];
+    const message = createBaseSystemStatResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -9000,14 +7762,11 @@ export const SystemStatResponse = {
   },
 
   fromJSON(object: any): SystemStatResponse {
-    const message = { ...baseSystemStatResponse } as SystemStatResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(SystemStat.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => SystemStat.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: SystemStatResponse): unknown {
@@ -9022,28 +7781,32 @@ export const SystemStatResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<SystemStatResponse>): SystemStatResponse {
-    const message = { ...baseSystemStatResponse } as SystemStatResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(SystemStat.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<SystemStatResponse>, I>>(
+    object: I
+  ): SystemStatResponse {
+    const message = createBaseSystemStatResponse();
+    message.messages =
+      object.messages?.map((e) => SystemStat.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseSystemStat: object = {
-  boot_time: 0,
-  irq_total: 0,
-  irq: 0,
-  context_switches: 0,
-  process_created: 0,
-  process_running: 0,
-  process_blocked: 0,
-  soft_irq_total: 0,
-};
+function createBaseSystemStat(): SystemStat {
+  return {
+    metadata: undefined,
+    boot_time: 0,
+    cpu_total: undefined,
+    cpu: [],
+    irq_total: 0,
+    irq: [],
+    context_switches: 0,
+    process_created: 0,
+    process_running: 0,
+    process_blocked: 0,
+    soft_irq_total: 0,
+    soft_irq: undefined,
+  };
+}
 
 export const SystemStat = {
   encode(message: SystemStat, writer: Writer = Writer.create()): Writer {
@@ -9091,9 +7854,7 @@ export const SystemStat = {
   decode(input: Reader | Uint8Array, length?: number): SystemStat {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseSystemStat } as SystemStat;
-    message.cpu = [];
-    message.irq = [];
+    const message = createBaseSystemStat();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -9149,82 +7910,40 @@ export const SystemStat = {
   },
 
   fromJSON(object: any): SystemStat {
-    const message = { ...baseSystemStat } as SystemStat;
-    message.cpu = [];
-    message.irq = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.boot_time !== undefined && object.boot_time !== null) {
-      message.boot_time = Number(object.boot_time);
-    } else {
-      message.boot_time = 0;
-    }
-    if (object.cpu_total !== undefined && object.cpu_total !== null) {
-      message.cpu_total = CPUStat.fromJSON(object.cpu_total);
-    } else {
-      message.cpu_total = undefined;
-    }
-    if (object.cpu !== undefined && object.cpu !== null) {
-      for (const e of object.cpu) {
-        message.cpu.push(CPUStat.fromJSON(e));
-      }
-    }
-    if (object.irq_total !== undefined && object.irq_total !== null) {
-      message.irq_total = Number(object.irq_total);
-    } else {
-      message.irq_total = 0;
-    }
-    if (object.irq !== undefined && object.irq !== null) {
-      for (const e of object.irq) {
-        message.irq.push(Number(e));
-      }
-    }
-    if (
-      object.context_switches !== undefined &&
-      object.context_switches !== null
-    ) {
-      message.context_switches = Number(object.context_switches);
-    } else {
-      message.context_switches = 0;
-    }
-    if (
-      object.process_created !== undefined &&
-      object.process_created !== null
-    ) {
-      message.process_created = Number(object.process_created);
-    } else {
-      message.process_created = 0;
-    }
-    if (
-      object.process_running !== undefined &&
-      object.process_running !== null
-    ) {
-      message.process_running = Number(object.process_running);
-    } else {
-      message.process_running = 0;
-    }
-    if (
-      object.process_blocked !== undefined &&
-      object.process_blocked !== null
-    ) {
-      message.process_blocked = Number(object.process_blocked);
-    } else {
-      message.process_blocked = 0;
-    }
-    if (object.soft_irq_total !== undefined && object.soft_irq_total !== null) {
-      message.soft_irq_total = Number(object.soft_irq_total);
-    } else {
-      message.soft_irq_total = 0;
-    }
-    if (object.soft_irq !== undefined && object.soft_irq !== null) {
-      message.soft_irq = SoftIRQStat.fromJSON(object.soft_irq);
-    } else {
-      message.soft_irq = undefined;
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      boot_time: isSet(object.boot_time) ? Number(object.boot_time) : 0,
+      cpu_total: isSet(object.cpu_total)
+        ? CPUStat.fromJSON(object.cpu_total)
+        : undefined,
+      cpu: Array.isArray(object?.cpu)
+        ? object.cpu.map((e: any) => CPUStat.fromJSON(e))
+        : [],
+      irq_total: isSet(object.irq_total) ? Number(object.irq_total) : 0,
+      irq: Array.isArray(object?.irq)
+        ? object.irq.map((e: any) => Number(e))
+        : [],
+      context_switches: isSet(object.context_switches)
+        ? Number(object.context_switches)
+        : 0,
+      process_created: isSet(object.process_created)
+        ? Number(object.process_created)
+        : 0,
+      process_running: isSet(object.process_running)
+        ? Number(object.process_running)
+        : 0,
+      process_blocked: isSet(object.process_blocked)
+        ? Number(object.process_blocked)
+        : 0,
+      soft_irq_total: isSet(object.soft_irq_total)
+        ? Number(object.soft_irq_total)
+        : 0,
+      soft_irq: isSet(object.soft_irq)
+        ? SoftIRQStat.fromJSON(object.soft_irq)
+        : undefined,
+    };
   },
 
   toJSON(message: SystemStat): unknown {
@@ -9233,7 +7952,8 @@ export const SystemStat = {
       (obj.metadata = message.metadata
         ? Metadata.toJSON(message.metadata)
         : undefined);
-    message.boot_time !== undefined && (obj.boot_time = message.boot_time);
+    message.boot_time !== undefined &&
+      (obj.boot_time = Math.round(message.boot_time));
     message.cpu_total !== undefined &&
       (obj.cpu_total = message.cpu_total
         ? CPUStat.toJSON(message.cpu_total)
@@ -9243,22 +7963,23 @@ export const SystemStat = {
     } else {
       obj.cpu = [];
     }
-    message.irq_total !== undefined && (obj.irq_total = message.irq_total);
+    message.irq_total !== undefined &&
+      (obj.irq_total = Math.round(message.irq_total));
     if (message.irq) {
-      obj.irq = message.irq.map((e) => e);
+      obj.irq = message.irq.map((e) => Math.round(e));
     } else {
       obj.irq = [];
     }
     message.context_switches !== undefined &&
-      (obj.context_switches = message.context_switches);
+      (obj.context_switches = Math.round(message.context_switches));
     message.process_created !== undefined &&
-      (obj.process_created = message.process_created);
+      (obj.process_created = Math.round(message.process_created));
     message.process_running !== undefined &&
-      (obj.process_running = message.process_running);
+      (obj.process_running = Math.round(message.process_running));
     message.process_blocked !== undefined &&
-      (obj.process_blocked = message.process_blocked);
+      (obj.process_blocked = Math.round(message.process_blocked));
     message.soft_irq_total !== undefined &&
-      (obj.soft_irq_total = message.soft_irq_total);
+      (obj.soft_irq_total = Math.round(message.soft_irq_total));
     message.soft_irq !== undefined &&
       (obj.soft_irq = message.soft_irq
         ? SoftIRQStat.toJSON(message.soft_irq)
@@ -9266,98 +7987,49 @@ export const SystemStat = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<SystemStat>): SystemStat {
-    const message = { ...baseSystemStat } as SystemStat;
-    message.cpu = [];
-    message.irq = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.boot_time !== undefined && object.boot_time !== null) {
-      message.boot_time = object.boot_time;
-    } else {
-      message.boot_time = 0;
-    }
-    if (object.cpu_total !== undefined && object.cpu_total !== null) {
-      message.cpu_total = CPUStat.fromPartial(object.cpu_total);
-    } else {
-      message.cpu_total = undefined;
-    }
-    if (object.cpu !== undefined && object.cpu !== null) {
-      for (const e of object.cpu) {
-        message.cpu.push(CPUStat.fromPartial(e));
-      }
-    }
-    if (object.irq_total !== undefined && object.irq_total !== null) {
-      message.irq_total = object.irq_total;
-    } else {
-      message.irq_total = 0;
-    }
-    if (object.irq !== undefined && object.irq !== null) {
-      for (const e of object.irq) {
-        message.irq.push(e);
-      }
-    }
-    if (
-      object.context_switches !== undefined &&
-      object.context_switches !== null
-    ) {
-      message.context_switches = object.context_switches;
-    } else {
-      message.context_switches = 0;
-    }
-    if (
-      object.process_created !== undefined &&
-      object.process_created !== null
-    ) {
-      message.process_created = object.process_created;
-    } else {
-      message.process_created = 0;
-    }
-    if (
-      object.process_running !== undefined &&
-      object.process_running !== null
-    ) {
-      message.process_running = object.process_running;
-    } else {
-      message.process_running = 0;
-    }
-    if (
-      object.process_blocked !== undefined &&
-      object.process_blocked !== null
-    ) {
-      message.process_blocked = object.process_blocked;
-    } else {
-      message.process_blocked = 0;
-    }
-    if (object.soft_irq_total !== undefined && object.soft_irq_total !== null) {
-      message.soft_irq_total = object.soft_irq_total;
-    } else {
-      message.soft_irq_total = 0;
-    }
-    if (object.soft_irq !== undefined && object.soft_irq !== null) {
-      message.soft_irq = SoftIRQStat.fromPartial(object.soft_irq);
-    } else {
-      message.soft_irq = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<SystemStat>, I>>(
+    object: I
+  ): SystemStat {
+    const message = createBaseSystemStat();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.boot_time = object.boot_time ?? 0;
+    message.cpu_total =
+      object.cpu_total !== undefined && object.cpu_total !== null
+        ? CPUStat.fromPartial(object.cpu_total)
+        : undefined;
+    message.cpu = object.cpu?.map((e) => CPUStat.fromPartial(e)) || [];
+    message.irq_total = object.irq_total ?? 0;
+    message.irq = object.irq?.map((e) => e) || [];
+    message.context_switches = object.context_switches ?? 0;
+    message.process_created = object.process_created ?? 0;
+    message.process_running = object.process_running ?? 0;
+    message.process_blocked = object.process_blocked ?? 0;
+    message.soft_irq_total = object.soft_irq_total ?? 0;
+    message.soft_irq =
+      object.soft_irq !== undefined && object.soft_irq !== null
+        ? SoftIRQStat.fromPartial(object.soft_irq)
+        : undefined;
     return message;
   },
 };
 
-const baseCPUStat: object = {
-  user: 0,
-  nice: 0,
-  system: 0,
-  idle: 0,
-  iowait: 0,
-  irq: 0,
-  soft_irq: 0,
-  steal: 0,
-  guest: 0,
-  guest_nice: 0,
-};
+function createBaseCPUStat(): CPUStat {
+  return {
+    user: 0,
+    nice: 0,
+    system: 0,
+    idle: 0,
+    iowait: 0,
+    irq: 0,
+    soft_irq: 0,
+    steal: 0,
+    guest: 0,
+    guest_nice: 0,
+  };
+}
 
 export const CPUStat = {
   encode(message: CPUStat, writer: Writer = Writer.create()): Writer {
@@ -9397,7 +8069,7 @@ export const CPUStat = {
   decode(input: Reader | Uint8Array, length?: number): CPUStat {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseCPUStat } as CPUStat;
+    const message = createBaseCPUStat();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -9440,58 +8112,18 @@ export const CPUStat = {
   },
 
   fromJSON(object: any): CPUStat {
-    const message = { ...baseCPUStat } as CPUStat;
-    if (object.user !== undefined && object.user !== null) {
-      message.user = Number(object.user);
-    } else {
-      message.user = 0;
-    }
-    if (object.nice !== undefined && object.nice !== null) {
-      message.nice = Number(object.nice);
-    } else {
-      message.nice = 0;
-    }
-    if (object.system !== undefined && object.system !== null) {
-      message.system = Number(object.system);
-    } else {
-      message.system = 0;
-    }
-    if (object.idle !== undefined && object.idle !== null) {
-      message.idle = Number(object.idle);
-    } else {
-      message.idle = 0;
-    }
-    if (object.iowait !== undefined && object.iowait !== null) {
-      message.iowait = Number(object.iowait);
-    } else {
-      message.iowait = 0;
-    }
-    if (object.irq !== undefined && object.irq !== null) {
-      message.irq = Number(object.irq);
-    } else {
-      message.irq = 0;
-    }
-    if (object.soft_irq !== undefined && object.soft_irq !== null) {
-      message.soft_irq = Number(object.soft_irq);
-    } else {
-      message.soft_irq = 0;
-    }
-    if (object.steal !== undefined && object.steal !== null) {
-      message.steal = Number(object.steal);
-    } else {
-      message.steal = 0;
-    }
-    if (object.guest !== undefined && object.guest !== null) {
-      message.guest = Number(object.guest);
-    } else {
-      message.guest = 0;
-    }
-    if (object.guest_nice !== undefined && object.guest_nice !== null) {
-      message.guest_nice = Number(object.guest_nice);
-    } else {
-      message.guest_nice = 0;
-    }
-    return message;
+    return {
+      user: isSet(object.user) ? Number(object.user) : 0,
+      nice: isSet(object.nice) ? Number(object.nice) : 0,
+      system: isSet(object.system) ? Number(object.system) : 0,
+      idle: isSet(object.idle) ? Number(object.idle) : 0,
+      iowait: isSet(object.iowait) ? Number(object.iowait) : 0,
+      irq: isSet(object.irq) ? Number(object.irq) : 0,
+      soft_irq: isSet(object.soft_irq) ? Number(object.soft_irq) : 0,
+      steal: isSet(object.steal) ? Number(object.steal) : 0,
+      guest: isSet(object.guest) ? Number(object.guest) : 0,
+      guest_nice: isSet(object.guest_nice) ? Number(object.guest_nice) : 0,
+    };
   },
 
   toJSON(message: CPUStat): unknown {
@@ -9509,74 +8141,36 @@ export const CPUStat = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<CPUStat>): CPUStat {
-    const message = { ...baseCPUStat } as CPUStat;
-    if (object.user !== undefined && object.user !== null) {
-      message.user = object.user;
-    } else {
-      message.user = 0;
-    }
-    if (object.nice !== undefined && object.nice !== null) {
-      message.nice = object.nice;
-    } else {
-      message.nice = 0;
-    }
-    if (object.system !== undefined && object.system !== null) {
-      message.system = object.system;
-    } else {
-      message.system = 0;
-    }
-    if (object.idle !== undefined && object.idle !== null) {
-      message.idle = object.idle;
-    } else {
-      message.idle = 0;
-    }
-    if (object.iowait !== undefined && object.iowait !== null) {
-      message.iowait = object.iowait;
-    } else {
-      message.iowait = 0;
-    }
-    if (object.irq !== undefined && object.irq !== null) {
-      message.irq = object.irq;
-    } else {
-      message.irq = 0;
-    }
-    if (object.soft_irq !== undefined && object.soft_irq !== null) {
-      message.soft_irq = object.soft_irq;
-    } else {
-      message.soft_irq = 0;
-    }
-    if (object.steal !== undefined && object.steal !== null) {
-      message.steal = object.steal;
-    } else {
-      message.steal = 0;
-    }
-    if (object.guest !== undefined && object.guest !== null) {
-      message.guest = object.guest;
-    } else {
-      message.guest = 0;
-    }
-    if (object.guest_nice !== undefined && object.guest_nice !== null) {
-      message.guest_nice = object.guest_nice;
-    } else {
-      message.guest_nice = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<CPUStat>, I>>(object: I): CPUStat {
+    const message = createBaseCPUStat();
+    message.user = object.user ?? 0;
+    message.nice = object.nice ?? 0;
+    message.system = object.system ?? 0;
+    message.idle = object.idle ?? 0;
+    message.iowait = object.iowait ?? 0;
+    message.irq = object.irq ?? 0;
+    message.soft_irq = object.soft_irq ?? 0;
+    message.steal = object.steal ?? 0;
+    message.guest = object.guest ?? 0;
+    message.guest_nice = object.guest_nice ?? 0;
     return message;
   },
 };
 
-const baseSoftIRQStat: object = {
-  hi: 0,
-  timer: 0,
-  net_tx: 0,
-  net_rx: 0,
-  block: 0,
-  block_io_poll: 0,
-  tasklet: 0,
-  sched: 0,
-  hrtimer: 0,
-  rcu: 0,
-};
+function createBaseSoftIRQStat(): SoftIRQStat {
+  return {
+    hi: 0,
+    timer: 0,
+    net_tx: 0,
+    net_rx: 0,
+    block: 0,
+    block_io_poll: 0,
+    tasklet: 0,
+    sched: 0,
+    hrtimer: 0,
+    rcu: 0,
+  };
+}
 
 export const SoftIRQStat = {
   encode(message: SoftIRQStat, writer: Writer = Writer.create()): Writer {
@@ -9616,7 +8210,7 @@ export const SoftIRQStat = {
   decode(input: Reader | Uint8Array, length?: number): SoftIRQStat {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseSoftIRQStat } as SoftIRQStat;
+    const message = createBaseSoftIRQStat();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -9659,133 +8253,61 @@ export const SoftIRQStat = {
   },
 
   fromJSON(object: any): SoftIRQStat {
-    const message = { ...baseSoftIRQStat } as SoftIRQStat;
-    if (object.hi !== undefined && object.hi !== null) {
-      message.hi = Number(object.hi);
-    } else {
-      message.hi = 0;
-    }
-    if (object.timer !== undefined && object.timer !== null) {
-      message.timer = Number(object.timer);
-    } else {
-      message.timer = 0;
-    }
-    if (object.net_tx !== undefined && object.net_tx !== null) {
-      message.net_tx = Number(object.net_tx);
-    } else {
-      message.net_tx = 0;
-    }
-    if (object.net_rx !== undefined && object.net_rx !== null) {
-      message.net_rx = Number(object.net_rx);
-    } else {
-      message.net_rx = 0;
-    }
-    if (object.block !== undefined && object.block !== null) {
-      message.block = Number(object.block);
-    } else {
-      message.block = 0;
-    }
-    if (object.block_io_poll !== undefined && object.block_io_poll !== null) {
-      message.block_io_poll = Number(object.block_io_poll);
-    } else {
-      message.block_io_poll = 0;
-    }
-    if (object.tasklet !== undefined && object.tasklet !== null) {
-      message.tasklet = Number(object.tasklet);
-    } else {
-      message.tasklet = 0;
-    }
-    if (object.sched !== undefined && object.sched !== null) {
-      message.sched = Number(object.sched);
-    } else {
-      message.sched = 0;
-    }
-    if (object.hrtimer !== undefined && object.hrtimer !== null) {
-      message.hrtimer = Number(object.hrtimer);
-    } else {
-      message.hrtimer = 0;
-    }
-    if (object.rcu !== undefined && object.rcu !== null) {
-      message.rcu = Number(object.rcu);
-    } else {
-      message.rcu = 0;
-    }
-    return message;
+    return {
+      hi: isSet(object.hi) ? Number(object.hi) : 0,
+      timer: isSet(object.timer) ? Number(object.timer) : 0,
+      net_tx: isSet(object.net_tx) ? Number(object.net_tx) : 0,
+      net_rx: isSet(object.net_rx) ? Number(object.net_rx) : 0,
+      block: isSet(object.block) ? Number(object.block) : 0,
+      block_io_poll: isSet(object.block_io_poll)
+        ? Number(object.block_io_poll)
+        : 0,
+      tasklet: isSet(object.tasklet) ? Number(object.tasklet) : 0,
+      sched: isSet(object.sched) ? Number(object.sched) : 0,
+      hrtimer: isSet(object.hrtimer) ? Number(object.hrtimer) : 0,
+      rcu: isSet(object.rcu) ? Number(object.rcu) : 0,
+    };
   },
 
   toJSON(message: SoftIRQStat): unknown {
     const obj: any = {};
-    message.hi !== undefined && (obj.hi = message.hi);
-    message.timer !== undefined && (obj.timer = message.timer);
-    message.net_tx !== undefined && (obj.net_tx = message.net_tx);
-    message.net_rx !== undefined && (obj.net_rx = message.net_rx);
-    message.block !== undefined && (obj.block = message.block);
+    message.hi !== undefined && (obj.hi = Math.round(message.hi));
+    message.timer !== undefined && (obj.timer = Math.round(message.timer));
+    message.net_tx !== undefined && (obj.net_tx = Math.round(message.net_tx));
+    message.net_rx !== undefined && (obj.net_rx = Math.round(message.net_rx));
+    message.block !== undefined && (obj.block = Math.round(message.block));
     message.block_io_poll !== undefined &&
-      (obj.block_io_poll = message.block_io_poll);
-    message.tasklet !== undefined && (obj.tasklet = message.tasklet);
-    message.sched !== undefined && (obj.sched = message.sched);
-    message.hrtimer !== undefined && (obj.hrtimer = message.hrtimer);
-    message.rcu !== undefined && (obj.rcu = message.rcu);
+      (obj.block_io_poll = Math.round(message.block_io_poll));
+    message.tasklet !== undefined &&
+      (obj.tasklet = Math.round(message.tasklet));
+    message.sched !== undefined && (obj.sched = Math.round(message.sched));
+    message.hrtimer !== undefined &&
+      (obj.hrtimer = Math.round(message.hrtimer));
+    message.rcu !== undefined && (obj.rcu = Math.round(message.rcu));
     return obj;
   },
 
-  fromPartial(object: DeepPartial<SoftIRQStat>): SoftIRQStat {
-    const message = { ...baseSoftIRQStat } as SoftIRQStat;
-    if (object.hi !== undefined && object.hi !== null) {
-      message.hi = object.hi;
-    } else {
-      message.hi = 0;
-    }
-    if (object.timer !== undefined && object.timer !== null) {
-      message.timer = object.timer;
-    } else {
-      message.timer = 0;
-    }
-    if (object.net_tx !== undefined && object.net_tx !== null) {
-      message.net_tx = object.net_tx;
-    } else {
-      message.net_tx = 0;
-    }
-    if (object.net_rx !== undefined && object.net_rx !== null) {
-      message.net_rx = object.net_rx;
-    } else {
-      message.net_rx = 0;
-    }
-    if (object.block !== undefined && object.block !== null) {
-      message.block = object.block;
-    } else {
-      message.block = 0;
-    }
-    if (object.block_io_poll !== undefined && object.block_io_poll !== null) {
-      message.block_io_poll = object.block_io_poll;
-    } else {
-      message.block_io_poll = 0;
-    }
-    if (object.tasklet !== undefined && object.tasklet !== null) {
-      message.tasklet = object.tasklet;
-    } else {
-      message.tasklet = 0;
-    }
-    if (object.sched !== undefined && object.sched !== null) {
-      message.sched = object.sched;
-    } else {
-      message.sched = 0;
-    }
-    if (object.hrtimer !== undefined && object.hrtimer !== null) {
-      message.hrtimer = object.hrtimer;
-    } else {
-      message.hrtimer = 0;
-    }
-    if (object.rcu !== undefined && object.rcu !== null) {
-      message.rcu = object.rcu;
-    } else {
-      message.rcu = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<SoftIRQStat>, I>>(
+    object: I
+  ): SoftIRQStat {
+    const message = createBaseSoftIRQStat();
+    message.hi = object.hi ?? 0;
+    message.timer = object.timer ?? 0;
+    message.net_tx = object.net_tx ?? 0;
+    message.net_rx = object.net_rx ?? 0;
+    message.block = object.block ?? 0;
+    message.block_io_poll = object.block_io_poll ?? 0;
+    message.tasklet = object.tasklet ?? 0;
+    message.sched = object.sched ?? 0;
+    message.hrtimer = object.hrtimer ?? 0;
+    message.rcu = object.rcu ?? 0;
     return message;
   },
 };
 
-const baseCPUInfoResponse: object = {};
+function createBaseCPUInfoResponse(): CPUInfoResponse {
+  return { messages: [] };
+}
 
 export const CPUInfoResponse = {
   encode(message: CPUInfoResponse, writer: Writer = Writer.create()): Writer {
@@ -9798,8 +8320,7 @@ export const CPUInfoResponse = {
   decode(input: Reader | Uint8Array, length?: number): CPUInfoResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseCPUInfoResponse } as CPUInfoResponse;
-    message.messages = [];
+    const message = createBaseCPUInfoResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -9815,14 +8336,11 @@ export const CPUInfoResponse = {
   },
 
   fromJSON(object: any): CPUInfoResponse {
-    const message = { ...baseCPUInfoResponse } as CPUInfoResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(CPUsInfo.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => CPUsInfo.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: CPUInfoResponse): unknown {
@@ -9837,19 +8355,19 @@ export const CPUInfoResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<CPUInfoResponse>): CPUInfoResponse {
-    const message = { ...baseCPUInfoResponse } as CPUInfoResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(CPUsInfo.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<CPUInfoResponse>, I>>(
+    object: I
+  ): CPUInfoResponse {
+    const message = createBaseCPUInfoResponse();
+    message.messages =
+      object.messages?.map((e) => CPUsInfo.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseCPUsInfo: object = {};
+function createBaseCPUsInfo(): CPUsInfo {
+  return { metadata: undefined, cpu_info: [] };
+}
 
 export const CPUsInfo = {
   encode(message: CPUsInfo, writer: Writer = Writer.create()): Writer {
@@ -9865,8 +8383,7 @@ export const CPUsInfo = {
   decode(input: Reader | Uint8Array, length?: number): CPUsInfo {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseCPUsInfo } as CPUsInfo;
-    message.cpu_info = [];
+    const message = createBaseCPUsInfo();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -9885,19 +8402,14 @@ export const CPUsInfo = {
   },
 
   fromJSON(object: any): CPUsInfo {
-    const message = { ...baseCPUsInfo } as CPUsInfo;
-    message.cpu_info = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.cpu_info !== undefined && object.cpu_info !== null) {
-      for (const e of object.cpu_info) {
-        message.cpu_info.push(CPUInfo.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      cpu_info: Array.isArray(object?.cpu_info)
+        ? object.cpu_info.map((e: any) => CPUInfo.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: CPUsInfo): unknown {
@@ -9916,51 +8428,48 @@ export const CPUsInfo = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<CPUsInfo>): CPUsInfo {
-    const message = { ...baseCPUsInfo } as CPUsInfo;
-    message.cpu_info = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.cpu_info !== undefined && object.cpu_info !== null) {
-      for (const e of object.cpu_info) {
-        message.cpu_info.push(CPUInfo.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<CPUsInfo>, I>>(object: I): CPUsInfo {
+    const message = createBaseCPUsInfo();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.cpu_info =
+      object.cpu_info?.map((e) => CPUInfo.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseCPUInfo: object = {
-  processor: 0,
-  vendor_id: "",
-  cpu_family: "",
-  model: "",
-  model_name: "",
-  stepping: "",
-  microcode: "",
-  cpu_mhz: 0,
-  cache_size: "",
-  physical_id: "",
-  siblings: 0,
-  core_id: "",
-  cpu_cores: 0,
-  apic_id: "",
-  initial_apic_id: "",
-  fpu: "",
-  fpu_exception: "",
-  cpu_id_level: 0,
-  wp: "",
-  flags: "",
-  bugs: "",
-  bogo_mips: 0,
-  cl_flush_size: 0,
-  cache_alignment: 0,
-  address_sizes: "",
-  power_management: "",
-};
+function createBaseCPUInfo(): CPUInfo {
+  return {
+    processor: 0,
+    vendor_id: "",
+    cpu_family: "",
+    model: "",
+    model_name: "",
+    stepping: "",
+    microcode: "",
+    cpu_mhz: 0,
+    cache_size: "",
+    physical_id: "",
+    siblings: 0,
+    core_id: "",
+    cpu_cores: 0,
+    apic_id: "",
+    initial_apic_id: "",
+    fpu: "",
+    fpu_exception: "",
+    cpu_id_level: 0,
+    wp: "",
+    flags: [],
+    bugs: [],
+    bogo_mips: 0,
+    cl_flush_size: 0,
+    cache_alignment: 0,
+    address_sizes: "",
+    power_management: "",
+  };
+}
 
 export const CPUInfo = {
   encode(message: CPUInfo, writer: Writer = Writer.create()): Writer {
@@ -10048,9 +8557,7 @@ export const CPUInfo = {
   decode(input: Reader | Uint8Array, length?: number): CPUInfo {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseCPUInfo } as CPUInfo;
-    message.flags = [];
-    message.bugs = [];
+    const message = createBaseCPUInfo();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -10141,154 +8648,58 @@ export const CPUInfo = {
   },
 
   fromJSON(object: any): CPUInfo {
-    const message = { ...baseCPUInfo } as CPUInfo;
-    message.flags = [];
-    message.bugs = [];
-    if (object.processor !== undefined && object.processor !== null) {
-      message.processor = Number(object.processor);
-    } else {
-      message.processor = 0;
-    }
-    if (object.vendor_id !== undefined && object.vendor_id !== null) {
-      message.vendor_id = String(object.vendor_id);
-    } else {
-      message.vendor_id = "";
-    }
-    if (object.cpu_family !== undefined && object.cpu_family !== null) {
-      message.cpu_family = String(object.cpu_family);
-    } else {
-      message.cpu_family = "";
-    }
-    if (object.model !== undefined && object.model !== null) {
-      message.model = String(object.model);
-    } else {
-      message.model = "";
-    }
-    if (object.model_name !== undefined && object.model_name !== null) {
-      message.model_name = String(object.model_name);
-    } else {
-      message.model_name = "";
-    }
-    if (object.stepping !== undefined && object.stepping !== null) {
-      message.stepping = String(object.stepping);
-    } else {
-      message.stepping = "";
-    }
-    if (object.microcode !== undefined && object.microcode !== null) {
-      message.microcode = String(object.microcode);
-    } else {
-      message.microcode = "";
-    }
-    if (object.cpu_mhz !== undefined && object.cpu_mhz !== null) {
-      message.cpu_mhz = Number(object.cpu_mhz);
-    } else {
-      message.cpu_mhz = 0;
-    }
-    if (object.cache_size !== undefined && object.cache_size !== null) {
-      message.cache_size = String(object.cache_size);
-    } else {
-      message.cache_size = "";
-    }
-    if (object.physical_id !== undefined && object.physical_id !== null) {
-      message.physical_id = String(object.physical_id);
-    } else {
-      message.physical_id = "";
-    }
-    if (object.siblings !== undefined && object.siblings !== null) {
-      message.siblings = Number(object.siblings);
-    } else {
-      message.siblings = 0;
-    }
-    if (object.core_id !== undefined && object.core_id !== null) {
-      message.core_id = String(object.core_id);
-    } else {
-      message.core_id = "";
-    }
-    if (object.cpu_cores !== undefined && object.cpu_cores !== null) {
-      message.cpu_cores = Number(object.cpu_cores);
-    } else {
-      message.cpu_cores = 0;
-    }
-    if (object.apic_id !== undefined && object.apic_id !== null) {
-      message.apic_id = String(object.apic_id);
-    } else {
-      message.apic_id = "";
-    }
-    if (
-      object.initial_apic_id !== undefined &&
-      object.initial_apic_id !== null
-    ) {
-      message.initial_apic_id = String(object.initial_apic_id);
-    } else {
-      message.initial_apic_id = "";
-    }
-    if (object.fpu !== undefined && object.fpu !== null) {
-      message.fpu = String(object.fpu);
-    } else {
-      message.fpu = "";
-    }
-    if (object.fpu_exception !== undefined && object.fpu_exception !== null) {
-      message.fpu_exception = String(object.fpu_exception);
-    } else {
-      message.fpu_exception = "";
-    }
-    if (object.cpu_id_level !== undefined && object.cpu_id_level !== null) {
-      message.cpu_id_level = Number(object.cpu_id_level);
-    } else {
-      message.cpu_id_level = 0;
-    }
-    if (object.wp !== undefined && object.wp !== null) {
-      message.wp = String(object.wp);
-    } else {
-      message.wp = "";
-    }
-    if (object.flags !== undefined && object.flags !== null) {
-      for (const e of object.flags) {
-        message.flags.push(String(e));
-      }
-    }
-    if (object.bugs !== undefined && object.bugs !== null) {
-      for (const e of object.bugs) {
-        message.bugs.push(String(e));
-      }
-    }
-    if (object.bogo_mips !== undefined && object.bogo_mips !== null) {
-      message.bogo_mips = Number(object.bogo_mips);
-    } else {
-      message.bogo_mips = 0;
-    }
-    if (object.cl_flush_size !== undefined && object.cl_flush_size !== null) {
-      message.cl_flush_size = Number(object.cl_flush_size);
-    } else {
-      message.cl_flush_size = 0;
-    }
-    if (
-      object.cache_alignment !== undefined &&
-      object.cache_alignment !== null
-    ) {
-      message.cache_alignment = Number(object.cache_alignment);
-    } else {
-      message.cache_alignment = 0;
-    }
-    if (object.address_sizes !== undefined && object.address_sizes !== null) {
-      message.address_sizes = String(object.address_sizes);
-    } else {
-      message.address_sizes = "";
-    }
-    if (
-      object.power_management !== undefined &&
-      object.power_management !== null
-    ) {
-      message.power_management = String(object.power_management);
-    } else {
-      message.power_management = "";
-    }
-    return message;
+    return {
+      processor: isSet(object.processor) ? Number(object.processor) : 0,
+      vendor_id: isSet(object.vendor_id) ? String(object.vendor_id) : "",
+      cpu_family: isSet(object.cpu_family) ? String(object.cpu_family) : "",
+      model: isSet(object.model) ? String(object.model) : "",
+      model_name: isSet(object.model_name) ? String(object.model_name) : "",
+      stepping: isSet(object.stepping) ? String(object.stepping) : "",
+      microcode: isSet(object.microcode) ? String(object.microcode) : "",
+      cpu_mhz: isSet(object.cpu_mhz) ? Number(object.cpu_mhz) : 0,
+      cache_size: isSet(object.cache_size) ? String(object.cache_size) : "",
+      physical_id: isSet(object.physical_id) ? String(object.physical_id) : "",
+      siblings: isSet(object.siblings) ? Number(object.siblings) : 0,
+      core_id: isSet(object.core_id) ? String(object.core_id) : "",
+      cpu_cores: isSet(object.cpu_cores) ? Number(object.cpu_cores) : 0,
+      apic_id: isSet(object.apic_id) ? String(object.apic_id) : "",
+      initial_apic_id: isSet(object.initial_apic_id)
+        ? String(object.initial_apic_id)
+        : "",
+      fpu: isSet(object.fpu) ? String(object.fpu) : "",
+      fpu_exception: isSet(object.fpu_exception)
+        ? String(object.fpu_exception)
+        : "",
+      cpu_id_level: isSet(object.cpu_id_level)
+        ? Number(object.cpu_id_level)
+        : 0,
+      wp: isSet(object.wp) ? String(object.wp) : "",
+      flags: Array.isArray(object?.flags)
+        ? object.flags.map((e: any) => String(e))
+        : [],
+      bugs: Array.isArray(object?.bugs)
+        ? object.bugs.map((e: any) => String(e))
+        : [],
+      bogo_mips: isSet(object.bogo_mips) ? Number(object.bogo_mips) : 0,
+      cl_flush_size: isSet(object.cl_flush_size)
+        ? Number(object.cl_flush_size)
+        : 0,
+      cache_alignment: isSet(object.cache_alignment)
+        ? Number(object.cache_alignment)
+        : 0,
+      address_sizes: isSet(object.address_sizes)
+        ? String(object.address_sizes)
+        : "",
+      power_management: isSet(object.power_management)
+        ? String(object.power_management)
+        : "",
+    };
   },
 
   toJSON(message: CPUInfo): unknown {
     const obj: any = {};
-    message.processor !== undefined && (obj.processor = message.processor);
+    message.processor !== undefined &&
+      (obj.processor = Math.round(message.processor));
     message.vendor_id !== undefined && (obj.vendor_id = message.vendor_id);
     message.cpu_family !== undefined && (obj.cpu_family = message.cpu_family);
     message.model !== undefined && (obj.model = message.model);
@@ -10299,9 +8710,11 @@ export const CPUInfo = {
     message.cache_size !== undefined && (obj.cache_size = message.cache_size);
     message.physical_id !== undefined &&
       (obj.physical_id = message.physical_id);
-    message.siblings !== undefined && (obj.siblings = message.siblings);
+    message.siblings !== undefined &&
+      (obj.siblings = Math.round(message.siblings));
     message.core_id !== undefined && (obj.core_id = message.core_id);
-    message.cpu_cores !== undefined && (obj.cpu_cores = message.cpu_cores);
+    message.cpu_cores !== undefined &&
+      (obj.cpu_cores = Math.round(message.cpu_cores));
     message.apic_id !== undefined && (obj.apic_id = message.apic_id);
     message.initial_apic_id !== undefined &&
       (obj.initial_apic_id = message.initial_apic_id);
@@ -10309,7 +8722,7 @@ export const CPUInfo = {
     message.fpu_exception !== undefined &&
       (obj.fpu_exception = message.fpu_exception);
     message.cpu_id_level !== undefined &&
-      (obj.cpu_id_level = message.cpu_id_level);
+      (obj.cpu_id_level = Math.round(message.cpu_id_level));
     message.wp !== undefined && (obj.wp = message.wp);
     if (message.flags) {
       obj.flags = message.flags.map((e) => e);
@@ -10323,9 +8736,9 @@ export const CPUInfo = {
     }
     message.bogo_mips !== undefined && (obj.bogo_mips = message.bogo_mips);
     message.cl_flush_size !== undefined &&
-      (obj.cl_flush_size = message.cl_flush_size);
+      (obj.cl_flush_size = Math.round(message.cl_flush_size));
     message.cache_alignment !== undefined &&
-      (obj.cache_alignment = message.cache_alignment);
+      (obj.cache_alignment = Math.round(message.cache_alignment));
     message.address_sizes !== undefined &&
       (obj.address_sizes = message.address_sizes);
     message.power_management !== undefined &&
@@ -10333,154 +8746,41 @@ export const CPUInfo = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<CPUInfo>): CPUInfo {
-    const message = { ...baseCPUInfo } as CPUInfo;
-    message.flags = [];
-    message.bugs = [];
-    if (object.processor !== undefined && object.processor !== null) {
-      message.processor = object.processor;
-    } else {
-      message.processor = 0;
-    }
-    if (object.vendor_id !== undefined && object.vendor_id !== null) {
-      message.vendor_id = object.vendor_id;
-    } else {
-      message.vendor_id = "";
-    }
-    if (object.cpu_family !== undefined && object.cpu_family !== null) {
-      message.cpu_family = object.cpu_family;
-    } else {
-      message.cpu_family = "";
-    }
-    if (object.model !== undefined && object.model !== null) {
-      message.model = object.model;
-    } else {
-      message.model = "";
-    }
-    if (object.model_name !== undefined && object.model_name !== null) {
-      message.model_name = object.model_name;
-    } else {
-      message.model_name = "";
-    }
-    if (object.stepping !== undefined && object.stepping !== null) {
-      message.stepping = object.stepping;
-    } else {
-      message.stepping = "";
-    }
-    if (object.microcode !== undefined && object.microcode !== null) {
-      message.microcode = object.microcode;
-    } else {
-      message.microcode = "";
-    }
-    if (object.cpu_mhz !== undefined && object.cpu_mhz !== null) {
-      message.cpu_mhz = object.cpu_mhz;
-    } else {
-      message.cpu_mhz = 0;
-    }
-    if (object.cache_size !== undefined && object.cache_size !== null) {
-      message.cache_size = object.cache_size;
-    } else {
-      message.cache_size = "";
-    }
-    if (object.physical_id !== undefined && object.physical_id !== null) {
-      message.physical_id = object.physical_id;
-    } else {
-      message.physical_id = "";
-    }
-    if (object.siblings !== undefined && object.siblings !== null) {
-      message.siblings = object.siblings;
-    } else {
-      message.siblings = 0;
-    }
-    if (object.core_id !== undefined && object.core_id !== null) {
-      message.core_id = object.core_id;
-    } else {
-      message.core_id = "";
-    }
-    if (object.cpu_cores !== undefined && object.cpu_cores !== null) {
-      message.cpu_cores = object.cpu_cores;
-    } else {
-      message.cpu_cores = 0;
-    }
-    if (object.apic_id !== undefined && object.apic_id !== null) {
-      message.apic_id = object.apic_id;
-    } else {
-      message.apic_id = "";
-    }
-    if (
-      object.initial_apic_id !== undefined &&
-      object.initial_apic_id !== null
-    ) {
-      message.initial_apic_id = object.initial_apic_id;
-    } else {
-      message.initial_apic_id = "";
-    }
-    if (object.fpu !== undefined && object.fpu !== null) {
-      message.fpu = object.fpu;
-    } else {
-      message.fpu = "";
-    }
-    if (object.fpu_exception !== undefined && object.fpu_exception !== null) {
-      message.fpu_exception = object.fpu_exception;
-    } else {
-      message.fpu_exception = "";
-    }
-    if (object.cpu_id_level !== undefined && object.cpu_id_level !== null) {
-      message.cpu_id_level = object.cpu_id_level;
-    } else {
-      message.cpu_id_level = 0;
-    }
-    if (object.wp !== undefined && object.wp !== null) {
-      message.wp = object.wp;
-    } else {
-      message.wp = "";
-    }
-    if (object.flags !== undefined && object.flags !== null) {
-      for (const e of object.flags) {
-        message.flags.push(e);
-      }
-    }
-    if (object.bugs !== undefined && object.bugs !== null) {
-      for (const e of object.bugs) {
-        message.bugs.push(e);
-      }
-    }
-    if (object.bogo_mips !== undefined && object.bogo_mips !== null) {
-      message.bogo_mips = object.bogo_mips;
-    } else {
-      message.bogo_mips = 0;
-    }
-    if (object.cl_flush_size !== undefined && object.cl_flush_size !== null) {
-      message.cl_flush_size = object.cl_flush_size;
-    } else {
-      message.cl_flush_size = 0;
-    }
-    if (
-      object.cache_alignment !== undefined &&
-      object.cache_alignment !== null
-    ) {
-      message.cache_alignment = object.cache_alignment;
-    } else {
-      message.cache_alignment = 0;
-    }
-    if (object.address_sizes !== undefined && object.address_sizes !== null) {
-      message.address_sizes = object.address_sizes;
-    } else {
-      message.address_sizes = "";
-    }
-    if (
-      object.power_management !== undefined &&
-      object.power_management !== null
-    ) {
-      message.power_management = object.power_management;
-    } else {
-      message.power_management = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<CPUInfo>, I>>(object: I): CPUInfo {
+    const message = createBaseCPUInfo();
+    message.processor = object.processor ?? 0;
+    message.vendor_id = object.vendor_id ?? "";
+    message.cpu_family = object.cpu_family ?? "";
+    message.model = object.model ?? "";
+    message.model_name = object.model_name ?? "";
+    message.stepping = object.stepping ?? "";
+    message.microcode = object.microcode ?? "";
+    message.cpu_mhz = object.cpu_mhz ?? 0;
+    message.cache_size = object.cache_size ?? "";
+    message.physical_id = object.physical_id ?? "";
+    message.siblings = object.siblings ?? 0;
+    message.core_id = object.core_id ?? "";
+    message.cpu_cores = object.cpu_cores ?? 0;
+    message.apic_id = object.apic_id ?? "";
+    message.initial_apic_id = object.initial_apic_id ?? "";
+    message.fpu = object.fpu ?? "";
+    message.fpu_exception = object.fpu_exception ?? "";
+    message.cpu_id_level = object.cpu_id_level ?? 0;
+    message.wp = object.wp ?? "";
+    message.flags = object.flags?.map((e) => e) || [];
+    message.bugs = object.bugs?.map((e) => e) || [];
+    message.bogo_mips = object.bogo_mips ?? 0;
+    message.cl_flush_size = object.cl_flush_size ?? 0;
+    message.cache_alignment = object.cache_alignment ?? 0;
+    message.address_sizes = object.address_sizes ?? "";
+    message.power_management = object.power_management ?? "";
     return message;
   },
 };
 
-const baseNetworkDeviceStatsResponse: object = {};
+function createBaseNetworkDeviceStatsResponse(): NetworkDeviceStatsResponse {
+  return { messages: [] };
+}
 
 export const NetworkDeviceStatsResponse = {
   encode(
@@ -10499,10 +8799,7 @@ export const NetworkDeviceStatsResponse = {
   ): NetworkDeviceStatsResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseNetworkDeviceStatsResponse,
-    } as NetworkDeviceStatsResponse;
-    message.messages = [];
+    const message = createBaseNetworkDeviceStatsResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -10520,16 +8817,11 @@ export const NetworkDeviceStatsResponse = {
   },
 
   fromJSON(object: any): NetworkDeviceStatsResponse {
-    const message = {
-      ...baseNetworkDeviceStatsResponse,
-    } as NetworkDeviceStatsResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(NetworkDeviceStats.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => NetworkDeviceStats.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: NetworkDeviceStatsResponse): unknown {
@@ -10544,23 +8836,19 @@ export const NetworkDeviceStatsResponse = {
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<NetworkDeviceStatsResponse>
+  fromPartial<I extends Exact<DeepPartial<NetworkDeviceStatsResponse>, I>>(
+    object: I
   ): NetworkDeviceStatsResponse {
-    const message = {
-      ...baseNetworkDeviceStatsResponse,
-    } as NetworkDeviceStatsResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(NetworkDeviceStats.fromPartial(e));
-      }
-    }
+    const message = createBaseNetworkDeviceStatsResponse();
+    message.messages =
+      object.messages?.map((e) => NetworkDeviceStats.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseNetworkDeviceStats: object = {};
+function createBaseNetworkDeviceStats(): NetworkDeviceStats {
+  return { metadata: undefined, total: undefined, devices: [] };
+}
 
 export const NetworkDeviceStats = {
   encode(
@@ -10582,8 +8870,7 @@ export const NetworkDeviceStats = {
   decode(input: Reader | Uint8Array, length?: number): NetworkDeviceStats {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseNetworkDeviceStats } as NetworkDeviceStats;
-    message.devices = [];
+    const message = createBaseNetworkDeviceStats();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -10605,24 +8892,15 @@ export const NetworkDeviceStats = {
   },
 
   fromJSON(object: any): NetworkDeviceStats {
-    const message = { ...baseNetworkDeviceStats } as NetworkDeviceStats;
-    message.devices = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.total !== undefined && object.total !== null) {
-      message.total = NetDev.fromJSON(object.total);
-    } else {
-      message.total = undefined;
-    }
-    if (object.devices !== undefined && object.devices !== null) {
-      for (const e of object.devices) {
-        message.devices.push(NetDev.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      total: isSet(object.total) ? NetDev.fromJSON(object.total) : undefined,
+      devices: Array.isArray(object?.devices)
+        ? object.devices.map((e: any) => NetDev.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: NetworkDeviceStats): unknown {
@@ -10643,47 +8921,44 @@ export const NetworkDeviceStats = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<NetworkDeviceStats>): NetworkDeviceStats {
-    const message = { ...baseNetworkDeviceStats } as NetworkDeviceStats;
-    message.devices = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.total !== undefined && object.total !== null) {
-      message.total = NetDev.fromPartial(object.total);
-    } else {
-      message.total = undefined;
-    }
-    if (object.devices !== undefined && object.devices !== null) {
-      for (const e of object.devices) {
-        message.devices.push(NetDev.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<NetworkDeviceStats>, I>>(
+    object: I
+  ): NetworkDeviceStats {
+    const message = createBaseNetworkDeviceStats();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.total =
+      object.total !== undefined && object.total !== null
+        ? NetDev.fromPartial(object.total)
+        : undefined;
+    message.devices = object.devices?.map((e) => NetDev.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseNetDev: object = {
-  name: "",
-  rx_bytes: 0,
-  rx_packets: 0,
-  rx_errors: 0,
-  rx_dropped: 0,
-  rx_fifo: 0,
-  rx_frame: 0,
-  rx_compressed: 0,
-  rx_multicast: 0,
-  tx_bytes: 0,
-  tx_packets: 0,
-  tx_errors: 0,
-  tx_dropped: 0,
-  tx_fifo: 0,
-  tx_collisions: 0,
-  tx_carrier: 0,
-  tx_compressed: 0,
-};
+function createBaseNetDev(): NetDev {
+  return {
+    name: "",
+    rx_bytes: 0,
+    rx_packets: 0,
+    rx_errors: 0,
+    rx_dropped: 0,
+    rx_fifo: 0,
+    rx_frame: 0,
+    rx_compressed: 0,
+    rx_multicast: 0,
+    tx_bytes: 0,
+    tx_packets: 0,
+    tx_errors: 0,
+    tx_dropped: 0,
+    tx_fifo: 0,
+    tx_collisions: 0,
+    tx_carrier: 0,
+    tx_compressed: 0,
+  };
+}
 
 export const NetDev = {
   encode(message: NetDev, writer: Writer = Writer.create()): Writer {
@@ -10744,7 +9019,7 @@ export const NetDev = {
   decode(input: Reader | Uint8Array, length?: number): NetDev {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseNetDev } as NetDev;
+    const message = createBaseNetDev();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -10808,213 +9083,99 @@ export const NetDev = {
   },
 
   fromJSON(object: any): NetDev {
-    const message = { ...baseNetDev } as NetDev;
-    if (object.name !== undefined && object.name !== null) {
-      message.name = String(object.name);
-    } else {
-      message.name = "";
-    }
-    if (object.rx_bytes !== undefined && object.rx_bytes !== null) {
-      message.rx_bytes = Number(object.rx_bytes);
-    } else {
-      message.rx_bytes = 0;
-    }
-    if (object.rx_packets !== undefined && object.rx_packets !== null) {
-      message.rx_packets = Number(object.rx_packets);
-    } else {
-      message.rx_packets = 0;
-    }
-    if (object.rx_errors !== undefined && object.rx_errors !== null) {
-      message.rx_errors = Number(object.rx_errors);
-    } else {
-      message.rx_errors = 0;
-    }
-    if (object.rx_dropped !== undefined && object.rx_dropped !== null) {
-      message.rx_dropped = Number(object.rx_dropped);
-    } else {
-      message.rx_dropped = 0;
-    }
-    if (object.rx_fifo !== undefined && object.rx_fifo !== null) {
-      message.rx_fifo = Number(object.rx_fifo);
-    } else {
-      message.rx_fifo = 0;
-    }
-    if (object.rx_frame !== undefined && object.rx_frame !== null) {
-      message.rx_frame = Number(object.rx_frame);
-    } else {
-      message.rx_frame = 0;
-    }
-    if (object.rx_compressed !== undefined && object.rx_compressed !== null) {
-      message.rx_compressed = Number(object.rx_compressed);
-    } else {
-      message.rx_compressed = 0;
-    }
-    if (object.rx_multicast !== undefined && object.rx_multicast !== null) {
-      message.rx_multicast = Number(object.rx_multicast);
-    } else {
-      message.rx_multicast = 0;
-    }
-    if (object.tx_bytes !== undefined && object.tx_bytes !== null) {
-      message.tx_bytes = Number(object.tx_bytes);
-    } else {
-      message.tx_bytes = 0;
-    }
-    if (object.tx_packets !== undefined && object.tx_packets !== null) {
-      message.tx_packets = Number(object.tx_packets);
-    } else {
-      message.tx_packets = 0;
-    }
-    if (object.tx_errors !== undefined && object.tx_errors !== null) {
-      message.tx_errors = Number(object.tx_errors);
-    } else {
-      message.tx_errors = 0;
-    }
-    if (object.tx_dropped !== undefined && object.tx_dropped !== null) {
-      message.tx_dropped = Number(object.tx_dropped);
-    } else {
-      message.tx_dropped = 0;
-    }
-    if (object.tx_fifo !== undefined && object.tx_fifo !== null) {
-      message.tx_fifo = Number(object.tx_fifo);
-    } else {
-      message.tx_fifo = 0;
-    }
-    if (object.tx_collisions !== undefined && object.tx_collisions !== null) {
-      message.tx_collisions = Number(object.tx_collisions);
-    } else {
-      message.tx_collisions = 0;
-    }
-    if (object.tx_carrier !== undefined && object.tx_carrier !== null) {
-      message.tx_carrier = Number(object.tx_carrier);
-    } else {
-      message.tx_carrier = 0;
-    }
-    if (object.tx_compressed !== undefined && object.tx_compressed !== null) {
-      message.tx_compressed = Number(object.tx_compressed);
-    } else {
-      message.tx_compressed = 0;
-    }
-    return message;
+    return {
+      name: isSet(object.name) ? String(object.name) : "",
+      rx_bytes: isSet(object.rx_bytes) ? Number(object.rx_bytes) : 0,
+      rx_packets: isSet(object.rx_packets) ? Number(object.rx_packets) : 0,
+      rx_errors: isSet(object.rx_errors) ? Number(object.rx_errors) : 0,
+      rx_dropped: isSet(object.rx_dropped) ? Number(object.rx_dropped) : 0,
+      rx_fifo: isSet(object.rx_fifo) ? Number(object.rx_fifo) : 0,
+      rx_frame: isSet(object.rx_frame) ? Number(object.rx_frame) : 0,
+      rx_compressed: isSet(object.rx_compressed)
+        ? Number(object.rx_compressed)
+        : 0,
+      rx_multicast: isSet(object.rx_multicast)
+        ? Number(object.rx_multicast)
+        : 0,
+      tx_bytes: isSet(object.tx_bytes) ? Number(object.tx_bytes) : 0,
+      tx_packets: isSet(object.tx_packets) ? Number(object.tx_packets) : 0,
+      tx_errors: isSet(object.tx_errors) ? Number(object.tx_errors) : 0,
+      tx_dropped: isSet(object.tx_dropped) ? Number(object.tx_dropped) : 0,
+      tx_fifo: isSet(object.tx_fifo) ? Number(object.tx_fifo) : 0,
+      tx_collisions: isSet(object.tx_collisions)
+        ? Number(object.tx_collisions)
+        : 0,
+      tx_carrier: isSet(object.tx_carrier) ? Number(object.tx_carrier) : 0,
+      tx_compressed: isSet(object.tx_compressed)
+        ? Number(object.tx_compressed)
+        : 0,
+    };
   },
 
   toJSON(message: NetDev): unknown {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
-    message.rx_bytes !== undefined && (obj.rx_bytes = message.rx_bytes);
-    message.rx_packets !== undefined && (obj.rx_packets = message.rx_packets);
-    message.rx_errors !== undefined && (obj.rx_errors = message.rx_errors);
-    message.rx_dropped !== undefined && (obj.rx_dropped = message.rx_dropped);
-    message.rx_fifo !== undefined && (obj.rx_fifo = message.rx_fifo);
-    message.rx_frame !== undefined && (obj.rx_frame = message.rx_frame);
+    message.rx_bytes !== undefined &&
+      (obj.rx_bytes = Math.round(message.rx_bytes));
+    message.rx_packets !== undefined &&
+      (obj.rx_packets = Math.round(message.rx_packets));
+    message.rx_errors !== undefined &&
+      (obj.rx_errors = Math.round(message.rx_errors));
+    message.rx_dropped !== undefined &&
+      (obj.rx_dropped = Math.round(message.rx_dropped));
+    message.rx_fifo !== undefined &&
+      (obj.rx_fifo = Math.round(message.rx_fifo));
+    message.rx_frame !== undefined &&
+      (obj.rx_frame = Math.round(message.rx_frame));
     message.rx_compressed !== undefined &&
-      (obj.rx_compressed = message.rx_compressed);
+      (obj.rx_compressed = Math.round(message.rx_compressed));
     message.rx_multicast !== undefined &&
-      (obj.rx_multicast = message.rx_multicast);
-    message.tx_bytes !== undefined && (obj.tx_bytes = message.tx_bytes);
-    message.tx_packets !== undefined && (obj.tx_packets = message.tx_packets);
-    message.tx_errors !== undefined && (obj.tx_errors = message.tx_errors);
-    message.tx_dropped !== undefined && (obj.tx_dropped = message.tx_dropped);
-    message.tx_fifo !== undefined && (obj.tx_fifo = message.tx_fifo);
+      (obj.rx_multicast = Math.round(message.rx_multicast));
+    message.tx_bytes !== undefined &&
+      (obj.tx_bytes = Math.round(message.tx_bytes));
+    message.tx_packets !== undefined &&
+      (obj.tx_packets = Math.round(message.tx_packets));
+    message.tx_errors !== undefined &&
+      (obj.tx_errors = Math.round(message.tx_errors));
+    message.tx_dropped !== undefined &&
+      (obj.tx_dropped = Math.round(message.tx_dropped));
+    message.tx_fifo !== undefined &&
+      (obj.tx_fifo = Math.round(message.tx_fifo));
     message.tx_collisions !== undefined &&
-      (obj.tx_collisions = message.tx_collisions);
-    message.tx_carrier !== undefined && (obj.tx_carrier = message.tx_carrier);
+      (obj.tx_collisions = Math.round(message.tx_collisions));
+    message.tx_carrier !== undefined &&
+      (obj.tx_carrier = Math.round(message.tx_carrier));
     message.tx_compressed !== undefined &&
-      (obj.tx_compressed = message.tx_compressed);
+      (obj.tx_compressed = Math.round(message.tx_compressed));
     return obj;
   },
 
-  fromPartial(object: DeepPartial<NetDev>): NetDev {
-    const message = { ...baseNetDev } as NetDev;
-    if (object.name !== undefined && object.name !== null) {
-      message.name = object.name;
-    } else {
-      message.name = "";
-    }
-    if (object.rx_bytes !== undefined && object.rx_bytes !== null) {
-      message.rx_bytes = object.rx_bytes;
-    } else {
-      message.rx_bytes = 0;
-    }
-    if (object.rx_packets !== undefined && object.rx_packets !== null) {
-      message.rx_packets = object.rx_packets;
-    } else {
-      message.rx_packets = 0;
-    }
-    if (object.rx_errors !== undefined && object.rx_errors !== null) {
-      message.rx_errors = object.rx_errors;
-    } else {
-      message.rx_errors = 0;
-    }
-    if (object.rx_dropped !== undefined && object.rx_dropped !== null) {
-      message.rx_dropped = object.rx_dropped;
-    } else {
-      message.rx_dropped = 0;
-    }
-    if (object.rx_fifo !== undefined && object.rx_fifo !== null) {
-      message.rx_fifo = object.rx_fifo;
-    } else {
-      message.rx_fifo = 0;
-    }
-    if (object.rx_frame !== undefined && object.rx_frame !== null) {
-      message.rx_frame = object.rx_frame;
-    } else {
-      message.rx_frame = 0;
-    }
-    if (object.rx_compressed !== undefined && object.rx_compressed !== null) {
-      message.rx_compressed = object.rx_compressed;
-    } else {
-      message.rx_compressed = 0;
-    }
-    if (object.rx_multicast !== undefined && object.rx_multicast !== null) {
-      message.rx_multicast = object.rx_multicast;
-    } else {
-      message.rx_multicast = 0;
-    }
-    if (object.tx_bytes !== undefined && object.tx_bytes !== null) {
-      message.tx_bytes = object.tx_bytes;
-    } else {
-      message.tx_bytes = 0;
-    }
-    if (object.tx_packets !== undefined && object.tx_packets !== null) {
-      message.tx_packets = object.tx_packets;
-    } else {
-      message.tx_packets = 0;
-    }
-    if (object.tx_errors !== undefined && object.tx_errors !== null) {
-      message.tx_errors = object.tx_errors;
-    } else {
-      message.tx_errors = 0;
-    }
-    if (object.tx_dropped !== undefined && object.tx_dropped !== null) {
-      message.tx_dropped = object.tx_dropped;
-    } else {
-      message.tx_dropped = 0;
-    }
-    if (object.tx_fifo !== undefined && object.tx_fifo !== null) {
-      message.tx_fifo = object.tx_fifo;
-    } else {
-      message.tx_fifo = 0;
-    }
-    if (object.tx_collisions !== undefined && object.tx_collisions !== null) {
-      message.tx_collisions = object.tx_collisions;
-    } else {
-      message.tx_collisions = 0;
-    }
-    if (object.tx_carrier !== undefined && object.tx_carrier !== null) {
-      message.tx_carrier = object.tx_carrier;
-    } else {
-      message.tx_carrier = 0;
-    }
-    if (object.tx_compressed !== undefined && object.tx_compressed !== null) {
-      message.tx_compressed = object.tx_compressed;
-    } else {
-      message.tx_compressed = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<NetDev>, I>>(object: I): NetDev {
+    const message = createBaseNetDev();
+    message.name = object.name ?? "";
+    message.rx_bytes = object.rx_bytes ?? 0;
+    message.rx_packets = object.rx_packets ?? 0;
+    message.rx_errors = object.rx_errors ?? 0;
+    message.rx_dropped = object.rx_dropped ?? 0;
+    message.rx_fifo = object.rx_fifo ?? 0;
+    message.rx_frame = object.rx_frame ?? 0;
+    message.rx_compressed = object.rx_compressed ?? 0;
+    message.rx_multicast = object.rx_multicast ?? 0;
+    message.tx_bytes = object.tx_bytes ?? 0;
+    message.tx_packets = object.tx_packets ?? 0;
+    message.tx_errors = object.tx_errors ?? 0;
+    message.tx_dropped = object.tx_dropped ?? 0;
+    message.tx_fifo = object.tx_fifo ?? 0;
+    message.tx_collisions = object.tx_collisions ?? 0;
+    message.tx_carrier = object.tx_carrier ?? 0;
+    message.tx_compressed = object.tx_compressed ?? 0;
     return message;
   },
 };
 
-const baseDiskStatsResponse: object = {};
+function createBaseDiskStatsResponse(): DiskStatsResponse {
+  return { messages: [] };
+}
 
 export const DiskStatsResponse = {
   encode(message: DiskStatsResponse, writer: Writer = Writer.create()): Writer {
@@ -11027,8 +9188,7 @@ export const DiskStatsResponse = {
   decode(input: Reader | Uint8Array, length?: number): DiskStatsResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseDiskStatsResponse } as DiskStatsResponse;
-    message.messages = [];
+    const message = createBaseDiskStatsResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -11044,14 +9204,11 @@ export const DiskStatsResponse = {
   },
 
   fromJSON(object: any): DiskStatsResponse {
-    const message = { ...baseDiskStatsResponse } as DiskStatsResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(DiskStats.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => DiskStats.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: DiskStatsResponse): unknown {
@@ -11066,19 +9223,19 @@ export const DiskStatsResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<DiskStatsResponse>): DiskStatsResponse {
-    const message = { ...baseDiskStatsResponse } as DiskStatsResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(DiskStats.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<DiskStatsResponse>, I>>(
+    object: I
+  ): DiskStatsResponse {
+    const message = createBaseDiskStatsResponse();
+    message.messages =
+      object.messages?.map((e) => DiskStats.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseDiskStats: object = {};
+function createBaseDiskStats(): DiskStats {
+  return { metadata: undefined, total: undefined, devices: [] };
+}
 
 export const DiskStats = {
   encode(message: DiskStats, writer: Writer = Writer.create()): Writer {
@@ -11097,8 +9254,7 @@ export const DiskStats = {
   decode(input: Reader | Uint8Array, length?: number): DiskStats {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseDiskStats } as DiskStats;
-    message.devices = [];
+    const message = createBaseDiskStats();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -11120,24 +9276,15 @@ export const DiskStats = {
   },
 
   fromJSON(object: any): DiskStats {
-    const message = { ...baseDiskStats } as DiskStats;
-    message.devices = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.total !== undefined && object.total !== null) {
-      message.total = DiskStat.fromJSON(object.total);
-    } else {
-      message.total = undefined;
-    }
-    if (object.devices !== undefined && object.devices !== null) {
-      for (const e of object.devices) {
-        message.devices.push(DiskStat.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      total: isSet(object.total) ? DiskStat.fromJSON(object.total) : undefined,
+      devices: Array.isArray(object?.devices)
+        ? object.devices.map((e: any) => DiskStat.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: DiskStats): unknown {
@@ -11158,46 +9305,43 @@ export const DiskStats = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<DiskStats>): DiskStats {
-    const message = { ...baseDiskStats } as DiskStats;
-    message.devices = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.total !== undefined && object.total !== null) {
-      message.total = DiskStat.fromPartial(object.total);
-    } else {
-      message.total = undefined;
-    }
-    if (object.devices !== undefined && object.devices !== null) {
-      for (const e of object.devices) {
-        message.devices.push(DiskStat.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<DiskStats>, I>>(
+    object: I
+  ): DiskStats {
+    const message = createBaseDiskStats();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.total =
+      object.total !== undefined && object.total !== null
+        ? DiskStat.fromPartial(object.total)
+        : undefined;
+    message.devices = object.devices?.map((e) => DiskStat.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseDiskStat: object = {
-  name: "",
-  read_completed: 0,
-  read_merged: 0,
-  read_sectors: 0,
-  read_time_ms: 0,
-  write_completed: 0,
-  write_merged: 0,
-  write_sectors: 0,
-  write_time_ms: 0,
-  io_in_progress: 0,
-  io_time_ms: 0,
-  io_time_weighted_ms: 0,
-  discard_completed: 0,
-  discard_merged: 0,
-  discard_sectors: 0,
-  discard_time_ms: 0,
-};
+function createBaseDiskStat(): DiskStat {
+  return {
+    name: "",
+    read_completed: 0,
+    read_merged: 0,
+    read_sectors: 0,
+    read_time_ms: 0,
+    write_completed: 0,
+    write_merged: 0,
+    write_sectors: 0,
+    write_time_ms: 0,
+    io_in_progress: 0,
+    io_time_ms: 0,
+    io_time_weighted_ms: 0,
+    discard_completed: 0,
+    discard_merged: 0,
+    discard_sectors: 0,
+    discard_time_ms: 0,
+  };
+}
 
 export const DiskStat = {
   encode(message: DiskStat, writer: Writer = Writer.create()): Writer {
@@ -11255,7 +9399,7 @@ export const DiskStat = {
   decode(input: Reader | Uint8Array, length?: number): DiskStat {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseDiskStat } as DiskStat;
+    const message = createBaseDiskStat();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -11316,242 +9460,113 @@ export const DiskStat = {
   },
 
   fromJSON(object: any): DiskStat {
-    const message = { ...baseDiskStat } as DiskStat;
-    if (object.name !== undefined && object.name !== null) {
-      message.name = String(object.name);
-    } else {
-      message.name = "";
-    }
-    if (object.read_completed !== undefined && object.read_completed !== null) {
-      message.read_completed = Number(object.read_completed);
-    } else {
-      message.read_completed = 0;
-    }
-    if (object.read_merged !== undefined && object.read_merged !== null) {
-      message.read_merged = Number(object.read_merged);
-    } else {
-      message.read_merged = 0;
-    }
-    if (object.read_sectors !== undefined && object.read_sectors !== null) {
-      message.read_sectors = Number(object.read_sectors);
-    } else {
-      message.read_sectors = 0;
-    }
-    if (object.read_time_ms !== undefined && object.read_time_ms !== null) {
-      message.read_time_ms = Number(object.read_time_ms);
-    } else {
-      message.read_time_ms = 0;
-    }
-    if (
-      object.write_completed !== undefined &&
-      object.write_completed !== null
-    ) {
-      message.write_completed = Number(object.write_completed);
-    } else {
-      message.write_completed = 0;
-    }
-    if (object.write_merged !== undefined && object.write_merged !== null) {
-      message.write_merged = Number(object.write_merged);
-    } else {
-      message.write_merged = 0;
-    }
-    if (object.write_sectors !== undefined && object.write_sectors !== null) {
-      message.write_sectors = Number(object.write_sectors);
-    } else {
-      message.write_sectors = 0;
-    }
-    if (object.write_time_ms !== undefined && object.write_time_ms !== null) {
-      message.write_time_ms = Number(object.write_time_ms);
-    } else {
-      message.write_time_ms = 0;
-    }
-    if (object.io_in_progress !== undefined && object.io_in_progress !== null) {
-      message.io_in_progress = Number(object.io_in_progress);
-    } else {
-      message.io_in_progress = 0;
-    }
-    if (object.io_time_ms !== undefined && object.io_time_ms !== null) {
-      message.io_time_ms = Number(object.io_time_ms);
-    } else {
-      message.io_time_ms = 0;
-    }
-    if (
-      object.io_time_weighted_ms !== undefined &&
-      object.io_time_weighted_ms !== null
-    ) {
-      message.io_time_weighted_ms = Number(object.io_time_weighted_ms);
-    } else {
-      message.io_time_weighted_ms = 0;
-    }
-    if (
-      object.discard_completed !== undefined &&
-      object.discard_completed !== null
-    ) {
-      message.discard_completed = Number(object.discard_completed);
-    } else {
-      message.discard_completed = 0;
-    }
-    if (object.discard_merged !== undefined && object.discard_merged !== null) {
-      message.discard_merged = Number(object.discard_merged);
-    } else {
-      message.discard_merged = 0;
-    }
-    if (
-      object.discard_sectors !== undefined &&
-      object.discard_sectors !== null
-    ) {
-      message.discard_sectors = Number(object.discard_sectors);
-    } else {
-      message.discard_sectors = 0;
-    }
-    if (
-      object.discard_time_ms !== undefined &&
-      object.discard_time_ms !== null
-    ) {
-      message.discard_time_ms = Number(object.discard_time_ms);
-    } else {
-      message.discard_time_ms = 0;
-    }
-    return message;
+    return {
+      name: isSet(object.name) ? String(object.name) : "",
+      read_completed: isSet(object.read_completed)
+        ? Number(object.read_completed)
+        : 0,
+      read_merged: isSet(object.read_merged) ? Number(object.read_merged) : 0,
+      read_sectors: isSet(object.read_sectors)
+        ? Number(object.read_sectors)
+        : 0,
+      read_time_ms: isSet(object.read_time_ms)
+        ? Number(object.read_time_ms)
+        : 0,
+      write_completed: isSet(object.write_completed)
+        ? Number(object.write_completed)
+        : 0,
+      write_merged: isSet(object.write_merged)
+        ? Number(object.write_merged)
+        : 0,
+      write_sectors: isSet(object.write_sectors)
+        ? Number(object.write_sectors)
+        : 0,
+      write_time_ms: isSet(object.write_time_ms)
+        ? Number(object.write_time_ms)
+        : 0,
+      io_in_progress: isSet(object.io_in_progress)
+        ? Number(object.io_in_progress)
+        : 0,
+      io_time_ms: isSet(object.io_time_ms) ? Number(object.io_time_ms) : 0,
+      io_time_weighted_ms: isSet(object.io_time_weighted_ms)
+        ? Number(object.io_time_weighted_ms)
+        : 0,
+      discard_completed: isSet(object.discard_completed)
+        ? Number(object.discard_completed)
+        : 0,
+      discard_merged: isSet(object.discard_merged)
+        ? Number(object.discard_merged)
+        : 0,
+      discard_sectors: isSet(object.discard_sectors)
+        ? Number(object.discard_sectors)
+        : 0,
+      discard_time_ms: isSet(object.discard_time_ms)
+        ? Number(object.discard_time_ms)
+        : 0,
+    };
   },
 
   toJSON(message: DiskStat): unknown {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
     message.read_completed !== undefined &&
-      (obj.read_completed = message.read_completed);
+      (obj.read_completed = Math.round(message.read_completed));
     message.read_merged !== undefined &&
-      (obj.read_merged = message.read_merged);
+      (obj.read_merged = Math.round(message.read_merged));
     message.read_sectors !== undefined &&
-      (obj.read_sectors = message.read_sectors);
+      (obj.read_sectors = Math.round(message.read_sectors));
     message.read_time_ms !== undefined &&
-      (obj.read_time_ms = message.read_time_ms);
+      (obj.read_time_ms = Math.round(message.read_time_ms));
     message.write_completed !== undefined &&
-      (obj.write_completed = message.write_completed);
+      (obj.write_completed = Math.round(message.write_completed));
     message.write_merged !== undefined &&
-      (obj.write_merged = message.write_merged);
+      (obj.write_merged = Math.round(message.write_merged));
     message.write_sectors !== undefined &&
-      (obj.write_sectors = message.write_sectors);
+      (obj.write_sectors = Math.round(message.write_sectors));
     message.write_time_ms !== undefined &&
-      (obj.write_time_ms = message.write_time_ms);
+      (obj.write_time_ms = Math.round(message.write_time_ms));
     message.io_in_progress !== undefined &&
-      (obj.io_in_progress = message.io_in_progress);
-    message.io_time_ms !== undefined && (obj.io_time_ms = message.io_time_ms);
+      (obj.io_in_progress = Math.round(message.io_in_progress));
+    message.io_time_ms !== undefined &&
+      (obj.io_time_ms = Math.round(message.io_time_ms));
     message.io_time_weighted_ms !== undefined &&
-      (obj.io_time_weighted_ms = message.io_time_weighted_ms);
+      (obj.io_time_weighted_ms = Math.round(message.io_time_weighted_ms));
     message.discard_completed !== undefined &&
-      (obj.discard_completed = message.discard_completed);
+      (obj.discard_completed = Math.round(message.discard_completed));
     message.discard_merged !== undefined &&
-      (obj.discard_merged = message.discard_merged);
+      (obj.discard_merged = Math.round(message.discard_merged));
     message.discard_sectors !== undefined &&
-      (obj.discard_sectors = message.discard_sectors);
+      (obj.discard_sectors = Math.round(message.discard_sectors));
     message.discard_time_ms !== undefined &&
-      (obj.discard_time_ms = message.discard_time_ms);
+      (obj.discard_time_ms = Math.round(message.discard_time_ms));
     return obj;
   },
 
-  fromPartial(object: DeepPartial<DiskStat>): DiskStat {
-    const message = { ...baseDiskStat } as DiskStat;
-    if (object.name !== undefined && object.name !== null) {
-      message.name = object.name;
-    } else {
-      message.name = "";
-    }
-    if (object.read_completed !== undefined && object.read_completed !== null) {
-      message.read_completed = object.read_completed;
-    } else {
-      message.read_completed = 0;
-    }
-    if (object.read_merged !== undefined && object.read_merged !== null) {
-      message.read_merged = object.read_merged;
-    } else {
-      message.read_merged = 0;
-    }
-    if (object.read_sectors !== undefined && object.read_sectors !== null) {
-      message.read_sectors = object.read_sectors;
-    } else {
-      message.read_sectors = 0;
-    }
-    if (object.read_time_ms !== undefined && object.read_time_ms !== null) {
-      message.read_time_ms = object.read_time_ms;
-    } else {
-      message.read_time_ms = 0;
-    }
-    if (
-      object.write_completed !== undefined &&
-      object.write_completed !== null
-    ) {
-      message.write_completed = object.write_completed;
-    } else {
-      message.write_completed = 0;
-    }
-    if (object.write_merged !== undefined && object.write_merged !== null) {
-      message.write_merged = object.write_merged;
-    } else {
-      message.write_merged = 0;
-    }
-    if (object.write_sectors !== undefined && object.write_sectors !== null) {
-      message.write_sectors = object.write_sectors;
-    } else {
-      message.write_sectors = 0;
-    }
-    if (object.write_time_ms !== undefined && object.write_time_ms !== null) {
-      message.write_time_ms = object.write_time_ms;
-    } else {
-      message.write_time_ms = 0;
-    }
-    if (object.io_in_progress !== undefined && object.io_in_progress !== null) {
-      message.io_in_progress = object.io_in_progress;
-    } else {
-      message.io_in_progress = 0;
-    }
-    if (object.io_time_ms !== undefined && object.io_time_ms !== null) {
-      message.io_time_ms = object.io_time_ms;
-    } else {
-      message.io_time_ms = 0;
-    }
-    if (
-      object.io_time_weighted_ms !== undefined &&
-      object.io_time_weighted_ms !== null
-    ) {
-      message.io_time_weighted_ms = object.io_time_weighted_ms;
-    } else {
-      message.io_time_weighted_ms = 0;
-    }
-    if (
-      object.discard_completed !== undefined &&
-      object.discard_completed !== null
-    ) {
-      message.discard_completed = object.discard_completed;
-    } else {
-      message.discard_completed = 0;
-    }
-    if (object.discard_merged !== undefined && object.discard_merged !== null) {
-      message.discard_merged = object.discard_merged;
-    } else {
-      message.discard_merged = 0;
-    }
-    if (
-      object.discard_sectors !== undefined &&
-      object.discard_sectors !== null
-    ) {
-      message.discard_sectors = object.discard_sectors;
-    } else {
-      message.discard_sectors = 0;
-    }
-    if (
-      object.discard_time_ms !== undefined &&
-      object.discard_time_ms !== null
-    ) {
-      message.discard_time_ms = object.discard_time_ms;
-    } else {
-      message.discard_time_ms = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<DiskStat>, I>>(object: I): DiskStat {
+    const message = createBaseDiskStat();
+    message.name = object.name ?? "";
+    message.read_completed = object.read_completed ?? 0;
+    message.read_merged = object.read_merged ?? 0;
+    message.read_sectors = object.read_sectors ?? 0;
+    message.read_time_ms = object.read_time_ms ?? 0;
+    message.write_completed = object.write_completed ?? 0;
+    message.write_merged = object.write_merged ?? 0;
+    message.write_sectors = object.write_sectors ?? 0;
+    message.write_time_ms = object.write_time_ms ?? 0;
+    message.io_in_progress = object.io_in_progress ?? 0;
+    message.io_time_ms = object.io_time_ms ?? 0;
+    message.io_time_weighted_ms = object.io_time_weighted_ms ?? 0;
+    message.discard_completed = object.discard_completed ?? 0;
+    message.discard_merged = object.discard_merged ?? 0;
+    message.discard_sectors = object.discard_sectors ?? 0;
+    message.discard_time_ms = object.discard_time_ms ?? 0;
     return message;
   },
 };
 
-const baseEtcdLeaveClusterRequest: object = {};
+function createBaseEtcdLeaveClusterRequest(): EtcdLeaveClusterRequest {
+  return {};
+}
 
 export const EtcdLeaveClusterRequest = {
   encode(_: EtcdLeaveClusterRequest, writer: Writer = Writer.create()): Writer {
@@ -11561,9 +9576,7 @@ export const EtcdLeaveClusterRequest = {
   decode(input: Reader | Uint8Array, length?: number): EtcdLeaveClusterRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseEtcdLeaveClusterRequest,
-    } as EtcdLeaveClusterRequest;
+    const message = createBaseEtcdLeaveClusterRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -11576,10 +9589,7 @@ export const EtcdLeaveClusterRequest = {
   },
 
   fromJSON(_: any): EtcdLeaveClusterRequest {
-    const message = {
-      ...baseEtcdLeaveClusterRequest,
-    } as EtcdLeaveClusterRequest;
-    return message;
+    return {};
   },
 
   toJSON(_: EtcdLeaveClusterRequest): unknown {
@@ -11587,17 +9597,17 @@ export const EtcdLeaveClusterRequest = {
     return obj;
   },
 
-  fromPartial(
-    _: DeepPartial<EtcdLeaveClusterRequest>
+  fromPartial<I extends Exact<DeepPartial<EtcdLeaveClusterRequest>, I>>(
+    _: I
   ): EtcdLeaveClusterRequest {
-    const message = {
-      ...baseEtcdLeaveClusterRequest,
-    } as EtcdLeaveClusterRequest;
+    const message = createBaseEtcdLeaveClusterRequest();
     return message;
   },
 };
 
-const baseEtcdLeaveCluster: object = {};
+function createBaseEtcdLeaveCluster(): EtcdLeaveCluster {
+  return { metadata: undefined };
+}
 
 export const EtcdLeaveCluster = {
   encode(message: EtcdLeaveCluster, writer: Writer = Writer.create()): Writer {
@@ -11610,7 +9620,7 @@ export const EtcdLeaveCluster = {
   decode(input: Reader | Uint8Array, length?: number): EtcdLeaveCluster {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseEtcdLeaveCluster } as EtcdLeaveCluster;
+    const message = createBaseEtcdLeaveCluster();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -11626,13 +9636,11 @@ export const EtcdLeaveCluster = {
   },
 
   fromJSON(object: any): EtcdLeaveCluster {
-    const message = { ...baseEtcdLeaveCluster } as EtcdLeaveCluster;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+    };
   },
 
   toJSON(message: EtcdLeaveCluster): unknown {
@@ -11644,18 +9652,21 @@ export const EtcdLeaveCluster = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<EtcdLeaveCluster>): EtcdLeaveCluster {
-    const message = { ...baseEtcdLeaveCluster } as EtcdLeaveCluster;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<EtcdLeaveCluster>, I>>(
+    object: I
+  ): EtcdLeaveCluster {
+    const message = createBaseEtcdLeaveCluster();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
     return message;
   },
 };
 
-const baseEtcdLeaveClusterResponse: object = {};
+function createBaseEtcdLeaveClusterResponse(): EtcdLeaveClusterResponse {
+  return { messages: [] };
+}
 
 export const EtcdLeaveClusterResponse = {
   encode(
@@ -11674,10 +9685,7 @@ export const EtcdLeaveClusterResponse = {
   ): EtcdLeaveClusterResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseEtcdLeaveClusterResponse,
-    } as EtcdLeaveClusterResponse;
-    message.messages = [];
+    const message = createBaseEtcdLeaveClusterResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -11695,16 +9703,11 @@ export const EtcdLeaveClusterResponse = {
   },
 
   fromJSON(object: any): EtcdLeaveClusterResponse {
-    const message = {
-      ...baseEtcdLeaveClusterResponse,
-    } as EtcdLeaveClusterResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(EtcdLeaveCluster.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => EtcdLeaveCluster.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: EtcdLeaveClusterResponse): unknown {
@@ -11719,23 +9722,19 @@ export const EtcdLeaveClusterResponse = {
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<EtcdLeaveClusterResponse>
+  fromPartial<I extends Exact<DeepPartial<EtcdLeaveClusterResponse>, I>>(
+    object: I
   ): EtcdLeaveClusterResponse {
-    const message = {
-      ...baseEtcdLeaveClusterResponse,
-    } as EtcdLeaveClusterResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(EtcdLeaveCluster.fromPartial(e));
-      }
-    }
+    const message = createBaseEtcdLeaveClusterResponse();
+    message.messages =
+      object.messages?.map((e) => EtcdLeaveCluster.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseEtcdRemoveMemberRequest: object = { member: "" };
+function createBaseEtcdRemoveMemberRequest(): EtcdRemoveMemberRequest {
+  return { member: "" };
+}
 
 export const EtcdRemoveMemberRequest = {
   encode(
@@ -11751,9 +9750,7 @@ export const EtcdRemoveMemberRequest = {
   decode(input: Reader | Uint8Array, length?: number): EtcdRemoveMemberRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseEtcdRemoveMemberRequest,
-    } as EtcdRemoveMemberRequest;
+    const message = createBaseEtcdRemoveMemberRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -11769,15 +9766,9 @@ export const EtcdRemoveMemberRequest = {
   },
 
   fromJSON(object: any): EtcdRemoveMemberRequest {
-    const message = {
-      ...baseEtcdRemoveMemberRequest,
-    } as EtcdRemoveMemberRequest;
-    if (object.member !== undefined && object.member !== null) {
-      message.member = String(object.member);
-    } else {
-      message.member = "";
-    }
-    return message;
+    return {
+      member: isSet(object.member) ? String(object.member) : "",
+    };
   },
 
   toJSON(message: EtcdRemoveMemberRequest): unknown {
@@ -11786,22 +9777,18 @@ export const EtcdRemoveMemberRequest = {
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<EtcdRemoveMemberRequest>
+  fromPartial<I extends Exact<DeepPartial<EtcdRemoveMemberRequest>, I>>(
+    object: I
   ): EtcdRemoveMemberRequest {
-    const message = {
-      ...baseEtcdRemoveMemberRequest,
-    } as EtcdRemoveMemberRequest;
-    if (object.member !== undefined && object.member !== null) {
-      message.member = object.member;
-    } else {
-      message.member = "";
-    }
+    const message = createBaseEtcdRemoveMemberRequest();
+    message.member = object.member ?? "";
     return message;
   },
 };
 
-const baseEtcdRemoveMember: object = {};
+function createBaseEtcdRemoveMember(): EtcdRemoveMember {
+  return { metadata: undefined };
+}
 
 export const EtcdRemoveMember = {
   encode(message: EtcdRemoveMember, writer: Writer = Writer.create()): Writer {
@@ -11814,7 +9801,7 @@ export const EtcdRemoveMember = {
   decode(input: Reader | Uint8Array, length?: number): EtcdRemoveMember {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseEtcdRemoveMember } as EtcdRemoveMember;
+    const message = createBaseEtcdRemoveMember();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -11830,13 +9817,11 @@ export const EtcdRemoveMember = {
   },
 
   fromJSON(object: any): EtcdRemoveMember {
-    const message = { ...baseEtcdRemoveMember } as EtcdRemoveMember;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+    };
   },
 
   toJSON(message: EtcdRemoveMember): unknown {
@@ -11848,18 +9833,21 @@ export const EtcdRemoveMember = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<EtcdRemoveMember>): EtcdRemoveMember {
-    const message = { ...baseEtcdRemoveMember } as EtcdRemoveMember;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<EtcdRemoveMember>, I>>(
+    object: I
+  ): EtcdRemoveMember {
+    const message = createBaseEtcdRemoveMember();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
     return message;
   },
 };
 
-const baseEtcdRemoveMemberResponse: object = {};
+function createBaseEtcdRemoveMemberResponse(): EtcdRemoveMemberResponse {
+  return { messages: [] };
+}
 
 export const EtcdRemoveMemberResponse = {
   encode(
@@ -11878,10 +9866,7 @@ export const EtcdRemoveMemberResponse = {
   ): EtcdRemoveMemberResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseEtcdRemoveMemberResponse,
-    } as EtcdRemoveMemberResponse;
-    message.messages = [];
+    const message = createBaseEtcdRemoveMemberResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -11899,16 +9884,11 @@ export const EtcdRemoveMemberResponse = {
   },
 
   fromJSON(object: any): EtcdRemoveMemberResponse {
-    const message = {
-      ...baseEtcdRemoveMemberResponse,
-    } as EtcdRemoveMemberResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(EtcdRemoveMember.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => EtcdRemoveMember.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: EtcdRemoveMemberResponse): unknown {
@@ -11923,23 +9903,19 @@ export const EtcdRemoveMemberResponse = {
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<EtcdRemoveMemberResponse>
+  fromPartial<I extends Exact<DeepPartial<EtcdRemoveMemberResponse>, I>>(
+    object: I
   ): EtcdRemoveMemberResponse {
-    const message = {
-      ...baseEtcdRemoveMemberResponse,
-    } as EtcdRemoveMemberResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(EtcdRemoveMember.fromPartial(e));
-      }
-    }
+    const message = createBaseEtcdRemoveMemberResponse();
+    message.messages =
+      object.messages?.map((e) => EtcdRemoveMember.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseEtcdForfeitLeadershipRequest: object = {};
+function createBaseEtcdForfeitLeadershipRequest(): EtcdForfeitLeadershipRequest {
+  return {};
+}
 
 export const EtcdForfeitLeadershipRequest = {
   encode(
@@ -11955,9 +9931,7 @@ export const EtcdForfeitLeadershipRequest = {
   ): EtcdForfeitLeadershipRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseEtcdForfeitLeadershipRequest,
-    } as EtcdForfeitLeadershipRequest;
+    const message = createBaseEtcdForfeitLeadershipRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -11970,10 +9944,7 @@ export const EtcdForfeitLeadershipRequest = {
   },
 
   fromJSON(_: any): EtcdForfeitLeadershipRequest {
-    const message = {
-      ...baseEtcdForfeitLeadershipRequest,
-    } as EtcdForfeitLeadershipRequest;
-    return message;
+    return {};
   },
 
   toJSON(_: EtcdForfeitLeadershipRequest): unknown {
@@ -11981,17 +9952,17 @@ export const EtcdForfeitLeadershipRequest = {
     return obj;
   },
 
-  fromPartial(
-    _: DeepPartial<EtcdForfeitLeadershipRequest>
+  fromPartial<I extends Exact<DeepPartial<EtcdForfeitLeadershipRequest>, I>>(
+    _: I
   ): EtcdForfeitLeadershipRequest {
-    const message = {
-      ...baseEtcdForfeitLeadershipRequest,
-    } as EtcdForfeitLeadershipRequest;
+    const message = createBaseEtcdForfeitLeadershipRequest();
     return message;
   },
 };
 
-const baseEtcdForfeitLeadership: object = { member: "" };
+function createBaseEtcdForfeitLeadership(): EtcdForfeitLeadership {
+  return { metadata: undefined, member: "" };
+}
 
 export const EtcdForfeitLeadership = {
   encode(
@@ -12010,7 +9981,7 @@ export const EtcdForfeitLeadership = {
   decode(input: Reader | Uint8Array, length?: number): EtcdForfeitLeadership {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseEtcdForfeitLeadership } as EtcdForfeitLeadership;
+    const message = createBaseEtcdForfeitLeadership();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -12029,18 +10000,12 @@ export const EtcdForfeitLeadership = {
   },
 
   fromJSON(object: any): EtcdForfeitLeadership {
-    const message = { ...baseEtcdForfeitLeadership } as EtcdForfeitLeadership;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.member !== undefined && object.member !== null) {
-      message.member = String(object.member);
-    } else {
-      message.member = "";
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      member: isSet(object.member) ? String(object.member) : "",
+    };
   },
 
   toJSON(message: EtcdForfeitLeadership): unknown {
@@ -12053,25 +10018,22 @@ export const EtcdForfeitLeadership = {
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<EtcdForfeitLeadership>
+  fromPartial<I extends Exact<DeepPartial<EtcdForfeitLeadership>, I>>(
+    object: I
   ): EtcdForfeitLeadership {
-    const message = { ...baseEtcdForfeitLeadership } as EtcdForfeitLeadership;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.member !== undefined && object.member !== null) {
-      message.member = object.member;
-    } else {
-      message.member = "";
-    }
+    const message = createBaseEtcdForfeitLeadership();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.member = object.member ?? "";
     return message;
   },
 };
 
-const baseEtcdForfeitLeadershipResponse: object = {};
+function createBaseEtcdForfeitLeadershipResponse(): EtcdForfeitLeadershipResponse {
+  return { messages: [] };
+}
 
 export const EtcdForfeitLeadershipResponse = {
   encode(
@@ -12090,10 +10052,7 @@ export const EtcdForfeitLeadershipResponse = {
   ): EtcdForfeitLeadershipResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseEtcdForfeitLeadershipResponse,
-    } as EtcdForfeitLeadershipResponse;
-    message.messages = [];
+    const message = createBaseEtcdForfeitLeadershipResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -12111,16 +10070,11 @@ export const EtcdForfeitLeadershipResponse = {
   },
 
   fromJSON(object: any): EtcdForfeitLeadershipResponse {
-    const message = {
-      ...baseEtcdForfeitLeadershipResponse,
-    } as EtcdForfeitLeadershipResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(EtcdForfeitLeadership.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => EtcdForfeitLeadership.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: EtcdForfeitLeadershipResponse): unknown {
@@ -12135,23 +10089,19 @@ export const EtcdForfeitLeadershipResponse = {
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<EtcdForfeitLeadershipResponse>
+  fromPartial<I extends Exact<DeepPartial<EtcdForfeitLeadershipResponse>, I>>(
+    object: I
   ): EtcdForfeitLeadershipResponse {
-    const message = {
-      ...baseEtcdForfeitLeadershipResponse,
-    } as EtcdForfeitLeadershipResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(EtcdForfeitLeadership.fromPartial(e));
-      }
-    }
+    const message = createBaseEtcdForfeitLeadershipResponse();
+    message.messages =
+      object.messages?.map((e) => EtcdForfeitLeadership.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseEtcdMemberListRequest: object = { query_local: false };
+function createBaseEtcdMemberListRequest(): EtcdMemberListRequest {
+  return { query_local: false };
+}
 
 export const EtcdMemberListRequest = {
   encode(
@@ -12167,7 +10117,7 @@ export const EtcdMemberListRequest = {
   decode(input: Reader | Uint8Array, length?: number): EtcdMemberListRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseEtcdMemberListRequest } as EtcdMemberListRequest;
+    const message = createBaseEtcdMemberListRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -12183,13 +10133,11 @@ export const EtcdMemberListRequest = {
   },
 
   fromJSON(object: any): EtcdMemberListRequest {
-    const message = { ...baseEtcdMemberListRequest } as EtcdMemberListRequest;
-    if (object.query_local !== undefined && object.query_local !== null) {
-      message.query_local = Boolean(object.query_local);
-    } else {
-      message.query_local = false;
-    }
-    return message;
+    return {
+      query_local: isSet(object.query_local)
+        ? Boolean(object.query_local)
+        : false,
+    };
   },
 
   toJSON(message: EtcdMemberListRequest): unknown {
@@ -12199,25 +10147,24 @@ export const EtcdMemberListRequest = {
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<EtcdMemberListRequest>
+  fromPartial<I extends Exact<DeepPartial<EtcdMemberListRequest>, I>>(
+    object: I
   ): EtcdMemberListRequest {
-    const message = { ...baseEtcdMemberListRequest } as EtcdMemberListRequest;
-    if (object.query_local !== undefined && object.query_local !== null) {
-      message.query_local = object.query_local;
-    } else {
-      message.query_local = false;
-    }
+    const message = createBaseEtcdMemberListRequest();
+    message.query_local = object.query_local ?? false;
     return message;
   },
 };
 
-const baseEtcdMember: object = {
-  id: 0,
-  hostname: "",
-  peer_urls: "",
-  client_urls: "",
-};
+function createBaseEtcdMember(): EtcdMember {
+  return {
+    id: 0,
+    hostname: "",
+    peer_urls: [],
+    client_urls: [],
+    is_learner: false,
+  };
+}
 
 export const EtcdMember = {
   encode(message: EtcdMember, writer: Writer = Writer.create()): Writer {
@@ -12233,15 +10180,16 @@ export const EtcdMember = {
     for (const v of message.client_urls) {
       writer.uint32(42).string(v!);
     }
+    if (message.is_learner === true) {
+      writer.uint32(48).bool(message.is_learner);
+    }
     return writer;
   },
 
   decode(input: Reader | Uint8Array, length?: number): EtcdMember {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseEtcdMember } as EtcdMember;
-    message.peer_urls = [];
-    message.client_urls = [];
+    const message = createBaseEtcdMember();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -12257,6 +10205,9 @@ export const EtcdMember = {
         case 5:
           message.client_urls.push(reader.string());
           break;
+        case 6:
+          message.is_learner = reader.bool();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -12266,35 +10217,22 @@ export const EtcdMember = {
   },
 
   fromJSON(object: any): EtcdMember {
-    const message = { ...baseEtcdMember } as EtcdMember;
-    message.peer_urls = [];
-    message.client_urls = [];
-    if (object.id !== undefined && object.id !== null) {
-      message.id = Number(object.id);
-    } else {
-      message.id = 0;
-    }
-    if (object.hostname !== undefined && object.hostname !== null) {
-      message.hostname = String(object.hostname);
-    } else {
-      message.hostname = "";
-    }
-    if (object.peer_urls !== undefined && object.peer_urls !== null) {
-      for (const e of object.peer_urls) {
-        message.peer_urls.push(String(e));
-      }
-    }
-    if (object.client_urls !== undefined && object.client_urls !== null) {
-      for (const e of object.client_urls) {
-        message.client_urls.push(String(e));
-      }
-    }
-    return message;
+    return {
+      id: isSet(object.id) ? Number(object.id) : 0,
+      hostname: isSet(object.hostname) ? String(object.hostname) : "",
+      peer_urls: Array.isArray(object?.peer_urls)
+        ? object.peer_urls.map((e: any) => String(e))
+        : [],
+      client_urls: Array.isArray(object?.client_urls)
+        ? object.client_urls.map((e: any) => String(e))
+        : [],
+      is_learner: isSet(object.is_learner) ? Boolean(object.is_learner) : false,
+    };
   },
 
   toJSON(message: EtcdMember): unknown {
     const obj: any = {};
-    message.id !== undefined && (obj.id = message.id);
+    message.id !== undefined && (obj.id = Math.round(message.id));
     message.hostname !== undefined && (obj.hostname = message.hostname);
     if (message.peer_urls) {
       obj.peer_urls = message.peer_urls.map((e) => e);
@@ -12306,38 +10244,26 @@ export const EtcdMember = {
     } else {
       obj.client_urls = [];
     }
+    message.is_learner !== undefined && (obj.is_learner = message.is_learner);
     return obj;
   },
 
-  fromPartial(object: DeepPartial<EtcdMember>): EtcdMember {
-    const message = { ...baseEtcdMember } as EtcdMember;
-    message.peer_urls = [];
-    message.client_urls = [];
-    if (object.id !== undefined && object.id !== null) {
-      message.id = object.id;
-    } else {
-      message.id = 0;
-    }
-    if (object.hostname !== undefined && object.hostname !== null) {
-      message.hostname = object.hostname;
-    } else {
-      message.hostname = "";
-    }
-    if (object.peer_urls !== undefined && object.peer_urls !== null) {
-      for (const e of object.peer_urls) {
-        message.peer_urls.push(e);
-      }
-    }
-    if (object.client_urls !== undefined && object.client_urls !== null) {
-      for (const e of object.client_urls) {
-        message.client_urls.push(e);
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<EtcdMember>, I>>(
+    object: I
+  ): EtcdMember {
+    const message = createBaseEtcdMember();
+    message.id = object.id ?? 0;
+    message.hostname = object.hostname ?? "";
+    message.peer_urls = object.peer_urls?.map((e) => e) || [];
+    message.client_urls = object.client_urls?.map((e) => e) || [];
+    message.is_learner = object.is_learner ?? false;
     return message;
   },
 };
 
-const baseEtcdMembers: object = { legacy_members: "" };
+function createBaseEtcdMembers(): EtcdMembers {
+  return { metadata: undefined, legacy_members: [], members: [] };
+}
 
 export const EtcdMembers = {
   encode(message: EtcdMembers, writer: Writer = Writer.create()): Writer {
@@ -12356,9 +10282,7 @@ export const EtcdMembers = {
   decode(input: Reader | Uint8Array, length?: number): EtcdMembers {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseEtcdMembers } as EtcdMembers;
-    message.legacy_members = [];
-    message.members = [];
+    const message = createBaseEtcdMembers();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -12380,25 +10304,17 @@ export const EtcdMembers = {
   },
 
   fromJSON(object: any): EtcdMembers {
-    const message = { ...baseEtcdMembers } as EtcdMembers;
-    message.legacy_members = [];
-    message.members = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.legacy_members !== undefined && object.legacy_members !== null) {
-      for (const e of object.legacy_members) {
-        message.legacy_members.push(String(e));
-      }
-    }
-    if (object.members !== undefined && object.members !== null) {
-      for (const e of object.members) {
-        message.members.push(EtcdMember.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      legacy_members: Array.isArray(object?.legacy_members)
+        ? object.legacy_members.map((e: any) => String(e))
+        : [],
+      members: Array.isArray(object?.members)
+        ? object.members.map((e: any) => EtcdMember.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: EtcdMembers): unknown {
@@ -12422,30 +10338,24 @@ export const EtcdMembers = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<EtcdMembers>): EtcdMembers {
-    const message = { ...baseEtcdMembers } as EtcdMembers;
-    message.legacy_members = [];
-    message.members = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.legacy_members !== undefined && object.legacy_members !== null) {
-      for (const e of object.legacy_members) {
-        message.legacy_members.push(e);
-      }
-    }
-    if (object.members !== undefined && object.members !== null) {
-      for (const e of object.members) {
-        message.members.push(EtcdMember.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<EtcdMembers>, I>>(
+    object: I
+  ): EtcdMembers {
+    const message = createBaseEtcdMembers();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.legacy_members = object.legacy_members?.map((e) => e) || [];
+    message.members =
+      object.members?.map((e) => EtcdMember.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseEtcdMemberListResponse: object = {};
+function createBaseEtcdMemberListResponse(): EtcdMemberListResponse {
+  return { messages: [] };
+}
 
 export const EtcdMemberListResponse = {
   encode(
@@ -12461,8 +10371,7 @@ export const EtcdMemberListResponse = {
   decode(input: Reader | Uint8Array, length?: number): EtcdMemberListResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseEtcdMemberListResponse } as EtcdMemberListResponse;
-    message.messages = [];
+    const message = createBaseEtcdMemberListResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -12478,14 +10387,11 @@ export const EtcdMemberListResponse = {
   },
 
   fromJSON(object: any): EtcdMemberListResponse {
-    const message = { ...baseEtcdMemberListResponse } as EtcdMemberListResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(EtcdMembers.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => EtcdMembers.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: EtcdMemberListResponse): unknown {
@@ -12500,21 +10406,19 @@ export const EtcdMemberListResponse = {
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<EtcdMemberListResponse>
+  fromPartial<I extends Exact<DeepPartial<EtcdMemberListResponse>, I>>(
+    object: I
   ): EtcdMemberListResponse {
-    const message = { ...baseEtcdMemberListResponse } as EtcdMemberListResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(EtcdMembers.fromPartial(e));
-      }
-    }
+    const message = createBaseEtcdMemberListResponse();
+    message.messages =
+      object.messages?.map((e) => EtcdMembers.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseEtcdSnapshotRequest: object = {};
+function createBaseEtcdSnapshotRequest(): EtcdSnapshotRequest {
+  return {};
+}
 
 export const EtcdSnapshotRequest = {
   encode(_: EtcdSnapshotRequest, writer: Writer = Writer.create()): Writer {
@@ -12524,7 +10428,7 @@ export const EtcdSnapshotRequest = {
   decode(input: Reader | Uint8Array, length?: number): EtcdSnapshotRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseEtcdSnapshotRequest } as EtcdSnapshotRequest;
+    const message = createBaseEtcdSnapshotRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -12537,8 +10441,7 @@ export const EtcdSnapshotRequest = {
   },
 
   fromJSON(_: any): EtcdSnapshotRequest {
-    const message = { ...baseEtcdSnapshotRequest } as EtcdSnapshotRequest;
-    return message;
+    return {};
   },
 
   toJSON(_: EtcdSnapshotRequest): unknown {
@@ -12546,13 +10449,17 @@ export const EtcdSnapshotRequest = {
     return obj;
   },
 
-  fromPartial(_: DeepPartial<EtcdSnapshotRequest>): EtcdSnapshotRequest {
-    const message = { ...baseEtcdSnapshotRequest } as EtcdSnapshotRequest;
+  fromPartial<I extends Exact<DeepPartial<EtcdSnapshotRequest>, I>>(
+    _: I
+  ): EtcdSnapshotRequest {
+    const message = createBaseEtcdSnapshotRequest();
     return message;
   },
 };
 
-const baseEtcdRecover: object = {};
+function createBaseEtcdRecover(): EtcdRecover {
+  return { metadata: undefined };
+}
 
 export const EtcdRecover = {
   encode(message: EtcdRecover, writer: Writer = Writer.create()): Writer {
@@ -12565,7 +10472,7 @@ export const EtcdRecover = {
   decode(input: Reader | Uint8Array, length?: number): EtcdRecover {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseEtcdRecover } as EtcdRecover;
+    const message = createBaseEtcdRecover();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -12581,13 +10488,11 @@ export const EtcdRecover = {
   },
 
   fromJSON(object: any): EtcdRecover {
-    const message = { ...baseEtcdRecover } as EtcdRecover;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+    };
   },
 
   toJSON(message: EtcdRecover): unknown {
@@ -12599,18 +10504,21 @@ export const EtcdRecover = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<EtcdRecover>): EtcdRecover {
-    const message = { ...baseEtcdRecover } as EtcdRecover;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<EtcdRecover>, I>>(
+    object: I
+  ): EtcdRecover {
+    const message = createBaseEtcdRecover();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
     return message;
   },
 };
 
-const baseEtcdRecoverResponse: object = {};
+function createBaseEtcdRecoverResponse(): EtcdRecoverResponse {
+  return { messages: [] };
+}
 
 export const EtcdRecoverResponse = {
   encode(
@@ -12626,8 +10534,7 @@ export const EtcdRecoverResponse = {
   decode(input: Reader | Uint8Array, length?: number): EtcdRecoverResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseEtcdRecoverResponse } as EtcdRecoverResponse;
-    message.messages = [];
+    const message = createBaseEtcdRecoverResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -12643,14 +10550,11 @@ export const EtcdRecoverResponse = {
   },
 
   fromJSON(object: any): EtcdRecoverResponse {
-    const message = { ...baseEtcdRecoverResponse } as EtcdRecoverResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(EtcdRecover.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => EtcdRecover.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: EtcdRecoverResponse): unknown {
@@ -12665,19 +10569,19 @@ export const EtcdRecoverResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<EtcdRecoverResponse>): EtcdRecoverResponse {
-    const message = { ...baseEtcdRecoverResponse } as EtcdRecoverResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(EtcdRecover.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<EtcdRecoverResponse>, I>>(
+    object: I
+  ): EtcdRecoverResponse {
+    const message = createBaseEtcdRecoverResponse();
+    message.messages =
+      object.messages?.map((e) => EtcdRecover.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseRouteConfig: object = { network: "", gateway: "", metric: 0 };
+function createBaseRouteConfig(): RouteConfig {
+  return { network: "", gateway: "", metric: 0 };
+}
 
 export const RouteConfig = {
   encode(message: RouteConfig, writer: Writer = Writer.create()): Writer {
@@ -12696,7 +10600,7 @@ export const RouteConfig = {
   decode(input: Reader | Uint8Array, length?: number): RouteConfig {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseRouteConfig } as RouteConfig;
+    const message = createBaseRouteConfig();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -12718,55 +10622,35 @@ export const RouteConfig = {
   },
 
   fromJSON(object: any): RouteConfig {
-    const message = { ...baseRouteConfig } as RouteConfig;
-    if (object.network !== undefined && object.network !== null) {
-      message.network = String(object.network);
-    } else {
-      message.network = "";
-    }
-    if (object.gateway !== undefined && object.gateway !== null) {
-      message.gateway = String(object.gateway);
-    } else {
-      message.gateway = "";
-    }
-    if (object.metric !== undefined && object.metric !== null) {
-      message.metric = Number(object.metric);
-    } else {
-      message.metric = 0;
-    }
-    return message;
+    return {
+      network: isSet(object.network) ? String(object.network) : "",
+      gateway: isSet(object.gateway) ? String(object.gateway) : "",
+      metric: isSet(object.metric) ? Number(object.metric) : 0,
+    };
   },
 
   toJSON(message: RouteConfig): unknown {
     const obj: any = {};
     message.network !== undefined && (obj.network = message.network);
     message.gateway !== undefined && (obj.gateway = message.gateway);
-    message.metric !== undefined && (obj.metric = message.metric);
+    message.metric !== undefined && (obj.metric = Math.round(message.metric));
     return obj;
   },
 
-  fromPartial(object: DeepPartial<RouteConfig>): RouteConfig {
-    const message = { ...baseRouteConfig } as RouteConfig;
-    if (object.network !== undefined && object.network !== null) {
-      message.network = object.network;
-    } else {
-      message.network = "";
-    }
-    if (object.gateway !== undefined && object.gateway !== null) {
-      message.gateway = object.gateway;
-    } else {
-      message.gateway = "";
-    }
-    if (object.metric !== undefined && object.metric !== null) {
-      message.metric = object.metric;
-    } else {
-      message.metric = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<RouteConfig>, I>>(
+    object: I
+  ): RouteConfig {
+    const message = createBaseRouteConfig();
+    message.network = object.network ?? "";
+    message.gateway = object.gateway ?? "";
+    message.metric = object.metric ?? 0;
     return message;
   },
 };
 
-const baseDHCPOptionsConfig: object = { route_metric: 0 };
+function createBaseDHCPOptionsConfig(): DHCPOptionsConfig {
+  return { route_metric: 0 };
+}
 
 export const DHCPOptionsConfig = {
   encode(message: DHCPOptionsConfig, writer: Writer = Writer.create()): Writer {
@@ -12779,7 +10663,7 @@ export const DHCPOptionsConfig = {
   decode(input: Reader | Uint8Array, length?: number): DHCPOptionsConfig {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseDHCPOptionsConfig } as DHCPOptionsConfig;
+    const message = createBaseDHCPOptionsConfig();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -12795,40 +10679,40 @@ export const DHCPOptionsConfig = {
   },
 
   fromJSON(object: any): DHCPOptionsConfig {
-    const message = { ...baseDHCPOptionsConfig } as DHCPOptionsConfig;
-    if (object.route_metric !== undefined && object.route_metric !== null) {
-      message.route_metric = Number(object.route_metric);
-    } else {
-      message.route_metric = 0;
-    }
-    return message;
+    return {
+      route_metric: isSet(object.route_metric)
+        ? Number(object.route_metric)
+        : 0,
+    };
   },
 
   toJSON(message: DHCPOptionsConfig): unknown {
     const obj: any = {};
     message.route_metric !== undefined &&
-      (obj.route_metric = message.route_metric);
+      (obj.route_metric = Math.round(message.route_metric));
     return obj;
   },
 
-  fromPartial(object: DeepPartial<DHCPOptionsConfig>): DHCPOptionsConfig {
-    const message = { ...baseDHCPOptionsConfig } as DHCPOptionsConfig;
-    if (object.route_metric !== undefined && object.route_metric !== null) {
-      message.route_metric = object.route_metric;
-    } else {
-      message.route_metric = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<DHCPOptionsConfig>, I>>(
+    object: I
+  ): DHCPOptionsConfig {
+    const message = createBaseDHCPOptionsConfig();
+    message.route_metric = object.route_metric ?? 0;
     return message;
   },
 };
 
-const baseNetworkDeviceConfig: object = {
-  interface: "",
-  cidr: "",
-  mtu: 0,
-  dhcp: false,
-  ignore: false,
-};
+function createBaseNetworkDeviceConfig(): NetworkDeviceConfig {
+  return {
+    interface: "",
+    cidr: "",
+    mtu: 0,
+    dhcp: false,
+    ignore: false,
+    dhcp_options: undefined,
+    routes: [],
+  };
+}
 
 export const NetworkDeviceConfig = {
   encode(
@@ -12865,8 +10749,7 @@ export const NetworkDeviceConfig = {
   decode(input: Reader | Uint8Array, length?: number): NetworkDeviceConfig {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseNetworkDeviceConfig } as NetworkDeviceConfig;
-    message.routes = [];
+    const message = createBaseNetworkDeviceConfig();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -12903,51 +10786,26 @@ export const NetworkDeviceConfig = {
   },
 
   fromJSON(object: any): NetworkDeviceConfig {
-    const message = { ...baseNetworkDeviceConfig } as NetworkDeviceConfig;
-    message.routes = [];
-    if (object.interface !== undefined && object.interface !== null) {
-      message.interface = String(object.interface);
-    } else {
-      message.interface = "";
-    }
-    if (object.cidr !== undefined && object.cidr !== null) {
-      message.cidr = String(object.cidr);
-    } else {
-      message.cidr = "";
-    }
-    if (object.mtu !== undefined && object.mtu !== null) {
-      message.mtu = Number(object.mtu);
-    } else {
-      message.mtu = 0;
-    }
-    if (object.dhcp !== undefined && object.dhcp !== null) {
-      message.dhcp = Boolean(object.dhcp);
-    } else {
-      message.dhcp = false;
-    }
-    if (object.ignore !== undefined && object.ignore !== null) {
-      message.ignore = Boolean(object.ignore);
-    } else {
-      message.ignore = false;
-    }
-    if (object.dhcp_options !== undefined && object.dhcp_options !== null) {
-      message.dhcp_options = DHCPOptionsConfig.fromJSON(object.dhcp_options);
-    } else {
-      message.dhcp_options = undefined;
-    }
-    if (object.routes !== undefined && object.routes !== null) {
-      for (const e of object.routes) {
-        message.routes.push(RouteConfig.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      interface: isSet(object.interface) ? String(object.interface) : "",
+      cidr: isSet(object.cidr) ? String(object.cidr) : "",
+      mtu: isSet(object.mtu) ? Number(object.mtu) : 0,
+      dhcp: isSet(object.dhcp) ? Boolean(object.dhcp) : false,
+      ignore: isSet(object.ignore) ? Boolean(object.ignore) : false,
+      dhcp_options: isSet(object.dhcp_options)
+        ? DHCPOptionsConfig.fromJSON(object.dhcp_options)
+        : undefined,
+      routes: Array.isArray(object?.routes)
+        ? object.routes.map((e: any) => RouteConfig.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: NetworkDeviceConfig): unknown {
     const obj: any = {};
     message.interface !== undefined && (obj.interface = message.interface);
     message.cidr !== undefined && (obj.cidr = message.cidr);
-    message.mtu !== undefined && (obj.mtu = message.mtu);
+    message.mtu !== undefined && (obj.mtu = Math.round(message.mtu));
     message.dhcp !== undefined && (obj.dhcp = message.dhcp);
     message.ignore !== undefined && (obj.ignore = message.ignore);
     message.dhcp_options !== undefined &&
@@ -12964,49 +10822,28 @@ export const NetworkDeviceConfig = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<NetworkDeviceConfig>): NetworkDeviceConfig {
-    const message = { ...baseNetworkDeviceConfig } as NetworkDeviceConfig;
-    message.routes = [];
-    if (object.interface !== undefined && object.interface !== null) {
-      message.interface = object.interface;
-    } else {
-      message.interface = "";
-    }
-    if (object.cidr !== undefined && object.cidr !== null) {
-      message.cidr = object.cidr;
-    } else {
-      message.cidr = "";
-    }
-    if (object.mtu !== undefined && object.mtu !== null) {
-      message.mtu = object.mtu;
-    } else {
-      message.mtu = 0;
-    }
-    if (object.dhcp !== undefined && object.dhcp !== null) {
-      message.dhcp = object.dhcp;
-    } else {
-      message.dhcp = false;
-    }
-    if (object.ignore !== undefined && object.ignore !== null) {
-      message.ignore = object.ignore;
-    } else {
-      message.ignore = false;
-    }
-    if (object.dhcp_options !== undefined && object.dhcp_options !== null) {
-      message.dhcp_options = DHCPOptionsConfig.fromPartial(object.dhcp_options);
-    } else {
-      message.dhcp_options = undefined;
-    }
-    if (object.routes !== undefined && object.routes !== null) {
-      for (const e of object.routes) {
-        message.routes.push(RouteConfig.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<NetworkDeviceConfig>, I>>(
+    object: I
+  ): NetworkDeviceConfig {
+    const message = createBaseNetworkDeviceConfig();
+    message.interface = object.interface ?? "";
+    message.cidr = object.cidr ?? "";
+    message.mtu = object.mtu ?? 0;
+    message.dhcp = object.dhcp ?? false;
+    message.ignore = object.ignore ?? false;
+    message.dhcp_options =
+      object.dhcp_options !== undefined && object.dhcp_options !== null
+        ? DHCPOptionsConfig.fromPartial(object.dhcp_options)
+        : undefined;
+    message.routes =
+      object.routes?.map((e) => RouteConfig.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseNetworkConfig: object = { hostname: "" };
+function createBaseNetworkConfig(): NetworkConfig {
+  return { hostname: "", interfaces: [] };
+}
 
 export const NetworkConfig = {
   encode(message: NetworkConfig, writer: Writer = Writer.create()): Writer {
@@ -13022,8 +10859,7 @@ export const NetworkConfig = {
   decode(input: Reader | Uint8Array, length?: number): NetworkConfig {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseNetworkConfig } as NetworkConfig;
-    message.interfaces = [];
+    const message = createBaseNetworkConfig();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -13044,19 +10880,12 @@ export const NetworkConfig = {
   },
 
   fromJSON(object: any): NetworkConfig {
-    const message = { ...baseNetworkConfig } as NetworkConfig;
-    message.interfaces = [];
-    if (object.hostname !== undefined && object.hostname !== null) {
-      message.hostname = String(object.hostname);
-    } else {
-      message.hostname = "";
-    }
-    if (object.interfaces !== undefined && object.interfaces !== null) {
-      for (const e of object.interfaces) {
-        message.interfaces.push(NetworkDeviceConfig.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      hostname: isSet(object.hostname) ? String(object.hostname) : "",
+      interfaces: Array.isArray(object?.interfaces)
+        ? object.interfaces.map((e: any) => NetworkDeviceConfig.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: NetworkConfig): unknown {
@@ -13072,24 +10901,20 @@ export const NetworkConfig = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<NetworkConfig>): NetworkConfig {
-    const message = { ...baseNetworkConfig } as NetworkConfig;
-    message.interfaces = [];
-    if (object.hostname !== undefined && object.hostname !== null) {
-      message.hostname = object.hostname;
-    } else {
-      message.hostname = "";
-    }
-    if (object.interfaces !== undefined && object.interfaces !== null) {
-      for (const e of object.interfaces) {
-        message.interfaces.push(NetworkDeviceConfig.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<NetworkConfig>, I>>(
+    object: I
+  ): NetworkConfig {
+    const message = createBaseNetworkConfig();
+    message.hostname = object.hostname ?? "";
+    message.interfaces =
+      object.interfaces?.map((e) => NetworkDeviceConfig.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseInstallConfig: object = { install_disk: "", install_image: "" };
+function createBaseInstallConfig(): InstallConfig {
+  return { install_disk: "", install_image: "" };
+}
 
 export const InstallConfig = {
   encode(message: InstallConfig, writer: Writer = Writer.create()): Writer {
@@ -13105,7 +10930,7 @@ export const InstallConfig = {
   decode(input: Reader | Uint8Array, length?: number): InstallConfig {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseInstallConfig } as InstallConfig;
+    const message = createBaseInstallConfig();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -13124,18 +10949,14 @@ export const InstallConfig = {
   },
 
   fromJSON(object: any): InstallConfig {
-    const message = { ...baseInstallConfig } as InstallConfig;
-    if (object.install_disk !== undefined && object.install_disk !== null) {
-      message.install_disk = String(object.install_disk);
-    } else {
-      message.install_disk = "";
-    }
-    if (object.install_image !== undefined && object.install_image !== null) {
-      message.install_image = String(object.install_image);
-    } else {
-      message.install_image = "";
-    }
-    return message;
+    return {
+      install_disk: isSet(object.install_disk)
+        ? String(object.install_disk)
+        : "",
+      install_image: isSet(object.install_image)
+        ? String(object.install_image)
+        : "",
+    };
   },
 
   toJSON(message: InstallConfig): unknown {
@@ -13147,23 +10968,24 @@ export const InstallConfig = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<InstallConfig>): InstallConfig {
-    const message = { ...baseInstallConfig } as InstallConfig;
-    if (object.install_disk !== undefined && object.install_disk !== null) {
-      message.install_disk = object.install_disk;
-    } else {
-      message.install_disk = "";
-    }
-    if (object.install_image !== undefined && object.install_image !== null) {
-      message.install_image = object.install_image;
-    } else {
-      message.install_image = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<InstallConfig>, I>>(
+    object: I
+  ): InstallConfig {
+    const message = createBaseInstallConfig();
+    message.install_disk = object.install_disk ?? "";
+    message.install_image = object.install_image ?? "";
     return message;
   },
 };
 
-const baseMachineConfig: object = { type: 0, kubernetes_version: "" };
+function createBaseMachineConfig(): MachineConfig {
+  return {
+    type: 0,
+    install_config: undefined,
+    network_config: undefined,
+    kubernetes_version: "",
+  };
+}
 
 export const MachineConfig = {
   encode(message: MachineConfig, writer: Writer = Writer.create()): Writer {
@@ -13191,7 +11013,7 @@ export const MachineConfig = {
   decode(input: Reader | Uint8Array, length?: number): MachineConfig {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMachineConfig } as MachineConfig;
+    const message = createBaseMachineConfig();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -13222,31 +11044,20 @@ export const MachineConfig = {
   },
 
   fromJSON(object: any): MachineConfig {
-    const message = { ...baseMachineConfig } as MachineConfig;
-    if (object.type !== undefined && object.type !== null) {
-      message.type = machineConfig_MachineTypeFromJSON(object.type);
-    } else {
-      message.type = 0;
-    }
-    if (object.install_config !== undefined && object.install_config !== null) {
-      message.install_config = InstallConfig.fromJSON(object.install_config);
-    } else {
-      message.install_config = undefined;
-    }
-    if (object.network_config !== undefined && object.network_config !== null) {
-      message.network_config = NetworkConfig.fromJSON(object.network_config);
-    } else {
-      message.network_config = undefined;
-    }
-    if (
-      object.kubernetes_version !== undefined &&
-      object.kubernetes_version !== null
-    ) {
-      message.kubernetes_version = String(object.kubernetes_version);
-    } else {
-      message.kubernetes_version = "";
-    }
-    return message;
+    return {
+      type: isSet(object.type)
+        ? machineConfig_MachineTypeFromJSON(object.type)
+        : 0,
+      install_config: isSet(object.install_config)
+        ? InstallConfig.fromJSON(object.install_config)
+        : undefined,
+      network_config: isSet(object.network_config)
+        ? NetworkConfig.fromJSON(object.network_config)
+        : undefined,
+      kubernetes_version: isSet(object.kubernetes_version)
+        ? String(object.kubernetes_version)
+        : "",
+    };
   },
 
   toJSON(message: MachineConfig): unknown {
@@ -13266,36 +11077,27 @@ export const MachineConfig = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<MachineConfig>): MachineConfig {
-    const message = { ...baseMachineConfig } as MachineConfig;
-    if (object.type !== undefined && object.type !== null) {
-      message.type = object.type;
-    } else {
-      message.type = 0;
-    }
-    if (object.install_config !== undefined && object.install_config !== null) {
-      message.install_config = InstallConfig.fromPartial(object.install_config);
-    } else {
-      message.install_config = undefined;
-    }
-    if (object.network_config !== undefined && object.network_config !== null) {
-      message.network_config = NetworkConfig.fromPartial(object.network_config);
-    } else {
-      message.network_config = undefined;
-    }
-    if (
-      object.kubernetes_version !== undefined &&
-      object.kubernetes_version !== null
-    ) {
-      message.kubernetes_version = object.kubernetes_version;
-    } else {
-      message.kubernetes_version = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<MachineConfig>, I>>(
+    object: I
+  ): MachineConfig {
+    const message = createBaseMachineConfig();
+    message.type = object.type ?? 0;
+    message.install_config =
+      object.install_config !== undefined && object.install_config !== null
+        ? InstallConfig.fromPartial(object.install_config)
+        : undefined;
+    message.network_config =
+      object.network_config !== undefined && object.network_config !== null
+        ? NetworkConfig.fromPartial(object.network_config)
+        : undefined;
+    message.kubernetes_version = object.kubernetes_version ?? "";
     return message;
   },
 };
 
-const baseControlPlaneConfig: object = { endpoint: "" };
+function createBaseControlPlaneConfig(): ControlPlaneConfig {
+  return { endpoint: "" };
+}
 
 export const ControlPlaneConfig = {
   encode(
@@ -13311,7 +11113,7 @@ export const ControlPlaneConfig = {
   decode(input: Reader | Uint8Array, length?: number): ControlPlaneConfig {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseControlPlaneConfig } as ControlPlaneConfig;
+    const message = createBaseControlPlaneConfig();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -13327,13 +11129,9 @@ export const ControlPlaneConfig = {
   },
 
   fromJSON(object: any): ControlPlaneConfig {
-    const message = { ...baseControlPlaneConfig } as ControlPlaneConfig;
-    if (object.endpoint !== undefined && object.endpoint !== null) {
-      message.endpoint = String(object.endpoint);
-    } else {
-      message.endpoint = "";
-    }
-    return message;
+    return {
+      endpoint: isSet(object.endpoint) ? String(object.endpoint) : "",
+    };
   },
 
   toJSON(message: ControlPlaneConfig): unknown {
@@ -13342,18 +11140,18 @@ export const ControlPlaneConfig = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ControlPlaneConfig>): ControlPlaneConfig {
-    const message = { ...baseControlPlaneConfig } as ControlPlaneConfig;
-    if (object.endpoint !== undefined && object.endpoint !== null) {
-      message.endpoint = object.endpoint;
-    } else {
-      message.endpoint = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<ControlPlaneConfig>, I>>(
+    object: I
+  ): ControlPlaneConfig {
+    const message = createBaseControlPlaneConfig();
+    message.endpoint = object.endpoint ?? "";
     return message;
   },
 };
 
-const baseCNIConfig: object = { name: "", urls: "" };
+function createBaseCNIConfig(): CNIConfig {
+  return { name: "", urls: [] };
+}
 
 export const CNIConfig = {
   encode(message: CNIConfig, writer: Writer = Writer.create()): Writer {
@@ -13369,8 +11167,7 @@ export const CNIConfig = {
   decode(input: Reader | Uint8Array, length?: number): CNIConfig {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseCNIConfig } as CNIConfig;
-    message.urls = [];
+    const message = createBaseCNIConfig();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -13389,19 +11186,12 @@ export const CNIConfig = {
   },
 
   fromJSON(object: any): CNIConfig {
-    const message = { ...baseCNIConfig } as CNIConfig;
-    message.urls = [];
-    if (object.name !== undefined && object.name !== null) {
-      message.name = String(object.name);
-    } else {
-      message.name = "";
-    }
-    if (object.urls !== undefined && object.urls !== null) {
-      for (const e of object.urls) {
-        message.urls.push(String(e));
-      }
-    }
-    return message;
+    return {
+      name: isSet(object.name) ? String(object.name) : "",
+      urls: Array.isArray(object?.urls)
+        ? object.urls.map((e: any) => String(e))
+        : [],
+    };
   },
 
   toJSON(message: CNIConfig): unknown {
@@ -13415,24 +11205,19 @@ export const CNIConfig = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<CNIConfig>): CNIConfig {
-    const message = { ...baseCNIConfig } as CNIConfig;
-    message.urls = [];
-    if (object.name !== undefined && object.name !== null) {
-      message.name = object.name;
-    } else {
-      message.name = "";
-    }
-    if (object.urls !== undefined && object.urls !== null) {
-      for (const e of object.urls) {
-        message.urls.push(e);
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<CNIConfig>, I>>(
+    object: I
+  ): CNIConfig {
+    const message = createBaseCNIConfig();
+    message.name = object.name ?? "";
+    message.urls = object.urls?.map((e) => e) || [];
     return message;
   },
 };
 
-const baseClusterNetworkConfig: object = { dns_domain: "" };
+function createBaseClusterNetworkConfig(): ClusterNetworkConfig {
+  return { dns_domain: "", cni_config: undefined };
+}
 
 export const ClusterNetworkConfig = {
   encode(
@@ -13451,7 +11236,7 @@ export const ClusterNetworkConfig = {
   decode(input: Reader | Uint8Array, length?: number): ClusterNetworkConfig {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseClusterNetworkConfig } as ClusterNetworkConfig;
+    const message = createBaseClusterNetworkConfig();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -13470,18 +11255,12 @@ export const ClusterNetworkConfig = {
   },
 
   fromJSON(object: any): ClusterNetworkConfig {
-    const message = { ...baseClusterNetworkConfig } as ClusterNetworkConfig;
-    if (object.dns_domain !== undefined && object.dns_domain !== null) {
-      message.dns_domain = String(object.dns_domain);
-    } else {
-      message.dns_domain = "";
-    }
-    if (object.cni_config !== undefined && object.cni_config !== null) {
-      message.cni_config = CNIConfig.fromJSON(object.cni_config);
-    } else {
-      message.cni_config = undefined;
-    }
-    return message;
+    return {
+      dns_domain: isSet(object.dns_domain) ? String(object.dns_domain) : "",
+      cni_config: isSet(object.cni_config)
+        ? CNIConfig.fromJSON(object.cni_config)
+        : undefined,
+    };
   },
 
   toJSON(message: ClusterNetworkConfig): unknown {
@@ -13494,26 +11273,27 @@ export const ClusterNetworkConfig = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ClusterNetworkConfig>): ClusterNetworkConfig {
-    const message = { ...baseClusterNetworkConfig } as ClusterNetworkConfig;
-    if (object.dns_domain !== undefined && object.dns_domain !== null) {
-      message.dns_domain = object.dns_domain;
-    } else {
-      message.dns_domain = "";
-    }
-    if (object.cni_config !== undefined && object.cni_config !== null) {
-      message.cni_config = CNIConfig.fromPartial(object.cni_config);
-    } else {
-      message.cni_config = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<ClusterNetworkConfig>, I>>(
+    object: I
+  ): ClusterNetworkConfig {
+    const message = createBaseClusterNetworkConfig();
+    message.dns_domain = object.dns_domain ?? "";
+    message.cni_config =
+      object.cni_config !== undefined && object.cni_config !== null
+        ? CNIConfig.fromPartial(object.cni_config)
+        : undefined;
     return message;
   },
 };
 
-const baseClusterConfig: object = {
-  name: "",
-  allow_scheduling_on_masters: false,
-};
+function createBaseClusterConfig(): ClusterConfig {
+  return {
+    name: "",
+    control_plane: undefined,
+    cluster_network: undefined,
+    allow_scheduling_on_masters: false,
+  };
+}
 
 export const ClusterConfig = {
   encode(message: ClusterConfig, writer: Writer = Writer.create()): Writer {
@@ -13541,7 +11321,7 @@ export const ClusterConfig = {
   decode(input: Reader | Uint8Array, length?: number): ClusterConfig {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseClusterConfig } as ClusterConfig;
+    const message = createBaseClusterConfig();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -13572,38 +11352,18 @@ export const ClusterConfig = {
   },
 
   fromJSON(object: any): ClusterConfig {
-    const message = { ...baseClusterConfig } as ClusterConfig;
-    if (object.name !== undefined && object.name !== null) {
-      message.name = String(object.name);
-    } else {
-      message.name = "";
-    }
-    if (object.control_plane !== undefined && object.control_plane !== null) {
-      message.control_plane = ControlPlaneConfig.fromJSON(object.control_plane);
-    } else {
-      message.control_plane = undefined;
-    }
-    if (
-      object.cluster_network !== undefined &&
-      object.cluster_network !== null
-    ) {
-      message.cluster_network = ClusterNetworkConfig.fromJSON(
-        object.cluster_network
-      );
-    } else {
-      message.cluster_network = undefined;
-    }
-    if (
-      object.allow_scheduling_on_masters !== undefined &&
-      object.allow_scheduling_on_masters !== null
-    ) {
-      message.allow_scheduling_on_masters = Boolean(
-        object.allow_scheduling_on_masters
-      );
-    } else {
-      message.allow_scheduling_on_masters = false;
-    }
-    return message;
+    return {
+      name: isSet(object.name) ? String(object.name) : "",
+      control_plane: isSet(object.control_plane)
+        ? ControlPlaneConfig.fromJSON(object.control_plane)
+        : undefined,
+      cluster_network: isSet(object.cluster_network)
+        ? ClusterNetworkConfig.fromJSON(object.cluster_network)
+        : undefined,
+      allow_scheduling_on_masters: isSet(object.allow_scheduling_on_masters)
+        ? Boolean(object.allow_scheduling_on_masters)
+        : false,
+    };
   },
 
   toJSON(message: ClusterConfig): unknown {
@@ -13622,43 +11382,33 @@ export const ClusterConfig = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ClusterConfig>): ClusterConfig {
-    const message = { ...baseClusterConfig } as ClusterConfig;
-    if (object.name !== undefined && object.name !== null) {
-      message.name = object.name;
-    } else {
-      message.name = "";
-    }
-    if (object.control_plane !== undefined && object.control_plane !== null) {
-      message.control_plane = ControlPlaneConfig.fromPartial(
-        object.control_plane
-      );
-    } else {
-      message.control_plane = undefined;
-    }
-    if (
-      object.cluster_network !== undefined &&
-      object.cluster_network !== null
-    ) {
-      message.cluster_network = ClusterNetworkConfig.fromPartial(
-        object.cluster_network
-      );
-    } else {
-      message.cluster_network = undefined;
-    }
-    if (
-      object.allow_scheduling_on_masters !== undefined &&
-      object.allow_scheduling_on_masters !== null
-    ) {
-      message.allow_scheduling_on_masters = object.allow_scheduling_on_masters;
-    } else {
-      message.allow_scheduling_on_masters = false;
-    }
+  fromPartial<I extends Exact<DeepPartial<ClusterConfig>, I>>(
+    object: I
+  ): ClusterConfig {
+    const message = createBaseClusterConfig();
+    message.name = object.name ?? "";
+    message.control_plane =
+      object.control_plane !== undefined && object.control_plane !== null
+        ? ControlPlaneConfig.fromPartial(object.control_plane)
+        : undefined;
+    message.cluster_network =
+      object.cluster_network !== undefined && object.cluster_network !== null
+        ? ClusterNetworkConfig.fromPartial(object.cluster_network)
+        : undefined;
+    message.allow_scheduling_on_masters =
+      object.allow_scheduling_on_masters ?? false;
     return message;
   },
 };
 
-const baseGenerateConfigurationRequest: object = { config_version: "" };
+function createBaseGenerateConfigurationRequest(): GenerateConfigurationRequest {
+  return {
+    config_version: "",
+    cluster_config: undefined,
+    machine_config: undefined,
+    override_time: undefined,
+  };
+}
 
 export const GenerateConfigurationRequest = {
   encode(
@@ -13695,9 +11445,7 @@ export const GenerateConfigurationRequest = {
   ): GenerateConfigurationRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseGenerateConfigurationRequest,
-    } as GenerateConfigurationRequest;
+    const message = createBaseGenerateConfigurationRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -13730,30 +11478,20 @@ export const GenerateConfigurationRequest = {
   },
 
   fromJSON(object: any): GenerateConfigurationRequest {
-    const message = {
-      ...baseGenerateConfigurationRequest,
-    } as GenerateConfigurationRequest;
-    if (object.config_version !== undefined && object.config_version !== null) {
-      message.config_version = String(object.config_version);
-    } else {
-      message.config_version = "";
-    }
-    if (object.cluster_config !== undefined && object.cluster_config !== null) {
-      message.cluster_config = ClusterConfig.fromJSON(object.cluster_config);
-    } else {
-      message.cluster_config = undefined;
-    }
-    if (object.machine_config !== undefined && object.machine_config !== null) {
-      message.machine_config = MachineConfig.fromJSON(object.machine_config);
-    } else {
-      message.machine_config = undefined;
-    }
-    if (object.override_time !== undefined && object.override_time !== null) {
-      message.override_time = fromJsonTimestamp(object.override_time);
-    } else {
-      message.override_time = undefined;
-    }
-    return message;
+    return {
+      config_version: isSet(object.config_version)
+        ? String(object.config_version)
+        : "",
+      cluster_config: isSet(object.cluster_config)
+        ? ClusterConfig.fromJSON(object.cluster_config)
+        : undefined,
+      machine_config: isSet(object.machine_config)
+        ? MachineConfig.fromJSON(object.machine_config)
+        : undefined,
+      override_time: isSet(object.override_time)
+        ? fromJsonTimestamp(object.override_time)
+        : undefined,
+    };
   },
 
   toJSON(message: GenerateConfigurationRequest): unknown {
@@ -13773,37 +11511,27 @@ export const GenerateConfigurationRequest = {
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<GenerateConfigurationRequest>
+  fromPartial<I extends Exact<DeepPartial<GenerateConfigurationRequest>, I>>(
+    object: I
   ): GenerateConfigurationRequest {
-    const message = {
-      ...baseGenerateConfigurationRequest,
-    } as GenerateConfigurationRequest;
-    if (object.config_version !== undefined && object.config_version !== null) {
-      message.config_version = object.config_version;
-    } else {
-      message.config_version = "";
-    }
-    if (object.cluster_config !== undefined && object.cluster_config !== null) {
-      message.cluster_config = ClusterConfig.fromPartial(object.cluster_config);
-    } else {
-      message.cluster_config = undefined;
-    }
-    if (object.machine_config !== undefined && object.machine_config !== null) {
-      message.machine_config = MachineConfig.fromPartial(object.machine_config);
-    } else {
-      message.machine_config = undefined;
-    }
-    if (object.override_time !== undefined && object.override_time !== null) {
-      message.override_time = object.override_time;
-    } else {
-      message.override_time = undefined;
-    }
+    const message = createBaseGenerateConfigurationRequest();
+    message.config_version = object.config_version ?? "";
+    message.cluster_config =
+      object.cluster_config !== undefined && object.cluster_config !== null
+        ? ClusterConfig.fromPartial(object.cluster_config)
+        : undefined;
+    message.machine_config =
+      object.machine_config !== undefined && object.machine_config !== null
+        ? MachineConfig.fromPartial(object.machine_config)
+        : undefined;
+    message.override_time = object.override_time ?? undefined;
     return message;
   },
 };
 
-const baseGenerateConfiguration: object = {};
+function createBaseGenerateConfiguration(): GenerateConfiguration {
+  return { metadata: undefined, data: [], talosconfig: new Uint8Array() };
+}
 
 export const GenerateConfiguration = {
   encode(
@@ -13825,9 +11553,7 @@ export const GenerateConfiguration = {
   decode(input: Reader | Uint8Array, length?: number): GenerateConfiguration {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseGenerateConfiguration } as GenerateConfiguration;
-    message.data = [];
-    message.talosconfig = new Uint8Array();
+    const message = createBaseGenerateConfiguration();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -13849,23 +11575,17 @@ export const GenerateConfiguration = {
   },
 
   fromJSON(object: any): GenerateConfiguration {
-    const message = { ...baseGenerateConfiguration } as GenerateConfiguration;
-    message.data = [];
-    message.talosconfig = new Uint8Array();
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.data !== undefined && object.data !== null) {
-      for (const e of object.data) {
-        message.data.push(bytesFromBase64(e));
-      }
-    }
-    if (object.talosconfig !== undefined && object.talosconfig !== null) {
-      message.talosconfig = bytesFromBase64(object.talosconfig);
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      data: Array.isArray(object?.data)
+        ? object.data.map((e: any) => bytesFromBase64(e))
+        : [],
+      talosconfig: isSet(object.talosconfig)
+        ? bytesFromBase64(object.talosconfig)
+        : new Uint8Array(),
+    };
   },
 
   toJSON(message: GenerateConfiguration): unknown {
@@ -13890,31 +11610,23 @@ export const GenerateConfiguration = {
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<GenerateConfiguration>
+  fromPartial<I extends Exact<DeepPartial<GenerateConfiguration>, I>>(
+    object: I
   ): GenerateConfiguration {
-    const message = { ...baseGenerateConfiguration } as GenerateConfiguration;
-    message.data = [];
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.data !== undefined && object.data !== null) {
-      for (const e of object.data) {
-        message.data.push(e);
-      }
-    }
-    if (object.talosconfig !== undefined && object.talosconfig !== null) {
-      message.talosconfig = object.talosconfig;
-    } else {
-      message.talosconfig = new Uint8Array();
-    }
+    const message = createBaseGenerateConfiguration();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.data = object.data?.map((e) => e) || [];
+    message.talosconfig = object.talosconfig ?? new Uint8Array();
     return message;
   },
 };
 
-const baseGenerateConfigurationResponse: object = {};
+function createBaseGenerateConfigurationResponse(): GenerateConfigurationResponse {
+  return { messages: [] };
+}
 
 export const GenerateConfigurationResponse = {
   encode(
@@ -13933,10 +11645,7 @@ export const GenerateConfigurationResponse = {
   ): GenerateConfigurationResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseGenerateConfigurationResponse,
-    } as GenerateConfigurationResponse;
-    message.messages = [];
+    const message = createBaseGenerateConfigurationResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -13954,16 +11663,11 @@ export const GenerateConfigurationResponse = {
   },
 
   fromJSON(object: any): GenerateConfigurationResponse {
-    const message = {
-      ...baseGenerateConfigurationResponse,
-    } as GenerateConfigurationResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(GenerateConfiguration.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => GenerateConfiguration.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: GenerateConfigurationResponse): unknown {
@@ -13978,178 +11682,19 @@ export const GenerateConfigurationResponse = {
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<GenerateConfigurationResponse>
+  fromPartial<I extends Exact<DeepPartial<GenerateConfigurationResponse>, I>>(
+    object: I
   ): GenerateConfigurationResponse {
-    const message = {
-      ...baseGenerateConfigurationResponse,
-    } as GenerateConfigurationResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(GenerateConfiguration.fromPartial(e));
-      }
-    }
+    const message = createBaseGenerateConfigurationResponse();
+    message.messages =
+      object.messages?.map((e) => GenerateConfiguration.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseRemoveBootkubeInitializedKey: object = {};
-
-export const RemoveBootkubeInitializedKey = {
-  encode(
-    message: RemoveBootkubeInitializedKey,
-    writer: Writer = Writer.create()
-  ): Writer {
-    if (message.metadata !== undefined) {
-      Metadata.encode(message.metadata, writer.uint32(10).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(
-    input: Reader | Uint8Array,
-    length?: number
-  ): RemoveBootkubeInitializedKey {
-    const reader = input instanceof Reader ? input : new Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseRemoveBootkubeInitializedKey,
-    } as RemoveBootkubeInitializedKey;
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.metadata = Metadata.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): RemoveBootkubeInitializedKey {
-    const message = {
-      ...baseRemoveBootkubeInitializedKey,
-    } as RemoveBootkubeInitializedKey;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    return message;
-  },
-
-  toJSON(message: RemoveBootkubeInitializedKey): unknown {
-    const obj: any = {};
-    message.metadata !== undefined &&
-      (obj.metadata = message.metadata
-        ? Metadata.toJSON(message.metadata)
-        : undefined);
-    return obj;
-  },
-
-  fromPartial(
-    object: DeepPartial<RemoveBootkubeInitializedKey>
-  ): RemoveBootkubeInitializedKey {
-    const message = {
-      ...baseRemoveBootkubeInitializedKey,
-    } as RemoveBootkubeInitializedKey;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    return message;
-  },
-};
-
-const baseRemoveBootkubeInitializedKeyResponse: object = {};
-
-export const RemoveBootkubeInitializedKeyResponse = {
-  encode(
-    message: RemoveBootkubeInitializedKeyResponse,
-    writer: Writer = Writer.create()
-  ): Writer {
-    for (const v of message.messages) {
-      RemoveBootkubeInitializedKey.encode(
-        v!,
-        writer.uint32(10).fork()
-      ).ldelim();
-    }
-    return writer;
-  },
-
-  decode(
-    input: Reader | Uint8Array,
-    length?: number
-  ): RemoveBootkubeInitializedKeyResponse {
-    const reader = input instanceof Reader ? input : new Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseRemoveBootkubeInitializedKeyResponse,
-    } as RemoveBootkubeInitializedKeyResponse;
-    message.messages = [];
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.messages.push(
-            RemoveBootkubeInitializedKey.decode(reader, reader.uint32())
-          );
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): RemoveBootkubeInitializedKeyResponse {
-    const message = {
-      ...baseRemoveBootkubeInitializedKeyResponse,
-    } as RemoveBootkubeInitializedKeyResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(RemoveBootkubeInitializedKey.fromJSON(e));
-      }
-    }
-    return message;
-  },
-
-  toJSON(message: RemoveBootkubeInitializedKeyResponse): unknown {
-    const obj: any = {};
-    if (message.messages) {
-      obj.messages = message.messages.map((e) =>
-        e ? RemoveBootkubeInitializedKey.toJSON(e) : undefined
-      );
-    } else {
-      obj.messages = [];
-    }
-    return obj;
-  },
-
-  fromPartial(
-    object: DeepPartial<RemoveBootkubeInitializedKeyResponse>
-  ): RemoveBootkubeInitializedKeyResponse {
-    const message = {
-      ...baseRemoveBootkubeInitializedKeyResponse,
-    } as RemoveBootkubeInitializedKeyResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(RemoveBootkubeInitializedKey.fromPartial(e));
-      }
-    }
-    return message;
-  },
-};
-
-const baseGenerateClientConfigurationRequest: object = { roles: "" };
+function createBaseGenerateClientConfigurationRequest(): GenerateClientConfigurationRequest {
+  return { roles: [], crt_ttl: undefined };
+}
 
 export const GenerateClientConfigurationRequest = {
   encode(
@@ -14171,10 +11716,7 @@ export const GenerateClientConfigurationRequest = {
   ): GenerateClientConfigurationRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseGenerateClientConfigurationRequest,
-    } as GenerateClientConfigurationRequest;
-    message.roles = [];
+    const message = createBaseGenerateClientConfigurationRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -14193,21 +11735,14 @@ export const GenerateClientConfigurationRequest = {
   },
 
   fromJSON(object: any): GenerateClientConfigurationRequest {
-    const message = {
-      ...baseGenerateClientConfigurationRequest,
-    } as GenerateClientConfigurationRequest;
-    message.roles = [];
-    if (object.roles !== undefined && object.roles !== null) {
-      for (const e of object.roles) {
-        message.roles.push(String(e));
-      }
-    }
-    if (object.crt_ttl !== undefined && object.crt_ttl !== null) {
-      message.crt_ttl = Duration.fromJSON(object.crt_ttl);
-    } else {
-      message.crt_ttl = undefined;
-    }
-    return message;
+    return {
+      roles: Array.isArray(object?.roles)
+        ? object.roles.map((e: any) => String(e))
+        : [],
+      crt_ttl: isSet(object.crt_ttl)
+        ? Duration.fromJSON(object.crt_ttl)
+        : undefined,
+    };
   },
 
   toJSON(message: GenerateClientConfigurationRequest): unknown {
@@ -14224,28 +11759,28 @@ export const GenerateClientConfigurationRequest = {
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<GenerateClientConfigurationRequest>
-  ): GenerateClientConfigurationRequest {
-    const message = {
-      ...baseGenerateClientConfigurationRequest,
-    } as GenerateClientConfigurationRequest;
-    message.roles = [];
-    if (object.roles !== undefined && object.roles !== null) {
-      for (const e of object.roles) {
-        message.roles.push(e);
-      }
-    }
-    if (object.crt_ttl !== undefined && object.crt_ttl !== null) {
-      message.crt_ttl = Duration.fromPartial(object.crt_ttl);
-    } else {
-      message.crt_ttl = undefined;
-    }
+  fromPartial<
+    I extends Exact<DeepPartial<GenerateClientConfigurationRequest>, I>
+  >(object: I): GenerateClientConfigurationRequest {
+    const message = createBaseGenerateClientConfigurationRequest();
+    message.roles = object.roles?.map((e) => e) || [];
+    message.crt_ttl =
+      object.crt_ttl !== undefined && object.crt_ttl !== null
+        ? Duration.fromPartial(object.crt_ttl)
+        : undefined;
     return message;
   },
 };
 
-const baseGenerateClientConfiguration: object = {};
+function createBaseGenerateClientConfiguration(): GenerateClientConfiguration {
+  return {
+    metadata: undefined,
+    ca: new Uint8Array(),
+    crt: new Uint8Array(),
+    key: new Uint8Array(),
+    talosconfig: new Uint8Array(),
+  };
+}
 
 export const GenerateClientConfiguration = {
   encode(
@@ -14276,13 +11811,7 @@ export const GenerateClientConfiguration = {
   ): GenerateClientConfiguration {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseGenerateClientConfiguration,
-    } as GenerateClientConfiguration;
-    message.ca = new Uint8Array();
-    message.crt = new Uint8Array();
-    message.key = new Uint8Array();
-    message.talosconfig = new Uint8Array();
+    const message = createBaseGenerateClientConfiguration();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -14310,31 +11839,17 @@ export const GenerateClientConfiguration = {
   },
 
   fromJSON(object: any): GenerateClientConfiguration {
-    const message = {
-      ...baseGenerateClientConfiguration,
-    } as GenerateClientConfiguration;
-    message.ca = new Uint8Array();
-    message.crt = new Uint8Array();
-    message.key = new Uint8Array();
-    message.talosconfig = new Uint8Array();
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.ca !== undefined && object.ca !== null) {
-      message.ca = bytesFromBase64(object.ca);
-    }
-    if (object.crt !== undefined && object.crt !== null) {
-      message.crt = bytesFromBase64(object.crt);
-    }
-    if (object.key !== undefined && object.key !== null) {
-      message.key = bytesFromBase64(object.key);
-    }
-    if (object.talosconfig !== undefined && object.talosconfig !== null) {
-      message.talosconfig = bytesFromBase64(object.talosconfig);
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      ca: isSet(object.ca) ? bytesFromBase64(object.ca) : new Uint8Array(),
+      crt: isSet(object.crt) ? bytesFromBase64(object.crt) : new Uint8Array(),
+      key: isSet(object.key) ? bytesFromBase64(object.key) : new Uint8Array(),
+      talosconfig: isSet(object.talosconfig)
+        ? bytesFromBase64(object.talosconfig)
+        : new Uint8Array(),
+    };
   },
 
   toJSON(message: GenerateClientConfiguration): unknown {
@@ -14364,42 +11879,25 @@ export const GenerateClientConfiguration = {
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<GenerateClientConfiguration>
+  fromPartial<I extends Exact<DeepPartial<GenerateClientConfiguration>, I>>(
+    object: I
   ): GenerateClientConfiguration {
-    const message = {
-      ...baseGenerateClientConfiguration,
-    } as GenerateClientConfiguration;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.ca !== undefined && object.ca !== null) {
-      message.ca = object.ca;
-    } else {
-      message.ca = new Uint8Array();
-    }
-    if (object.crt !== undefined && object.crt !== null) {
-      message.crt = object.crt;
-    } else {
-      message.crt = new Uint8Array();
-    }
-    if (object.key !== undefined && object.key !== null) {
-      message.key = object.key;
-    } else {
-      message.key = new Uint8Array();
-    }
-    if (object.talosconfig !== undefined && object.talosconfig !== null) {
-      message.talosconfig = object.talosconfig;
-    } else {
-      message.talosconfig = new Uint8Array();
-    }
+    const message = createBaseGenerateClientConfiguration();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.ca = object.ca ?? new Uint8Array();
+    message.crt = object.crt ?? new Uint8Array();
+    message.key = object.key ?? new Uint8Array();
+    message.talosconfig = object.talosconfig ?? new Uint8Array();
     return message;
   },
 };
 
-const baseGenerateClientConfigurationResponse: object = {};
+function createBaseGenerateClientConfigurationResponse(): GenerateClientConfigurationResponse {
+  return { messages: [] };
+}
 
 export const GenerateClientConfigurationResponse = {
   encode(
@@ -14418,10 +11916,7 @@ export const GenerateClientConfigurationResponse = {
   ): GenerateClientConfigurationResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseGenerateClientConfigurationResponse,
-    } as GenerateClientConfigurationResponse;
-    message.messages = [];
+    const message = createBaseGenerateClientConfigurationResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -14439,16 +11934,13 @@ export const GenerateClientConfigurationResponse = {
   },
 
   fromJSON(object: any): GenerateClientConfigurationResponse {
-    const message = {
-      ...baseGenerateClientConfigurationResponse,
-    } as GenerateClientConfigurationResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(GenerateClientConfiguration.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) =>
+            GenerateClientConfiguration.fromJSON(e)
+          )
+        : [],
+    };
   },
 
   toJSON(message: GenerateClientConfigurationResponse): unknown {
@@ -14463,18 +11955,13 @@ export const GenerateClientConfigurationResponse = {
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<GenerateClientConfigurationResponse>
-  ): GenerateClientConfigurationResponse {
-    const message = {
-      ...baseGenerateClientConfigurationResponse,
-    } as GenerateClientConfigurationResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(GenerateClientConfiguration.fromPartial(e));
-      }
-    }
+  fromPartial<
+    I extends Exact<DeepPartial<GenerateClientConfigurationResponse>, I>
+  >(object: I): GenerateClientConfigurationResponse {
+    const message = createBaseGenerateClientConfigurationResponse();
+    message.messages =
+      object.messages?.map((e) => GenerateClientConfiguration.fromPartial(e)) ||
+      [];
     return message;
   },
 };
@@ -14484,6 +11971,14 @@ export interface MachineService {
   ApplyConfiguration(
     request: ApplyConfigurationRequest
   ): Promise<ApplyConfigurationResponse>;
+  /**
+   * Bootstrap method makes control plane node enter etcd bootstrap mode.
+   *
+   * Node aborts etcd join sequence and creates single-node etcd cluster.
+   *
+   * If recover_etcd argument is specified, etcd is recovered from a snapshot
+   * uploaded with EtcdRecover.
+   */
   Bootstrap(request: BootstrapRequest): Promise<BootstrapResponse>;
   Containers(request: ContainersRequest): Promise<ContainersResponse>;
   Copy(request: CopyRequest): Observable<Data>;
@@ -14531,14 +12026,10 @@ export interface MachineService {
   NetworkDeviceStats(request: Empty): Promise<NetworkDeviceStatsResponse>;
   Processes(request: Empty): Promise<ProcessesResponse>;
   Read(request: ReadRequest): Observable<Data>;
-  Reboot(request: Empty): Promise<RebootResponse>;
+  Reboot(request: RebootRequest): Promise<RebootResponse>;
   Restart(request: RestartRequest): Promise<RestartResponse>;
   Rollback(request: RollbackRequest): Promise<RollbackResponse>;
   Reset(request: ResetRequest): Promise<ResetResponse>;
-  /** @deprecated */
-  RemoveBootkubeInitializedKey(
-    request: Empty
-  ): Promise<RemoveBootkubeInitializedKeyResponse>;
   ServiceList(request: Empty): Promise<ServiceListResponse>;
   ServiceRestart(
     request: ServiceRestartRequest
@@ -14558,6 +12049,7 @@ export interface MachineService {
 
 declare var self: any | undefined;
 declare var window: any | undefined;
+declare var global: any | undefined;
 var globalThis: any = (() => {
   if (typeof globalThis !== "undefined") return globalThis;
   if (typeof self !== "undefined") return self;
@@ -14597,6 +12089,7 @@ type Builtin =
   | number
   | boolean
   | undefined;
+
 export type DeepPartial<T> = T extends Builtin
   ? T
   : T extends Array<infer U>
@@ -14606,6 +12099,14 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
+        Exclude<keyof I, KeysOfUnion<P>>,
+        never
+      >;
 
 function toTimestamp(date: Date): Timestamp {
   const seconds = date.getTime() / 1_000;
@@ -14641,4 +12142,8 @@ function longToNumber(long: Long): number {
 if (util.Long !== Long) {
   util.Long = Long as any;
   configure();
+}
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
 }

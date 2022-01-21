@@ -27,12 +27,14 @@ import (
 )
 
 // Suppress "imported and not used" errors
-var _ codes.Code
-var _ io.Reader
-var _ status.Status
-var _ = runtime.String
-var _ = utilities.NewDoubleArray
-var _ = metadata.Join
+var (
+	_ codes.Code
+	_ io.Reader
+	_ status.Status
+	_ = runtime.String
+	_ = utilities.NewDoubleArray
+	_ = metadata.Join
+)
 
 func request_MachineService_ApplyConfiguration_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq extMachine.ApplyConfigurationRequest
@@ -48,7 +50,6 @@ func request_MachineService_ApplyConfiguration_0(ctx context.Context, marshaler 
 
 	msg, err := client.ApplyConfiguration(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_ApplyConfiguration_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -65,7 +66,6 @@ func local_request_MachineService_ApplyConfiguration_0(ctx context.Context, mars
 
 	msg, err := server.ApplyConfiguration(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_Bootstrap_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -82,7 +82,6 @@ func request_MachineService_Bootstrap_0(ctx context.Context, marshaler runtime.M
 
 	msg, err := client.Bootstrap(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_Bootstrap_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -99,7 +98,6 @@ func local_request_MachineService_Bootstrap_0(ctx context.Context, marshaler run
 
 	msg, err := server.Bootstrap(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_Containers_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -116,7 +114,6 @@ func request_MachineService_Containers_0(ctx context.Context, marshaler runtime.
 
 	msg, err := client.Containers(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_Containers_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -133,7 +130,6 @@ func local_request_MachineService_Containers_0(ctx context.Context, marshaler ru
 
 	msg, err := server.Containers(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_Copy_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (extMachine.MachineService_CopyClient, runtime.ServerMetadata, error) {
@@ -158,7 +154,6 @@ func request_MachineService_Copy_0(ctx context.Context, marshaler runtime.Marsha
 	}
 	metadata.HeaderMD = header
 	return stream, metadata, nil
-
 }
 
 func request_MachineService_CPUInfo_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -175,7 +170,6 @@ func request_MachineService_CPUInfo_0(ctx context.Context, marshaler runtime.Mar
 
 	msg, err := client.CPUInfo(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_CPUInfo_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -192,7 +186,6 @@ func local_request_MachineService_CPUInfo_0(ctx context.Context, marshaler runti
 
 	msg, err := server.CPUInfo(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_DiskStats_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -209,7 +202,6 @@ func request_MachineService_DiskStats_0(ctx context.Context, marshaler runtime.M
 
 	msg, err := client.DiskStats(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_DiskStats_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -226,7 +218,6 @@ func local_request_MachineService_DiskStats_0(ctx context.Context, marshaler run
 
 	msg, err := server.DiskStats(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_Dmesg_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (extMachine.MachineService_DmesgClient, runtime.ServerMetadata, error) {
@@ -251,7 +242,6 @@ func request_MachineService_Dmesg_0(ctx context.Context, marshaler runtime.Marsh
 	}
 	metadata.HeaderMD = header
 	return stream, metadata, nil
-
 }
 
 func request_MachineService_Events_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (extMachine.MachineService_EventsClient, runtime.ServerMetadata, error) {
@@ -276,7 +266,6 @@ func request_MachineService_Events_0(ctx context.Context, marshaler runtime.Mars
 	}
 	metadata.HeaderMD = header
 	return stream, metadata, nil
-
 }
 
 func request_MachineService_EtcdMemberList_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -293,7 +282,6 @@ func request_MachineService_EtcdMemberList_0(ctx context.Context, marshaler runt
 
 	msg, err := client.EtcdMemberList(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_EtcdMemberList_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -310,7 +298,6 @@ func local_request_MachineService_EtcdMemberList_0(ctx context.Context, marshale
 
 	msg, err := server.EtcdMemberList(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_EtcdRemoveMember_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -327,7 +314,6 @@ func request_MachineService_EtcdRemoveMember_0(ctx context.Context, marshaler ru
 
 	msg, err := client.EtcdRemoveMember(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_EtcdRemoveMember_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -344,7 +330,6 @@ func local_request_MachineService_EtcdRemoveMember_0(ctx context.Context, marsha
 
 	msg, err := server.EtcdRemoveMember(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_EtcdLeaveCluster_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -361,7 +346,6 @@ func request_MachineService_EtcdLeaveCluster_0(ctx context.Context, marshaler ru
 
 	msg, err := client.EtcdLeaveCluster(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_EtcdLeaveCluster_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -378,7 +362,6 @@ func local_request_MachineService_EtcdLeaveCluster_0(ctx context.Context, marsha
 
 	msg, err := server.EtcdLeaveCluster(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_EtcdForfeitLeadership_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -395,7 +378,6 @@ func request_MachineService_EtcdForfeitLeadership_0(ctx context.Context, marshal
 
 	msg, err := client.EtcdForfeitLeadership(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_EtcdForfeitLeadership_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -412,7 +394,6 @@ func local_request_MachineService_EtcdForfeitLeadership_0(ctx context.Context, m
 
 	msg, err := server.EtcdForfeitLeadership(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_EtcdRecover_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -456,7 +437,6 @@ func request_MachineService_EtcdRecover_0(ctx context.Context, marshaler runtime
 	msg, err := stream.CloseAndRecv()
 	metadata.TrailerMD = stream.Trailer()
 	return msg, metadata, err
-
 }
 
 func request_MachineService_EtcdSnapshot_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (extMachine.MachineService_EtcdSnapshotClient, runtime.ServerMetadata, error) {
@@ -481,7 +461,6 @@ func request_MachineService_EtcdSnapshot_0(ctx context.Context, marshaler runtim
 	}
 	metadata.HeaderMD = header
 	return stream, metadata, nil
-
 }
 
 func request_MachineService_GenerateConfiguration_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -498,7 +477,6 @@ func request_MachineService_GenerateConfiguration_0(ctx context.Context, marshal
 
 	msg, err := client.GenerateConfiguration(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_GenerateConfiguration_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -515,7 +493,6 @@ func local_request_MachineService_GenerateConfiguration_0(ctx context.Context, m
 
 	msg, err := server.GenerateConfiguration(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_Hostname_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -532,7 +509,6 @@ func request_MachineService_Hostname_0(ctx context.Context, marshaler runtime.Ma
 
 	msg, err := client.Hostname(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_Hostname_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -549,7 +525,6 @@ func local_request_MachineService_Hostname_0(ctx context.Context, marshaler runt
 
 	msg, err := server.Hostname(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_Kubeconfig_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (extMachine.MachineService_KubeconfigClient, runtime.ServerMetadata, error) {
@@ -574,7 +549,6 @@ func request_MachineService_Kubeconfig_0(ctx context.Context, marshaler runtime.
 	}
 	metadata.HeaderMD = header
 	return stream, metadata, nil
-
 }
 
 func request_MachineService_List_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (extMachine.MachineService_ListClient, runtime.ServerMetadata, error) {
@@ -599,7 +573,6 @@ func request_MachineService_List_0(ctx context.Context, marshaler runtime.Marsha
 	}
 	metadata.HeaderMD = header
 	return stream, metadata, nil
-
 }
 
 func request_MachineService_DiskUsage_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (extMachine.MachineService_DiskUsageClient, runtime.ServerMetadata, error) {
@@ -624,7 +597,6 @@ func request_MachineService_DiskUsage_0(ctx context.Context, marshaler runtime.M
 	}
 	metadata.HeaderMD = header
 	return stream, metadata, nil
-
 }
 
 func request_MachineService_LoadAvg_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -641,7 +613,6 @@ func request_MachineService_LoadAvg_0(ctx context.Context, marshaler runtime.Mar
 
 	msg, err := client.LoadAvg(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_LoadAvg_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -658,7 +629,6 @@ func local_request_MachineService_LoadAvg_0(ctx context.Context, marshaler runti
 
 	msg, err := server.LoadAvg(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_Logs_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (extMachine.MachineService_LogsClient, runtime.ServerMetadata, error) {
@@ -683,7 +653,6 @@ func request_MachineService_Logs_0(ctx context.Context, marshaler runtime.Marsha
 	}
 	metadata.HeaderMD = header
 	return stream, metadata, nil
-
 }
 
 func request_MachineService_Memory_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -700,7 +669,6 @@ func request_MachineService_Memory_0(ctx context.Context, marshaler runtime.Mars
 
 	msg, err := client.Memory(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_Memory_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -717,7 +685,6 @@ func local_request_MachineService_Memory_0(ctx context.Context, marshaler runtim
 
 	msg, err := server.Memory(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_Mounts_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -734,7 +701,6 @@ func request_MachineService_Mounts_0(ctx context.Context, marshaler runtime.Mars
 
 	msg, err := client.Mounts(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_Mounts_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -751,7 +717,6 @@ func local_request_MachineService_Mounts_0(ctx context.Context, marshaler runtim
 
 	msg, err := server.Mounts(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_NetworkDeviceStats_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -768,7 +733,6 @@ func request_MachineService_NetworkDeviceStats_0(ctx context.Context, marshaler 
 
 	msg, err := client.NetworkDeviceStats(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_NetworkDeviceStats_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -785,7 +749,6 @@ func local_request_MachineService_NetworkDeviceStats_0(ctx context.Context, mars
 
 	msg, err := server.NetworkDeviceStats(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_Processes_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -802,7 +765,6 @@ func request_MachineService_Processes_0(ctx context.Context, marshaler runtime.M
 
 	msg, err := client.Processes(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_Processes_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -819,7 +781,6 @@ func local_request_MachineService_Processes_0(ctx context.Context, marshaler run
 
 	msg, err := server.Processes(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_Read_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (extMachine.MachineService_ReadClient, runtime.ServerMetadata, error) {
@@ -844,11 +805,10 @@ func request_MachineService_Read_0(ctx context.Context, marshaler runtime.Marsha
 	}
 	metadata.HeaderMD = header
 	return stream, metadata, nil
-
 }
 
 func request_MachineService_Reboot_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmptypb.Empty
+	var protoReq extMachine.RebootRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -861,11 +821,10 @@ func request_MachineService_Reboot_0(ctx context.Context, marshaler runtime.Mars
 
 	msg, err := client.Reboot(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_Reboot_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmptypb.Empty
+	var protoReq extMachine.RebootRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -878,7 +837,6 @@ func local_request_MachineService_Reboot_0(ctx context.Context, marshaler runtim
 
 	msg, err := server.Reboot(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_Restart_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -895,7 +853,6 @@ func request_MachineService_Restart_0(ctx context.Context, marshaler runtime.Mar
 
 	msg, err := client.Restart(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_Restart_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -912,7 +869,6 @@ func local_request_MachineService_Restart_0(ctx context.Context, marshaler runti
 
 	msg, err := server.Restart(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_Rollback_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -929,7 +885,6 @@ func request_MachineService_Rollback_0(ctx context.Context, marshaler runtime.Ma
 
 	msg, err := client.Rollback(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_Rollback_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -946,7 +901,6 @@ func local_request_MachineService_Rollback_0(ctx context.Context, marshaler runt
 
 	msg, err := server.Rollback(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_Reset_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -963,7 +917,6 @@ func request_MachineService_Reset_0(ctx context.Context, marshaler runtime.Marsh
 
 	msg, err := client.Reset(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_Reset_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -980,7 +933,6 @@ func local_request_MachineService_Reset_0(ctx context.Context, marshaler runtime
 
 	msg, err := server.Reset(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_ServiceList_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -997,7 +949,6 @@ func request_MachineService_ServiceList_0(ctx context.Context, marshaler runtime
 
 	msg, err := client.ServiceList(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_ServiceList_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1014,7 +965,6 @@ func local_request_MachineService_ServiceList_0(ctx context.Context, marshaler r
 
 	msg, err := server.ServiceList(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_ServiceRestart_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1031,7 +981,6 @@ func request_MachineService_ServiceRestart_0(ctx context.Context, marshaler runt
 
 	msg, err := client.ServiceRestart(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_ServiceRestart_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1048,7 +997,6 @@ func local_request_MachineService_ServiceRestart_0(ctx context.Context, marshale
 
 	msg, err := server.ServiceRestart(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_ServiceStart_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1065,7 +1013,6 @@ func request_MachineService_ServiceStart_0(ctx context.Context, marshaler runtim
 
 	msg, err := client.ServiceStart(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_ServiceStart_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1082,7 +1029,6 @@ func local_request_MachineService_ServiceStart_0(ctx context.Context, marshaler 
 
 	msg, err := server.ServiceStart(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_ServiceStop_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1099,7 +1045,6 @@ func request_MachineService_ServiceStop_0(ctx context.Context, marshaler runtime
 
 	msg, err := client.ServiceStop(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_ServiceStop_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1116,7 +1061,6 @@ func local_request_MachineService_ServiceStop_0(ctx context.Context, marshaler r
 
 	msg, err := server.ServiceStop(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_Shutdown_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1133,7 +1077,6 @@ func request_MachineService_Shutdown_0(ctx context.Context, marshaler runtime.Ma
 
 	msg, err := client.Shutdown(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_Shutdown_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1150,7 +1093,6 @@ func local_request_MachineService_Shutdown_0(ctx context.Context, marshaler runt
 
 	msg, err := server.Shutdown(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_Stats_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1167,7 +1109,6 @@ func request_MachineService_Stats_0(ctx context.Context, marshaler runtime.Marsh
 
 	msg, err := client.Stats(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_Stats_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1184,7 +1125,6 @@ func local_request_MachineService_Stats_0(ctx context.Context, marshaler runtime
 
 	msg, err := server.Stats(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_SystemStat_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1201,7 +1141,6 @@ func request_MachineService_SystemStat_0(ctx context.Context, marshaler runtime.
 
 	msg, err := client.SystemStat(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_SystemStat_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1218,7 +1157,6 @@ func local_request_MachineService_SystemStat_0(ctx context.Context, marshaler ru
 
 	msg, err := server.SystemStat(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_Upgrade_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1235,7 +1173,6 @@ func request_MachineService_Upgrade_0(ctx context.Context, marshaler runtime.Mar
 
 	msg, err := client.Upgrade(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_Upgrade_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1252,7 +1189,6 @@ func local_request_MachineService_Upgrade_0(ctx context.Context, marshaler runti
 
 	msg, err := server.Upgrade(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_Version_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1269,7 +1205,6 @@ func request_MachineService_Version_0(ctx context.Context, marshaler runtime.Mar
 
 	msg, err := client.Version(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_Version_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1286,7 +1221,6 @@ func local_request_MachineService_Version_0(ctx context.Context, marshaler runti
 
 	msg, err := server.Version(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_MachineService_GenerateClientConfiguration_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1303,7 +1237,6 @@ func request_MachineService_GenerateClientConfiguration_0(ctx context.Context, m
 
 	msg, err := client.GenerateClientConfiguration(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_MachineService_GenerateClientConfiguration_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1320,7 +1253,6 @@ func local_request_MachineService_GenerateClientConfiguration_0(ctx context.Cont
 
 	msg, err := server.GenerateClientConfiguration(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 // RegisterMachineServiceHandlerServer registers the http handlers for service MachineService to "mux".
@@ -1328,7 +1260,6 @@ func local_request_MachineService_GenerateClientConfiguration_0(ctx context.Cont
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterMachineServiceHandlerFromEndpoint instead.
 func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server extMachine.MachineServiceServer) error {
-
 	mux.Handle("POST", pattern_MachineService_ApplyConfiguration_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -1349,7 +1280,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_ApplyConfiguration_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Bootstrap_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1372,7 +1302,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Bootstrap_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Containers_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1395,7 +1324,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Containers_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Copy_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1425,7 +1353,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_CPUInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_DiskStats_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1448,7 +1375,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_DiskStats_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Dmesg_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1485,7 +1411,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_EtcdMemberList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_EtcdRemoveMember_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1508,7 +1433,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_EtcdRemoveMember_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_EtcdLeaveCluster_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1531,7 +1455,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_EtcdLeaveCluster_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_EtcdForfeitLeadership_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1554,7 +1477,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_EtcdForfeitLeadership_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_EtcdRecover_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1591,7 +1513,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_GenerateConfiguration_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Hostname_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1614,7 +1535,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Hostname_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Kubeconfig_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1658,7 +1578,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_LoadAvg_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Logs_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1688,7 +1607,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Memory_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Mounts_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1711,7 +1629,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Mounts_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_NetworkDeviceStats_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1734,7 +1651,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_NetworkDeviceStats_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Processes_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1757,7 +1673,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Processes_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Read_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1787,7 +1702,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Reboot_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Restart_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1810,7 +1724,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Restart_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Rollback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1833,7 +1746,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Rollback_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Reset_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1856,7 +1768,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Reset_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_ServiceList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1879,7 +1790,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_ServiceList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_ServiceRestart_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1902,7 +1812,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_ServiceRestart_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_ServiceStart_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1925,7 +1834,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_ServiceStart_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_ServiceStop_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1948,7 +1856,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_ServiceStop_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Shutdown_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1971,7 +1878,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Shutdown_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Stats_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -1994,7 +1900,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Stats_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_SystemStat_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2017,7 +1922,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_SystemStat_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Upgrade_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2040,7 +1944,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Upgrade_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Version_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2063,7 +1966,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Version_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_GenerateClientConfiguration_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2086,7 +1988,6 @@ func RegisterMachineServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_GenerateClientConfiguration_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	return nil
@@ -2129,7 +2030,6 @@ func RegisterMachineServiceHandler(ctx context.Context, mux *runtime.ServeMux, c
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "extMachine.MachineServiceClient" to call the correct interceptors.
 func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client extMachine.MachineServiceClient) error {
-
 	mux.Handle("POST", pattern_MachineService_ApplyConfiguration_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -2147,7 +2047,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_ApplyConfiguration_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Bootstrap_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2167,7 +2066,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Bootstrap_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Containers_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2187,7 +2085,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Containers_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Copy_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2207,7 +2104,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Copy_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_CPUInfo_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2227,7 +2123,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_CPUInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_DiskStats_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2247,7 +2142,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_DiskStats_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Dmesg_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2267,7 +2161,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Dmesg_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Events_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2287,7 +2180,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Events_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_EtcdMemberList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2307,7 +2199,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_EtcdMemberList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_EtcdRemoveMember_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2327,7 +2218,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_EtcdRemoveMember_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_EtcdLeaveCluster_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2347,7 +2237,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_EtcdLeaveCluster_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_EtcdForfeitLeadership_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2367,7 +2256,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_EtcdForfeitLeadership_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_EtcdRecover_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2387,7 +2275,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_EtcdRecover_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_EtcdSnapshot_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2407,7 +2294,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_EtcdSnapshot_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_GenerateConfiguration_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2427,7 +2313,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_GenerateConfiguration_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Hostname_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2447,7 +2332,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Hostname_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Kubeconfig_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2467,7 +2351,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Kubeconfig_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_List_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2487,7 +2370,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_List_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_DiskUsage_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2507,7 +2389,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_DiskUsage_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_LoadAvg_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2527,7 +2408,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_LoadAvg_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Logs_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2547,7 +2427,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Logs_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Memory_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2567,7 +2446,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Memory_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Mounts_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2587,7 +2465,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Mounts_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_NetworkDeviceStats_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2607,7 +2484,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_NetworkDeviceStats_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Processes_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2627,7 +2503,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Processes_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Read_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2647,7 +2522,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Read_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Reboot_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2667,7 +2541,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Reboot_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Restart_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2687,7 +2560,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Restart_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Rollback_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2707,7 +2579,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Rollback_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Reset_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2727,7 +2598,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Reset_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_ServiceList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2747,7 +2617,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_ServiceList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_ServiceRestart_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2767,7 +2636,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_ServiceRestart_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_ServiceStart_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2787,7 +2655,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_ServiceStart_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_ServiceStop_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2807,7 +2674,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_ServiceStop_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Shutdown_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2827,7 +2693,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Shutdown_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Stats_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2847,7 +2712,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Stats_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_SystemStat_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2867,7 +2731,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_SystemStat_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Upgrade_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2887,7 +2750,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Upgrade_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_Version_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2907,7 +2769,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_Version_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	mux.Handle("POST", pattern_MachineService_GenerateClientConfiguration_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2927,7 +2788,6 @@ func RegisterMachineServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_MachineService_GenerateClientConfiguration_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	return nil

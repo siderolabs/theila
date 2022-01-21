@@ -201,16 +201,19 @@ export default class Watch {
     this.context = context;
     this.compare = compare;
 
+    if (compare)
+      this.sort.value = compare;
+
     const params = {
       resource: this.resource,
       source: this.source,
     }
 
     if (this.context) {
-      params["context"] = Context.fromPartial(this.context);
+      params["context"] = Context.fromJSON(this.context);
     }
 
-    const watchSpec = WatchSpec.fromPartial(params);
+    const watchSpec = WatchSpec.fromJSON(params);
 
     const watchRequest = newMessage(
       Kind.Watch,

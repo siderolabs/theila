@@ -14,7 +14,6 @@ import (
 
 	"github.com/cosi-project/runtime/pkg/controller"
 	"github.com/cosi-project/runtime/pkg/resource"
-	"github.com/cosi-project/runtime/pkg/state"
 	"github.com/google/go-github/v35/github"
 	"github.com/talos-systems/talos/pkg/cluster"
 	k8s "github.com/talos-systems/talos/pkg/cluster/kubernetes"
@@ -35,18 +34,21 @@ const (
 )
 
 type taskLog struct {
-	id   resource.ID
-	line string
+	id        resource.ID
+	namespace resource.Namespace
+	line      string
 }
 
 type taskError struct {
-	err error
-	id  resource.ID
+	err       error
+	namespace resource.Namespace
+	id        resource.ID
 }
 
 type taskProgress struct {
-	id    resource.ID
-	value float32
+	id        resource.ID
+	namespace resource.Namespace
+	value     float32
 }
 
 // NewUpgradeController creates new UpgradeController.
@@ -94,6 +96,10 @@ func (ctrl *UpgradeController) Inputs() []controller.Input {
 func (ctrl *UpgradeController) Outputs() []controller.Output {
 	return []controller.Output{
 		{
+			Type: resources.TaskStateType,
+			Kind: controller.OutputExclusive,
+		},
+		{
 			Type: resources.TaskStatusType,
 			Kind: controller.OutputExclusive,
 		},
@@ -130,7 +136,8 @@ func (ctrl *UpgradeController) Run(ctx context.Context, r controller.Runtime, lo
 				return err
 			}
 		case log := <-ctrl.logs:
-			taskLog := resources.NewTaskLog(Namespace, log.id, "")
+			taskLog := resources.NewTaskLog(log.namespace, log.id, "")
+			fmt.Printf("update %s %s\n", log.namespace, log.id)
 
 			if err := r.Modify(ctx, taskLog, func(res resource.Resource) error {
 				res.(*resources.TaskLog).Update(log.line)
@@ -140,7 +147,7 @@ func (ctrl *UpgradeController) Run(ctx context.Context, r controller.Runtime, lo
 				return err
 			}
 		case progress := <-ctrl.progress:
-			status := resources.NewTaskStatus(Namespace, progress.id)
+			status := resources.NewTaskStatus(progress.namespace, progress.id)
 
 			if err := r.Modify(ctx, status, func(res resource.Resource) error {
 				s := res.(*resources.TaskStatus) //nolint:forcetypeassert,errcheck
@@ -155,7 +162,7 @@ func (ctrl *UpgradeController) Run(ctx context.Context, r controller.Runtime, lo
 				return err
 			}
 		case e := <-ctrl.errors:
-			status := resources.NewTaskStatus(Namespace, e.id)
+			status := resources.NewTaskStatus(e.namespace, e.id)
 
 			if err := r.Modify(ctx, status, func(res resource.Resource) error {
 				res.(*resources.TaskStatus).SetError(e.err)
@@ -252,7 +259,7 @@ func (ctrl *UpgradeController) handleTask(ctx context.Context, task *resources.U
 		task: task,
 	}
 
-	return ctrl.tasks[id].start(ctx, task, ctrl, logger)
+	return ctrl.tasks[id].start(ctx, task, ctrl, r, logger)
 }
 
 func (ctrl *UpgradeController) abortTask(ctx context.Context, id resource.ID, r controller.Runtime, logger *zap.Logger) error {
@@ -260,11 +267,19 @@ func (ctrl *UpgradeController) abortTask(ctx context.Context, id resource.ID, r 
 
 	defer delete(ctrl.tasks, id)
 
-	if err := r.Destroy(ctx, resource.NewMetadata(Namespace, resources.TaskStatusType, id, resource.VersionUndefined)); err != nil && !state.IsNotFoundError(err) {
+	res, err := r.Get(ctx, resource.NewMetadata(Namespace, resources.TaskStateType, id, resource.VersionUndefined))
+	if err != nil {
 		return err
 	}
 
-	if err := r.Destroy(ctx, resource.NewMetadata(Namespace, resources.TaskLogType, id, resource.VersionUndefined)); err != nil && !state.IsNotFoundError(err) {
+	statusID := res.(*resources.TaskState).TypedSpec().StatusId
+	if err = r.Modify(ctx, resources.NewTaskStatus(id, statusID), func(res resource.Resource) error {
+		s := res.(*resources.TaskStatus) //nolint:errcheck,forcetypeassert
+		s.SetPhase(rpc.TaskStatusSpec_FAILED)
+		s.SetError(fmt.Errorf("the task was aborted"))
+
+		return nil
+	}); err != nil {
 		return err
 	}
 
@@ -280,7 +295,7 @@ type upgradeTask struct {
 	wg sync.WaitGroup
 }
 
-func (t *upgradeTask) start(ctx context.Context, task *resources.UpgradeK8sTask, ctrl *UpgradeController, logger *zap.Logger) error {
+func (t *upgradeTask) start(ctx context.Context, task *resources.UpgradeK8sTask, ctrl *UpgradeController, r controller.Runtime, logger *zap.Logger) error {
 	ctx, t.cancel = context.WithCancel(ctx)
 
 	var upgradeOptions k8s.UpgradeOptions
@@ -294,15 +309,17 @@ func (t *upgradeTask) start(ctx context.Context, task *resources.UpgradeK8sTask,
 		return fmt.Errorf("upgrade task is missing talos context")
 	}
 
-	id := task.Metadata().ID()
+	id := fmt.Sprintf("%s-%d", task.Metadata().ID(), time.Now().Unix())
+	namespace := task.Metadata().ID()
 
 	upgradeOptions.FromVersion = spec.FromVersion
 	upgradeOptions.ToVersion = spec.ToVersion
 	upgradeOptions.LogOutput = &runtimeLogger{
-		ctrl: ctrl,
-		id:   id,
-		ctx:  ctx,
-		zap:  logger,
+		ctrl:      ctrl,
+		id:        id,
+		namespace: namespace,
+		ctx:       ctx,
+		zap:       logger,
 	}
 
 	ctx = talos.WithNodes(ctx, spec.Context)
@@ -329,6 +346,14 @@ func (t *upgradeTask) start(ctx context.Context, task *resources.UpgradeK8sTask,
 		}
 	}
 
+	if err := r.Modify(ctx, resources.NewTaskState(Namespace, task.Metadata().ID(), id), func(res resource.Resource) error {
+		res.(*resources.TaskState).TypedSpec().StatusId = id
+
+		return nil
+	}); err != nil {
+		return err
+	}
+
 	t.wg.Add(1)
 
 	go func() {
@@ -339,14 +364,16 @@ func (t *upgradeTask) start(ctx context.Context, task *resources.UpgradeK8sTask,
 		}
 
 		ctrl.progress <- taskProgress{
-			id:    id,
-			value: 0.0,
+			id:        id,
+			value:     0.0,
+			namespace: namespace,
 		}
 
 		if err := upgrade(); err != nil {
 			taskErr := taskError{
-				id:  id,
-				err: err,
+				id:        id,
+				err:       err,
+				namespace: namespace,
 			}
 
 			select {
@@ -358,9 +385,13 @@ func (t *upgradeTask) start(ctx context.Context, task *resources.UpgradeK8sTask,
 			return
 		}
 
+		// TODO: this task progress should be enhanced to show detailed information
+		// - currently upgraded node
+		// - pods updates progress
 		ctrl.progress <- taskProgress{
-			id:    id,
-			value: 1.0,
+			id:        id,
+			value:     1.0,
+			namespace: namespace,
 		}
 
 		upgradeOptions.Log("upgrade complete")
@@ -376,10 +407,11 @@ func (t *upgradeTask) stop() {
 }
 
 type runtimeLogger struct {
-	ctrl *UpgradeController
-	zap  *zap.Logger
-	ctx  context.Context
-	id   resource.ID
+	ctrl      *UpgradeController
+	zap       *zap.Logger
+	ctx       context.Context
+	id        resource.ID
+	namespace resource.Namespace
 }
 
 // Write implements io.Writer.
@@ -387,8 +419,9 @@ func (l *runtimeLogger) Write(line []byte) (int, error) {
 	l.zap.Debug(string(line))
 
 	l.ctrl.logs <- taskLog{
-		id:   l.id,
-		line: string(line),
+		id:        l.id,
+		line:      string(line),
+		namespace: l.namespace,
 	}
 
 	return len(line), nil

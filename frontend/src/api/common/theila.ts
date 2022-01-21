@@ -66,7 +66,9 @@ export interface Context {
   nodes: string[];
 }
 
-const baseCluster: object = { name: "", namespace: "", uid: "" };
+function createBaseCluster(): Cluster {
+  return { name: "", namespace: "", uid: "" };
+}
 
 export const Cluster = {
   encode(message: Cluster, writer: Writer = Writer.create()): Writer {
@@ -85,7 +87,7 @@ export const Cluster = {
   decode(input: Reader | Uint8Array, length?: number): Cluster {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseCluster } as Cluster;
+    const message = createBaseCluster();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -107,23 +109,11 @@ export const Cluster = {
   },
 
   fromJSON(object: any): Cluster {
-    const message = { ...baseCluster } as Cluster;
-    if (object.name !== undefined && object.name !== null) {
-      message.name = String(object.name);
-    } else {
-      message.name = "";
-    }
-    if (object.namespace !== undefined && object.namespace !== null) {
-      message.namespace = String(object.namespace);
-    } else {
-      message.namespace = "";
-    }
-    if (object.uid !== undefined && object.uid !== null) {
-      message.uid = String(object.uid);
-    } else {
-      message.uid = "";
-    }
-    return message;
+    return {
+      name: isSet(object.name) ? String(object.name) : "",
+      namespace: isSet(object.namespace) ? String(object.namespace) : "",
+      uid: isSet(object.uid) ? String(object.uid) : "",
+    };
   },
 
   toJSON(message: Cluster): unknown {
@@ -134,28 +124,18 @@ export const Cluster = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Cluster>): Cluster {
-    const message = { ...baseCluster } as Cluster;
-    if (object.name !== undefined && object.name !== null) {
-      message.name = object.name;
-    } else {
-      message.name = "";
-    }
-    if (object.namespace !== undefined && object.namespace !== null) {
-      message.namespace = object.namespace;
-    } else {
-      message.namespace = "";
-    }
-    if (object.uid !== undefined && object.uid !== null) {
-      message.uid = object.uid;
-    } else {
-      message.uid = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<Cluster>, I>>(object: I): Cluster {
+    const message = createBaseCluster();
+    message.name = object.name ?? "";
+    message.namespace = object.namespace ?? "";
+    message.uid = object.uid ?? "";
     return message;
   },
 };
 
-const baseContext: object = { name: "", nodes: "" };
+function createBaseContext(): Context {
+  return { name: "", cluster: undefined, nodes: [] };
+}
 
 export const Context = {
   encode(message: Context, writer: Writer = Writer.create()): Writer {
@@ -174,8 +154,7 @@ export const Context = {
   decode(input: Reader | Uint8Array, length?: number): Context {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseContext } as Context;
-    message.nodes = [];
+    const message = createBaseContext();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -197,24 +176,15 @@ export const Context = {
   },
 
   fromJSON(object: any): Context {
-    const message = { ...baseContext } as Context;
-    message.nodes = [];
-    if (object.name !== undefined && object.name !== null) {
-      message.name = String(object.name);
-    } else {
-      message.name = "";
-    }
-    if (object.cluster !== undefined && object.cluster !== null) {
-      message.cluster = Cluster.fromJSON(object.cluster);
-    } else {
-      message.cluster = undefined;
-    }
-    if (object.nodes !== undefined && object.nodes !== null) {
-      for (const e of object.nodes) {
-        message.nodes.push(String(e));
-      }
-    }
-    return message;
+    return {
+      name: isSet(object.name) ? String(object.name) : "",
+      cluster: isSet(object.cluster)
+        ? Cluster.fromJSON(object.cluster)
+        : undefined,
+      nodes: Array.isArray(object?.nodes)
+        ? object.nodes.map((e: any) => String(e))
+        : [],
+    };
   },
 
   toJSON(message: Context): unknown {
@@ -232,24 +202,14 @@ export const Context = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Context>): Context {
-    const message = { ...baseContext } as Context;
-    message.nodes = [];
-    if (object.name !== undefined && object.name !== null) {
-      message.name = object.name;
-    } else {
-      message.name = "";
-    }
-    if (object.cluster !== undefined && object.cluster !== null) {
-      message.cluster = Cluster.fromPartial(object.cluster);
-    } else {
-      message.cluster = undefined;
-    }
-    if (object.nodes !== undefined && object.nodes !== null) {
-      for (const e of object.nodes) {
-        message.nodes.push(e);
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<Context>, I>>(object: I): Context {
+    const message = createBaseContext();
+    message.name = object.name ?? "";
+    message.cluster =
+      object.cluster !== undefined && object.cluster !== null
+        ? Cluster.fromPartial(object.cluster)
+        : undefined;
+    message.nodes = object.nodes?.map((e) => e) || [];
     return message;
   },
 };
@@ -262,6 +222,7 @@ type Builtin =
   | number
   | boolean
   | undefined;
+
 export type DeepPartial<T> = T extends Builtin
   ? T
   : T extends Array<infer U>
@@ -272,9 +233,21 @@ export type DeepPartial<T> = T extends Builtin
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
+        Exclude<keyof I, KeysOfUnion<P>>,
+        never
+      >;
+
 // If you get a compile-error about 'Constructor<Long> and ... have no overlap',
 // add '--ts_proto_opt=esModuleInterop=true' as a flag when calling 'protoc'.
 if (util.Long !== Long) {
   util.Long = Long as any;
   configure();
+}
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
 }

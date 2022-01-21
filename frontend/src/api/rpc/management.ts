@@ -20,6 +20,12 @@ export interface UpgradeK8sSpec {
   context: Context | undefined;
 }
 
+/** Maps the task spec into task status spec. */
+export interface TaskStateSpec {
+  /** StatusID keeps the id for the current task status. */
+  status_id: string;
+}
+
 export interface TaskStatusSpec {
   /** Upgrade task state. */
   phase: TaskStatusSpec_Phase;
@@ -81,7 +87,9 @@ export interface KubernetesVersionSpec {
   version: string;
 }
 
-const baseUpgradeInfoResponse: object = { from_version: "" };
+function createBaseUpgradeInfoResponse(): UpgradeInfoResponse {
+  return { from_version: "" };
+}
 
 export const UpgradeInfoResponse = {
   encode(
@@ -97,7 +105,7 @@ export const UpgradeInfoResponse = {
   decode(input: Reader | Uint8Array, length?: number): UpgradeInfoResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseUpgradeInfoResponse } as UpgradeInfoResponse;
+    const message = createBaseUpgradeInfoResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -113,13 +121,11 @@ export const UpgradeInfoResponse = {
   },
 
   fromJSON(object: any): UpgradeInfoResponse {
-    const message = { ...baseUpgradeInfoResponse } as UpgradeInfoResponse;
-    if (object.from_version !== undefined && object.from_version !== null) {
-      message.from_version = String(object.from_version);
-    } else {
-      message.from_version = "";
-    }
-    return message;
+    return {
+      from_version: isSet(object.from_version)
+        ? String(object.from_version)
+        : "",
+    };
   },
 
   toJSON(message: UpgradeInfoResponse): unknown {
@@ -129,18 +135,18 @@ export const UpgradeInfoResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<UpgradeInfoResponse>): UpgradeInfoResponse {
-    const message = { ...baseUpgradeInfoResponse } as UpgradeInfoResponse;
-    if (object.from_version !== undefined && object.from_version !== null) {
-      message.from_version = object.from_version;
-    } else {
-      message.from_version = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<UpgradeInfoResponse>, I>>(
+    object: I
+  ): UpgradeInfoResponse {
+    const message = createBaseUpgradeInfoResponse();
+    message.from_version = object.from_version ?? "";
     return message;
   },
 };
 
-const baseUpgradeK8sSpec: object = { from_version: "", to_version: "" };
+function createBaseUpgradeK8sSpec(): UpgradeK8sSpec {
+  return { from_version: "", to_version: "", context: undefined };
+}
 
 export const UpgradeK8sSpec = {
   encode(message: UpgradeK8sSpec, writer: Writer = Writer.create()): Writer {
@@ -159,7 +165,7 @@ export const UpgradeK8sSpec = {
   decode(input: Reader | Uint8Array, length?: number): UpgradeK8sSpec {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseUpgradeK8sSpec } as UpgradeK8sSpec;
+    const message = createBaseUpgradeK8sSpec();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -181,23 +187,15 @@ export const UpgradeK8sSpec = {
   },
 
   fromJSON(object: any): UpgradeK8sSpec {
-    const message = { ...baseUpgradeK8sSpec } as UpgradeK8sSpec;
-    if (object.from_version !== undefined && object.from_version !== null) {
-      message.from_version = String(object.from_version);
-    } else {
-      message.from_version = "";
-    }
-    if (object.to_version !== undefined && object.to_version !== null) {
-      message.to_version = String(object.to_version);
-    } else {
-      message.to_version = "";
-    }
-    if (object.context !== undefined && object.context !== null) {
-      message.context = Context.fromJSON(object.context);
-    } else {
-      message.context = undefined;
-    }
-    return message;
+    return {
+      from_version: isSet(object.from_version)
+        ? String(object.from_version)
+        : "",
+      to_version: isSet(object.to_version) ? String(object.to_version) : "",
+      context: isSet(object.context)
+        ? Context.fromJSON(object.context)
+        : undefined,
+    };
   },
 
   toJSON(message: UpgradeK8sSpec): unknown {
@@ -212,28 +210,74 @@ export const UpgradeK8sSpec = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<UpgradeK8sSpec>): UpgradeK8sSpec {
-    const message = { ...baseUpgradeK8sSpec } as UpgradeK8sSpec;
-    if (object.from_version !== undefined && object.from_version !== null) {
-      message.from_version = object.from_version;
-    } else {
-      message.from_version = "";
-    }
-    if (object.to_version !== undefined && object.to_version !== null) {
-      message.to_version = object.to_version;
-    } else {
-      message.to_version = "";
-    }
-    if (object.context !== undefined && object.context !== null) {
-      message.context = Context.fromPartial(object.context);
-    } else {
-      message.context = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<UpgradeK8sSpec>, I>>(
+    object: I
+  ): UpgradeK8sSpec {
+    const message = createBaseUpgradeK8sSpec();
+    message.from_version = object.from_version ?? "";
+    message.to_version = object.to_version ?? "";
+    message.context =
+      object.context !== undefined && object.context !== null
+        ? Context.fromPartial(object.context)
+        : undefined;
     return message;
   },
 };
 
-const baseTaskStatusSpec: object = { phase: 0, progress: 0, error: "" };
+function createBaseTaskStateSpec(): TaskStateSpec {
+  return { status_id: "" };
+}
+
+export const TaskStateSpec = {
+  encode(message: TaskStateSpec, writer: Writer = Writer.create()): Writer {
+    if (message.status_id !== "") {
+      writer.uint32(34).string(message.status_id);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): TaskStateSpec {
+    const reader = input instanceof Reader ? input : new Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTaskStateSpec();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 4:
+          message.status_id = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): TaskStateSpec {
+    return {
+      status_id: isSet(object.status_id) ? String(object.status_id) : "",
+    };
+  },
+
+  toJSON(message: TaskStateSpec): unknown {
+    const obj: any = {};
+    message.status_id !== undefined && (obj.status_id = message.status_id);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<TaskStateSpec>, I>>(
+    object: I
+  ): TaskStateSpec {
+    const message = createBaseTaskStateSpec();
+    message.status_id = object.status_id ?? "";
+    return message;
+  },
+};
+
+function createBaseTaskStatusSpec(): TaskStatusSpec {
+  return { phase: 0, progress: 0, error: "" };
+}
 
 export const TaskStatusSpec = {
   encode(message: TaskStatusSpec, writer: Writer = Writer.create()): Writer {
@@ -252,7 +296,7 @@ export const TaskStatusSpec = {
   decode(input: Reader | Uint8Array, length?: number): TaskStatusSpec {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseTaskStatusSpec } as TaskStatusSpec;
+    const message = createBaseTaskStatusSpec();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -274,23 +318,13 @@ export const TaskStatusSpec = {
   },
 
   fromJSON(object: any): TaskStatusSpec {
-    const message = { ...baseTaskStatusSpec } as TaskStatusSpec;
-    if (object.phase !== undefined && object.phase !== null) {
-      message.phase = taskStatusSpec_PhaseFromJSON(object.phase);
-    } else {
-      message.phase = 0;
-    }
-    if (object.progress !== undefined && object.progress !== null) {
-      message.progress = Number(object.progress);
-    } else {
-      message.progress = 0;
-    }
-    if (object.error !== undefined && object.error !== null) {
-      message.error = String(object.error);
-    } else {
-      message.error = "";
-    }
-    return message;
+    return {
+      phase: isSet(object.phase)
+        ? taskStatusSpec_PhaseFromJSON(object.phase)
+        : 0,
+      progress: isSet(object.progress) ? Number(object.progress) : 0,
+      error: isSet(object.error) ? String(object.error) : "",
+    };
   },
 
   toJSON(message: TaskStatusSpec): unknown {
@@ -302,28 +336,20 @@ export const TaskStatusSpec = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<TaskStatusSpec>): TaskStatusSpec {
-    const message = { ...baseTaskStatusSpec } as TaskStatusSpec;
-    if (object.phase !== undefined && object.phase !== null) {
-      message.phase = object.phase;
-    } else {
-      message.phase = 0;
-    }
-    if (object.progress !== undefined && object.progress !== null) {
-      message.progress = object.progress;
-    } else {
-      message.progress = 0;
-    }
-    if (object.error !== undefined && object.error !== null) {
-      message.error = object.error;
-    } else {
-      message.error = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<TaskStatusSpec>, I>>(
+    object: I
+  ): TaskStatusSpec {
+    const message = createBaseTaskStatusSpec();
+    message.phase = object.phase ?? 0;
+    message.progress = object.progress ?? 0;
+    message.error = object.error ?? "";
     return message;
   },
 };
 
-const baseTaskLogSpec: object = { line: "" };
+function createBaseTaskLogSpec(): TaskLogSpec {
+  return { line: "" };
+}
 
 export const TaskLogSpec = {
   encode(message: TaskLogSpec, writer: Writer = Writer.create()): Writer {
@@ -336,7 +362,7 @@ export const TaskLogSpec = {
   decode(input: Reader | Uint8Array, length?: number): TaskLogSpec {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseTaskLogSpec } as TaskLogSpec;
+    const message = createBaseTaskLogSpec();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -352,13 +378,9 @@ export const TaskLogSpec = {
   },
 
   fromJSON(object: any): TaskLogSpec {
-    const message = { ...baseTaskLogSpec } as TaskLogSpec;
-    if (object.line !== undefined && object.line !== null) {
-      message.line = String(object.line);
-    } else {
-      message.line = "";
-    }
-    return message;
+    return {
+      line: isSet(object.line) ? String(object.line) : "",
+    };
   },
 
   toJSON(message: TaskLogSpec): unknown {
@@ -367,18 +389,18 @@ export const TaskLogSpec = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<TaskLogSpec>): TaskLogSpec {
-    const message = { ...baseTaskLogSpec } as TaskLogSpec;
-    if (object.line !== undefined && object.line !== null) {
-      message.line = object.line;
-    } else {
-      message.line = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<TaskLogSpec>, I>>(
+    object: I
+  ): TaskLogSpec {
+    const message = createBaseTaskLogSpec();
+    message.line = object.line ?? "";
     return message;
   },
 };
 
-const baseKubernetesVersionSpec: object = { version: "" };
+function createBaseKubernetesVersionSpec(): KubernetesVersionSpec {
+  return { version: "" };
+}
 
 export const KubernetesVersionSpec = {
   encode(
@@ -394,7 +416,7 @@ export const KubernetesVersionSpec = {
   decode(input: Reader | Uint8Array, length?: number): KubernetesVersionSpec {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseKubernetesVersionSpec } as KubernetesVersionSpec;
+    const message = createBaseKubernetesVersionSpec();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -410,13 +432,9 @@ export const KubernetesVersionSpec = {
   },
 
   fromJSON(object: any): KubernetesVersionSpec {
-    const message = { ...baseKubernetesVersionSpec } as KubernetesVersionSpec;
-    if (object.version !== undefined && object.version !== null) {
-      message.version = String(object.version);
-    } else {
-      message.version = "";
-    }
-    return message;
+    return {
+      version: isSet(object.version) ? String(object.version) : "",
+    };
   },
 
   toJSON(message: KubernetesVersionSpec): unknown {
@@ -425,15 +443,11 @@ export const KubernetesVersionSpec = {
     return obj;
   },
 
-  fromPartial(
-    object: DeepPartial<KubernetesVersionSpec>
+  fromPartial<I extends Exact<DeepPartial<KubernetesVersionSpec>, I>>(
+    object: I
   ): KubernetesVersionSpec {
-    const message = { ...baseKubernetesVersionSpec } as KubernetesVersionSpec;
-    if (object.version !== undefined && object.version !== null) {
-      message.version = object.version;
-    } else {
-      message.version = "";
-    }
+    const message = createBaseKubernetesVersionSpec();
+    message.version = object.version ?? "";
     return message;
   },
 };
@@ -450,6 +464,7 @@ type Builtin =
   | number
   | boolean
   | undefined;
+
 export type DeepPartial<T> = T extends Builtin
   ? T
   : T extends Array<infer U>
@@ -460,9 +475,21 @@ export type DeepPartial<T> = T extends Builtin
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
+        Exclude<keyof I, KeysOfUnion<P>>,
+        never
+      >;
+
 // If you get a compile-error about 'Constructor<Long> and ... have no overlap',
 // add '--ts_proto_opt=esModuleInterop=true' as a flag when calling 'protoc'.
 if (util.Long !== Long) {
   util.Long = Long as any;
   configure();
+}
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
 }

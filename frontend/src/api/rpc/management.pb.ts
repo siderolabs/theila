@@ -22,6 +22,10 @@ export type UpgradeK8sSpec = {
   context?: CommonTheila.Context
 }
 
+export type TaskStateSpec = {
+  statusId?: string
+}
+
 export type TaskStatusSpec = {
   phase?: TaskStatusSpecPhase
   progress?: number

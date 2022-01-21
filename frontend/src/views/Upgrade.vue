@@ -57,7 +57,7 @@ import TSpinner from '../components/TSpinner.vue';
 import LogView from '../components/LogView.vue';
 import Watch from '../api/watch';
 import { MenuItem } from '@headlessui/vue';
-import { ref, onMounted, onUnmounted, computed, Ref } from 'vue';
+import { ref, onMounted, onUnmounted, computed, Ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ResourceService, ManagementService, ContextService } from '../api/grpc';
 import { Runtime } from '../api/common/theila.pb';
@@ -81,7 +81,7 @@ export default {
   setup() {
     const router = useRouter();
     const logs:Ref<string[]> = ref([]);
-    const statuses:Ref<Object[]> = ref([]);
+    const statuses:Ref<any[]> = ref([]);
     const versions:Ref<Object[]> = ref([]);
 
     const fromVersion:Ref<string> = ref("");
@@ -97,6 +97,10 @@ export default {
 
     const ctx = getContext();
     const contextName = ctx.name;
+
+    const lastTask = computed(() => {
+      return statuses.value?.length > 0 ? statuses.value[0] : 0;
+    })
 
     const handleStatusChange = (message, spec) => {
       if(message.kind != Kind.EventItemUpdate)
@@ -129,6 +133,19 @@ export default {
 
     const versionsWatch = new Watch(context.api, versions);
 
+    watch(lastTask, async (value) => {
+      if (value) {
+        await logsWatch.start(Runtime.Theila, {
+          id: value.metadata.id,
+          type: TaskLogType,
+          namespace: upgradeID.value,
+          tail_events: 100,
+        }, ctx);
+      } else {
+        await logsWatch.stop();
+      }
+    })
+
     onMounted(async () => {
       try {
         const response = await ContextService.List();
@@ -136,17 +153,17 @@ export default {
         upgradeID.value = `${ctx.cluster ? ctx.cluster.uid : null || contextName || response.currentContext}-upgrade-k8s`;
 
         await statusWatch.start(Runtime.Theila, {
-          id: upgradeID.value,
           type: TaskStatusType,
-          namespace: DefaultNamespace,
-        }, ctx);
+          namespace: upgradeID.value,
+        }, ctx, (a, b) => {
+          if (a["metadata"]["created"] === b["metadata"]["created"]) {
+            return 0;
+          } else if (a["metadata"]["created"] < b["metadata"]["created"]) {
+            return 1;
+          }
 
-        await logsWatch.start(Runtime.Theila, {
-          id: upgradeID.value,
-          type: TaskLogType,
-          namespace: DefaultNamespace,
-          tail_events: 100,
-        }, ctx);
+          return -1;
+        });
 
         const upgradeInfo = await ManagementService.UpgradeInfo({}, {
           context: ctx,
@@ -168,7 +185,9 @@ export default {
 
     onUnmounted(async () => {
       await statusWatch.stop();
-      await logsWatch.stop();
+      if (logsWatch.running.value) {
+        await logsWatch.stop();
+      }
       await versionsWatch.stop();
     });
 

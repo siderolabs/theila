@@ -9,8 +9,10 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
+	"github.com/talos-systems/go-retry/retry"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -187,6 +189,28 @@ func (k *Proxy) GetResourceNames(groupVersion, kind string, options []client.Lis
 	}
 
 	return comps, nil
+}
+
+// CheckClusterAvailable implements proxy interface.
+func (k *Proxy) CheckClusterAvailable() error {
+	// Check if the cluster is available by creating a client to the cluster.
+	// If creating the client times out and never established we assume that
+	// the cluster does not exist or is not reachable.
+	// For the purposes of clusterctl operations non-existent clusters and
+	// non-reachable clusters can be treated as the same.
+	config, err := k.GetConfig()
+	if err != nil {
+		return err
+	}
+
+	return retry.Exponential(time.Minute*10, retry.WithUnits(time.Millisecond*250)).Retry(func() error {
+		_, err := client.New(config, client.Options{Scheme: Scheme})
+		if err != nil {
+			return retry.ExpectedError(err)
+		}
+
+		return nil
+	})
 }
 
 func (k *Proxy) newClientSet() (*kubernetes.Clientset, error) {

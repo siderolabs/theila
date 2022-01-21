@@ -9,6 +9,18 @@ import * as GoogleProtobufDuration from "../../google/protobuf/duration.pb"
 import * as GoogleProtobufEmpty from "../../google/protobuf/empty.pb"
 import * as GoogleProtobufTimestamp from "../../google/protobuf/timestamp.pb"
 
+export enum ApplyConfigurationRequestMode {
+  REBOOT = "REBOOT",
+  AUTO = "AUTO",
+  NO_REBOOT = "NO_REBOOT",
+  STAGED = "STAGED",
+}
+
+export enum RebootRequestMode {
+  DEFAULT = "DEFAULT",
+  POWERCYCLE = "POWERCYCLE",
+}
+
 export enum SequenceEventAction {
   NOOP = "NOOP",
   START = "START",
@@ -47,22 +59,28 @@ export enum MachineConfigMachineType {
   TYPE_INIT = "TYPE_INIT",
   TYPE_CONTROL_PLANE = "TYPE_CONTROL_PLANE",
   TYPE_WORKER = "TYPE_WORKER",
-  TYPE_JOIN = "TYPE_JOIN",
 }
 
 export type ApplyConfigurationRequest = {
   data?: Uint8Array
   onReboot?: boolean
   immediate?: boolean
+  mode?: ApplyConfigurationRequestMode
 }
 
 export type ApplyConfiguration = {
   metadata?: CommonCommon.Metadata
   warnings?: string[]
+  mode?: ApplyConfigurationRequestMode
+  modeDetails?: string
 }
 
 export type ApplyConfigurationResponse = {
   messages?: ApplyConfiguration[]
+}
+
+export type RebootRequest = {
+  mode?: RebootRequestMode
 }
 
 export type Reboot = {
@@ -111,6 +129,19 @@ export type ServiceStateEvent = {
 
 export type RestartEvent = {
   cmd?: string
+}
+
+export type ConfigLoadErrorEvent = {
+  error?: string
+}
+
+export type ConfigValidationErrorEvent = {
+  error?: string
+}
+
+export type AddressEvent = {
+  hostname?: string
+  addresses?: string[]
 }
 
 export type EventsRequest = {
@@ -240,22 +271,6 @@ export type ServiceRestartResponse = {
   messages?: ServiceRestart[]
 }
 
-export type StartRequest = {
-  id?: string
-}
-
-export type StartResponse = {
-  resp?: string
-}
-
-export type StopRequest = {
-  id?: string
-}
-
-export type StopResponse = {
-  resp?: string
-}
-
 export type CopyRequest = {
   rootPath?: string
 }
@@ -284,6 +299,8 @@ export type FileInfo = {
   error?: string
   link?: string
   relativeName?: string
+  uid?: number
+  gid?: number
 }
 
 export type DiskUsageInfo = {
@@ -716,6 +733,7 @@ export type EtcdMember = {
   hostname?: string
   peerUrls?: string[]
   clientUrls?: string[]
+  isLearner?: boolean
 }
 
 export type EtcdMembers = {
@@ -814,14 +832,6 @@ export type GenerateConfigurationResponse = {
   messages?: GenerateConfiguration[]
 }
 
-export type RemoveBootkubeInitializedKey = {
-  metadata?: CommonCommon.Metadata
-}
-
-export type RemoveBootkubeInitializedKeyResponse = {
-  messages?: RemoveBootkubeInitializedKey[]
-}
-
 export type GenerateClientConfigurationRequest = {
   roles?: string[]
   crtTtl?: GoogleProtobufDuration.Duration
@@ -915,8 +925,8 @@ export class MachineService {
   static Read(req: ReadRequest, entityNotifier?: fm.NotifyStreamEntityArrival<CommonCommon.Data>, initReq?: fm.InitReq): Promise<void> {
     return fm.fetchStreamingRequest<ReadRequest, CommonCommon.Data>(`/machine.MachineService/Read`, entityNotifier, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
-  static Reboot(req: GoogleProtobufEmpty.Empty, initReq?: fm.InitReq): Promise<RebootResponse> {
-    return fm.fetchReq<GoogleProtobufEmpty.Empty, RebootResponse>(`/machine.MachineService/Reboot`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  static Reboot(req: RebootRequest, initReq?: fm.InitReq): Promise<RebootResponse> {
+    return fm.fetchReq<RebootRequest, RebootResponse>(`/machine.MachineService/Reboot`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static Restart(req: RestartRequest, initReq?: fm.InitReq): Promise<RestartResponse> {
     return fm.fetchReq<RestartRequest, RestartResponse>(`/machine.MachineService/Restart`, {...initReq, method: "POST", body: JSON.stringify(req)})
@@ -926,9 +936,6 @@ export class MachineService {
   }
   static Reset(req: ResetRequest, initReq?: fm.InitReq): Promise<ResetResponse> {
     return fm.fetchReq<ResetRequest, ResetResponse>(`/machine.MachineService/Reset`, {...initReq, method: "POST", body: JSON.stringify(req)})
-  }
-  static RemoveBootkubeInitializedKey(req: GoogleProtobufEmpty.Empty, initReq?: fm.InitReq): Promise<RemoveBootkubeInitializedKeyResponse> {
-    return fm.fetchReq<GoogleProtobufEmpty.Empty, RemoveBootkubeInitializedKeyResponse>(`/machine.MachineService/RemoveBootkubeInitializedKey`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ServiceList(req: GoogleProtobufEmpty.Empty, initReq?: fm.InitReq): Promise<ServiceListResponse> {
     return fm.fetchReq<GoogleProtobufEmpty.Empty, ServiceListResponse>(`/machine.MachineService/ServiceList`, {...initReq, method: "POST", body: JSON.stringify(req)})

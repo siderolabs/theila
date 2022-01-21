@@ -30,7 +30,9 @@ export interface Status {
   details: Any[];
 }
 
-const baseStatus: object = { code: 0, message: "" };
+function createBaseStatus(): Status {
+  return { code: 0, message: "", details: [] };
+}
 
 export const Status = {
   encode(message: Status, writer: Writer = Writer.create()): Writer {
@@ -49,8 +51,7 @@ export const Status = {
   decode(input: Reader | Uint8Array, length?: number): Status {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseStatus } as Status;
-    message.details = [];
+    const message = createBaseStatus();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -72,29 +73,18 @@ export const Status = {
   },
 
   fromJSON(object: any): Status {
-    const message = { ...baseStatus } as Status;
-    message.details = [];
-    if (object.code !== undefined && object.code !== null) {
-      message.code = Number(object.code);
-    } else {
-      message.code = 0;
-    }
-    if (object.message !== undefined && object.message !== null) {
-      message.message = String(object.message);
-    } else {
-      message.message = "";
-    }
-    if (object.details !== undefined && object.details !== null) {
-      for (const e of object.details) {
-        message.details.push(Any.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      code: isSet(object.code) ? Number(object.code) : 0,
+      message: isSet(object.message) ? String(object.message) : "",
+      details: Array.isArray(object?.details)
+        ? object.details.map((e: any) => Any.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: Status): unknown {
     const obj: any = {};
-    message.code !== undefined && (obj.code = message.code);
+    message.code !== undefined && (obj.code = Math.round(message.code));
     message.message !== undefined && (obj.message = message.message);
     if (message.details) {
       obj.details = message.details.map((e) => (e ? Any.toJSON(e) : undefined));
@@ -104,24 +94,11 @@ export const Status = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Status>): Status {
-    const message = { ...baseStatus } as Status;
-    message.details = [];
-    if (object.code !== undefined && object.code !== null) {
-      message.code = object.code;
-    } else {
-      message.code = 0;
-    }
-    if (object.message !== undefined && object.message !== null) {
-      message.message = object.message;
-    } else {
-      message.message = "";
-    }
-    if (object.details !== undefined && object.details !== null) {
-      for (const e of object.details) {
-        message.details.push(Any.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<Status>, I>>(object: I): Status {
+    const message = createBaseStatus();
+    message.code = object.code ?? 0;
+    message.message = object.message ?? "";
+    message.details = object.details?.map((e) => Any.fromPartial(e)) || [];
     return message;
   },
 };
@@ -134,6 +111,7 @@ type Builtin =
   | number
   | boolean
   | undefined;
+
 export type DeepPartial<T> = T extends Builtin
   ? T
   : T extends Array<infer U>
@@ -144,9 +122,21 @@ export type DeepPartial<T> = T extends Builtin
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
+        Exclude<keyof I, KeysOfUnion<P>>,
+        never
+      >;
+
 // If you get a compile-error about 'Constructor<Long> and ... have no overlap',
 // add '--ts_proto_opt=esModuleInterop=true' as a flag when calling 'protoc'.
 if (util.Long !== Long) {
   util.Long = Long as any;
   configure();
+}
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
 }

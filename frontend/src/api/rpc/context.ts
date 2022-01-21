@@ -20,7 +20,9 @@ export interface ListContextsResponse {
   contexts: Context[];
 }
 
-const baseContext: object = { name: "", cluster: "" };
+function createBaseContext(): Context {
+  return { name: "", cluster: "" };
+}
 
 export const Context = {
   encode(message: Context, writer: Writer = Writer.create()): Writer {
@@ -36,7 +38,7 @@ export const Context = {
   decode(input: Reader | Uint8Array, length?: number): Context {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseContext } as Context;
+    const message = createBaseContext();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -55,18 +57,10 @@ export const Context = {
   },
 
   fromJSON(object: any): Context {
-    const message = { ...baseContext } as Context;
-    if (object.name !== undefined && object.name !== null) {
-      message.name = String(object.name);
-    } else {
-      message.name = "";
-    }
-    if (object.cluster !== undefined && object.cluster !== null) {
-      message.cluster = String(object.cluster);
-    } else {
-      message.cluster = "";
-    }
-    return message;
+    return {
+      name: isSet(object.name) ? String(object.name) : "",
+      cluster: isSet(object.cluster) ? String(object.cluster) : "",
+    };
   },
 
   toJSON(message: Context): unknown {
@@ -76,23 +70,17 @@ export const Context = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Context>): Context {
-    const message = { ...baseContext } as Context;
-    if (object.name !== undefined && object.name !== null) {
-      message.name = object.name;
-    } else {
-      message.name = "";
-    }
-    if (object.cluster !== undefined && object.cluster !== null) {
-      message.cluster = object.cluster;
-    } else {
-      message.cluster = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<Context>, I>>(object: I): Context {
+    const message = createBaseContext();
+    message.name = object.name ?? "";
+    message.cluster = object.cluster ?? "";
     return message;
   },
 };
 
-const baseListContextsRequest: object = {};
+function createBaseListContextsRequest(): ListContextsRequest {
+  return {};
+}
 
 export const ListContextsRequest = {
   encode(_: ListContextsRequest, writer: Writer = Writer.create()): Writer {
@@ -102,7 +90,7 @@ export const ListContextsRequest = {
   decode(input: Reader | Uint8Array, length?: number): ListContextsRequest {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseListContextsRequest } as ListContextsRequest;
+    const message = createBaseListContextsRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -115,8 +103,7 @@ export const ListContextsRequest = {
   },
 
   fromJSON(_: any): ListContextsRequest {
-    const message = { ...baseListContextsRequest } as ListContextsRequest;
-    return message;
+    return {};
   },
 
   toJSON(_: ListContextsRequest): unknown {
@@ -124,13 +111,17 @@ export const ListContextsRequest = {
     return obj;
   },
 
-  fromPartial(_: DeepPartial<ListContextsRequest>): ListContextsRequest {
-    const message = { ...baseListContextsRequest } as ListContextsRequest;
+  fromPartial<I extends Exact<DeepPartial<ListContextsRequest>, I>>(
+    _: I
+  ): ListContextsRequest {
+    const message = createBaseListContextsRequest();
     return message;
   },
 };
 
-const baseListContextsResponse: object = { current: "" };
+function createBaseListContextsResponse(): ListContextsResponse {
+  return { current: "", contexts: [] };
+}
 
 export const ListContextsResponse = {
   encode(
@@ -149,8 +140,7 @@ export const ListContextsResponse = {
   decode(input: Reader | Uint8Array, length?: number): ListContextsResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseListContextsResponse } as ListContextsResponse;
-    message.contexts = [];
+    const message = createBaseListContextsResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -169,19 +159,12 @@ export const ListContextsResponse = {
   },
 
   fromJSON(object: any): ListContextsResponse {
-    const message = { ...baseListContextsResponse } as ListContextsResponse;
-    message.contexts = [];
-    if (object.current !== undefined && object.current !== null) {
-      message.current = String(object.current);
-    } else {
-      message.current = "";
-    }
-    if (object.contexts !== undefined && object.contexts !== null) {
-      for (const e of object.contexts) {
-        message.contexts.push(Context.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      current: isSet(object.current) ? String(object.current) : "",
+      contexts: Array.isArray(object?.contexts)
+        ? object.contexts.map((e: any) => Context.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: ListContextsResponse): unknown {
@@ -197,19 +180,13 @@ export const ListContextsResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ListContextsResponse>): ListContextsResponse {
-    const message = { ...baseListContextsResponse } as ListContextsResponse;
-    message.contexts = [];
-    if (object.current !== undefined && object.current !== null) {
-      message.current = object.current;
-    } else {
-      message.current = "";
-    }
-    if (object.contexts !== undefined && object.contexts !== null) {
-      for (const e of object.contexts) {
-        message.contexts.push(Context.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<ListContextsResponse>, I>>(
+    object: I
+  ): ListContextsResponse {
+    const message = createBaseListContextsResponse();
+    message.current = object.current ?? "";
+    message.contexts =
+      object.contexts?.map((e) => Context.fromPartial(e)) || [];
     return message;
   },
 };
@@ -227,6 +204,7 @@ type Builtin =
   | number
   | boolean
   | undefined;
+
 export type DeepPartial<T> = T extends Builtin
   ? T
   : T extends Array<infer U>
@@ -237,9 +215,21 @@ export type DeepPartial<T> = T extends Builtin
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
+        Exclude<keyof I, KeysOfUnion<P>>,
+        never
+      >;
+
 // If you get a compile-error about 'Constructor<Long> and ... have no overlap',
 // add '--ts_proto_opt=esModuleInterop=true' as a flag when calling 'protoc'.
 if (util.Long !== Long) {
   util.Long = Long as any;
   configure();
+}
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
 }

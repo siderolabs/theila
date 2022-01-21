@@ -17,6 +17,7 @@ import (
 	"github.com/talos-systems/grpc-proxy/proxy"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/talos-systems/theila/api/talos/machine"
 	"github.com/talos-systems/theila/internal/backend/grpc/router"
@@ -65,7 +66,7 @@ func New(ctx context.Context, mux *http.ServeMux) (*Server, error) {
 	conn, err := grpc.DialContext(
 		ctx,
 		"dns:///"+addr,
-		grpc.WithInsecure(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithCodec(proxy.Codec()), //nolint: staticcheck
 	)
 	if err != nil {
@@ -99,7 +100,9 @@ func New(ctx context.Context, mux *http.ServeMux) (*Server, error) {
 	runtimeMux := gateway.NewServeMux(
 		gateway.WithMarshalerOption(gateway.MIMEWildcard, marshaller),
 	)
-	opts := []grpc.DialOption{grpc.WithInsecure()}
+	opts := []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	}
 
 	for _, srv := range servers {
 		err = srv.gateway(ctx, runtimeMux, addr, opts)

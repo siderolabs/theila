@@ -9,7 +9,7 @@ import {
 } from "../common/theila";
 import { WatchRequest } from "../talos/resource/resource";
 
-export const protobufPackage = "";
+export const protobufPackage = "socket";
 
 /** Message kinds. */
 export enum Kind {
@@ -144,7 +144,9 @@ export interface ItemUpdateSpec {
   new: Uint8Array;
 }
 
-const baseMetadata: object = { uid: "" };
+function createBaseMetadata(): Metadata {
+  return { uid: "" };
+}
 
 export const Metadata = {
   encode(message: Metadata, writer: Writer = Writer.create()): Writer {
@@ -157,7 +159,7 @@ export const Metadata = {
   decode(input: Reader | Uint8Array, length?: number): Metadata {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMetadata } as Metadata;
+    const message = createBaseMetadata();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -173,13 +175,9 @@ export const Metadata = {
   },
 
   fromJSON(object: any): Metadata {
-    const message = { ...baseMetadata } as Metadata;
-    if (object.uid !== undefined && object.uid !== null) {
-      message.uid = String(object.uid);
-    } else {
-      message.uid = "";
-    }
-    return message;
+    return {
+      uid: isSet(object.uid) ? String(object.uid) : "",
+    };
   },
 
   toJSON(message: Metadata): unknown {
@@ -188,18 +186,16 @@ export const Metadata = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Metadata>): Metadata {
-    const message = { ...baseMetadata } as Metadata;
-    if (object.uid !== undefined && object.uid !== null) {
-      message.uid = object.uid;
-    } else {
-      message.uid = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<Metadata>, I>>(object: I): Metadata {
+    const message = createBaseMetadata();
+    message.uid = object.uid ?? "";
     return message;
   },
 };
 
-const baseMessage: object = { kind: 0, spec: "" };
+function createBaseMessage(): Message {
+  return { kind: 0, metadata: undefined, spec: "" };
+}
 
 export const Message = {
   encode(message: Message, writer: Writer = Writer.create()): Writer {
@@ -218,7 +214,7 @@ export const Message = {
   decode(input: Reader | Uint8Array, length?: number): Message {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMessage } as Message;
+    const message = createBaseMessage();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -240,23 +236,13 @@ export const Message = {
   },
 
   fromJSON(object: any): Message {
-    const message = { ...baseMessage } as Message;
-    if (object.kind !== undefined && object.kind !== null) {
-      message.kind = kindFromJSON(object.kind);
-    } else {
-      message.kind = 0;
-    }
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.spec !== undefined && object.spec !== null) {
-      message.spec = String(object.spec);
-    } else {
-      message.spec = "";
-    }
-    return message;
+    return {
+      kind: isSet(object.kind) ? kindFromJSON(object.kind) : 0,
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      spec: isSet(object.spec) ? String(object.spec) : "",
+    };
   },
 
   toJSON(message: Message): unknown {
@@ -270,28 +256,21 @@ export const Message = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Message>): Message {
-    const message = { ...baseMessage } as Message;
-    if (object.kind !== undefined && object.kind !== null) {
-      message.kind = object.kind;
-    } else {
-      message.kind = 0;
-    }
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.spec !== undefined && object.spec !== null) {
-      message.spec = object.spec;
-    } else {
-      message.spec = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<Message>, I>>(object: I): Message {
+    const message = createBaseMessage();
+    message.kind = object.kind ?? 0;
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.spec = object.spec ?? "";
     return message;
   },
 };
 
-const baseWatchSpec: object = { source: 0, selector: "" };
+function createBaseWatchSpec(): WatchSpec {
+  return { resource: undefined, source: 0, context: undefined, selector: "" };
+}
 
 export const WatchSpec = {
   encode(message: WatchSpec, writer: Writer = Writer.create()): Writer {
@@ -313,7 +292,7 @@ export const WatchSpec = {
   decode(input: Reader | Uint8Array, length?: number): WatchSpec {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseWatchSpec } as WatchSpec;
+    const message = createBaseWatchSpec();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -338,28 +317,16 @@ export const WatchSpec = {
   },
 
   fromJSON(object: any): WatchSpec {
-    const message = { ...baseWatchSpec } as WatchSpec;
-    if (object.resource !== undefined && object.resource !== null) {
-      message.resource = WatchRequest.fromJSON(object.resource);
-    } else {
-      message.resource = undefined;
-    }
-    if (object.source !== undefined && object.source !== null) {
-      message.source = runtimeFromJSON(object.source);
-    } else {
-      message.source = 0;
-    }
-    if (object.context !== undefined && object.context !== null) {
-      message.context = Context.fromJSON(object.context);
-    } else {
-      message.context = undefined;
-    }
-    if (object.selector !== undefined && object.selector !== null) {
-      message.selector = String(object.selector);
-    } else {
-      message.selector = "";
-    }
-    return message;
+    return {
+      resource: isSet(object.resource)
+        ? WatchRequest.fromJSON(object.resource)
+        : undefined,
+      source: isSet(object.source) ? runtimeFromJSON(object.source) : 0,
+      context: isSet(object.context)
+        ? Context.fromJSON(object.context)
+        : undefined,
+      selector: isSet(object.selector) ? String(object.selector) : "",
+    };
   },
 
   toJSON(message: WatchSpec): unknown {
@@ -378,33 +345,27 @@ export const WatchSpec = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<WatchSpec>): WatchSpec {
-    const message = { ...baseWatchSpec } as WatchSpec;
-    if (object.resource !== undefined && object.resource !== null) {
-      message.resource = WatchRequest.fromPartial(object.resource);
-    } else {
-      message.resource = undefined;
-    }
-    if (object.source !== undefined && object.source !== null) {
-      message.source = object.source;
-    } else {
-      message.source = 0;
-    }
-    if (object.context !== undefined && object.context !== null) {
-      message.context = Context.fromPartial(object.context);
-    } else {
-      message.context = undefined;
-    }
-    if (object.selector !== undefined && object.selector !== null) {
-      message.selector = object.selector;
-    } else {
-      message.selector = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<WatchSpec>, I>>(
+    object: I
+  ): WatchSpec {
+    const message = createBaseWatchSpec();
+    message.resource =
+      object.resource !== undefined && object.resource !== null
+        ? WatchRequest.fromPartial(object.resource)
+        : undefined;
+    message.source = object.source ?? 0;
+    message.context =
+      object.context !== undefined && object.context !== null
+        ? Context.fromPartial(object.context)
+        : undefined;
+    message.selector = object.selector ?? "";
     return message;
   },
 };
 
-const baseSubscribedSpec: object = { uid: "" };
+function createBaseSubscribedSpec(): SubscribedSpec {
+  return { uid: "" };
+}
 
 export const SubscribedSpec = {
   encode(message: SubscribedSpec, writer: Writer = Writer.create()): Writer {
@@ -417,7 +378,7 @@ export const SubscribedSpec = {
   decode(input: Reader | Uint8Array, length?: number): SubscribedSpec {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseSubscribedSpec } as SubscribedSpec;
+    const message = createBaseSubscribedSpec();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -433,13 +394,9 @@ export const SubscribedSpec = {
   },
 
   fromJSON(object: any): SubscribedSpec {
-    const message = { ...baseSubscribedSpec } as SubscribedSpec;
-    if (object.uid !== undefined && object.uid !== null) {
-      message.uid = String(object.uid);
-    } else {
-      message.uid = "";
-    }
-    return message;
+    return {
+      uid: isSet(object.uid) ? String(object.uid) : "",
+    };
   },
 
   toJSON(message: SubscribedSpec): unknown {
@@ -448,18 +405,18 @@ export const SubscribedSpec = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<SubscribedSpec>): SubscribedSpec {
-    const message = { ...baseSubscribedSpec } as SubscribedSpec;
-    if (object.uid !== undefined && object.uid !== null) {
-      message.uid = object.uid;
-    } else {
-      message.uid = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<SubscribedSpec>, I>>(
+    object: I
+  ): SubscribedSpec {
+    const message = createBaseSubscribedSpec();
+    message.uid = object.uid ?? "";
     return message;
   },
 };
 
-const baseUnsubscribeSpec: object = { uid: "" };
+function createBaseUnsubscribeSpec(): UnsubscribeSpec {
+  return { uid: "" };
+}
 
 export const UnsubscribeSpec = {
   encode(message: UnsubscribeSpec, writer: Writer = Writer.create()): Writer {
@@ -472,7 +429,7 @@ export const UnsubscribeSpec = {
   decode(input: Reader | Uint8Array, length?: number): UnsubscribeSpec {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseUnsubscribeSpec } as UnsubscribeSpec;
+    const message = createBaseUnsubscribeSpec();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -488,13 +445,9 @@ export const UnsubscribeSpec = {
   },
 
   fromJSON(object: any): UnsubscribeSpec {
-    const message = { ...baseUnsubscribeSpec } as UnsubscribeSpec;
-    if (object.uid !== undefined && object.uid !== null) {
-      message.uid = String(object.uid);
-    } else {
-      message.uid = "";
-    }
-    return message;
+    return {
+      uid: isSet(object.uid) ? String(object.uid) : "",
+    };
   },
 
   toJSON(message: UnsubscribeSpec): unknown {
@@ -503,18 +456,18 @@ export const UnsubscribeSpec = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<UnsubscribeSpec>): UnsubscribeSpec {
-    const message = { ...baseUnsubscribeSpec } as UnsubscribeSpec;
-    if (object.uid !== undefined && object.uid !== null) {
-      message.uid = object.uid;
-    } else {
-      message.uid = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<UnsubscribeSpec>, I>>(
+    object: I
+  ): UnsubscribeSpec {
+    const message = createBaseUnsubscribeSpec();
+    message.uid = object.uid ?? "";
     return message;
   },
 };
 
-const baseErrorSpec: object = { error: "" };
+function createBaseErrorSpec(): ErrorSpec {
+  return { error: "" };
+}
 
 export const ErrorSpec = {
   encode(message: ErrorSpec, writer: Writer = Writer.create()): Writer {
@@ -527,7 +480,7 @@ export const ErrorSpec = {
   decode(input: Reader | Uint8Array, length?: number): ErrorSpec {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseErrorSpec } as ErrorSpec;
+    const message = createBaseErrorSpec();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -543,13 +496,9 @@ export const ErrorSpec = {
   },
 
   fromJSON(object: any): ErrorSpec {
-    const message = { ...baseErrorSpec } as ErrorSpec;
-    if (object.error !== undefined && object.error !== null) {
-      message.error = String(object.error);
-    } else {
-      message.error = "";
-    }
-    return message;
+    return {
+      error: isSet(object.error) ? String(object.error) : "",
+    };
   },
 
   toJSON(message: ErrorSpec): unknown {
@@ -558,18 +507,18 @@ export const ErrorSpec = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ErrorSpec>): ErrorSpec {
-    const message = { ...baseErrorSpec } as ErrorSpec;
-    if (object.error !== undefined && object.error !== null) {
-      message.error = object.error;
-    } else {
-      message.error = "";
-    }
+  fromPartial<I extends Exact<DeepPartial<ErrorSpec>, I>>(
+    object: I
+  ): ErrorSpec {
+    const message = createBaseErrorSpec();
+    message.error = object.error ?? "";
     return message;
   },
 };
 
-const baseItemUpdateSpec: object = {};
+function createBaseItemUpdateSpec(): ItemUpdateSpec {
+  return { old: new Uint8Array(), new: new Uint8Array() };
+}
 
 export const ItemUpdateSpec = {
   encode(message: ItemUpdateSpec, writer: Writer = Writer.create()): Writer {
@@ -585,9 +534,7 @@ export const ItemUpdateSpec = {
   decode(input: Reader | Uint8Array, length?: number): ItemUpdateSpec {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseItemUpdateSpec } as ItemUpdateSpec;
-    message.old = new Uint8Array();
-    message.new = new Uint8Array();
+    const message = createBaseItemUpdateSpec();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -606,16 +553,10 @@ export const ItemUpdateSpec = {
   },
 
   fromJSON(object: any): ItemUpdateSpec {
-    const message = { ...baseItemUpdateSpec } as ItemUpdateSpec;
-    message.old = new Uint8Array();
-    message.new = new Uint8Array();
-    if (object.old !== undefined && object.old !== null) {
-      message.old = bytesFromBase64(object.old);
-    }
-    if (object.new !== undefined && object.new !== null) {
-      message.new = bytesFromBase64(object.new);
-    }
-    return message;
+    return {
+      old: isSet(object.old) ? bytesFromBase64(object.old) : new Uint8Array(),
+      new: isSet(object.new) ? bytesFromBase64(object.new) : new Uint8Array(),
+    };
   },
 
   toJSON(message: ItemUpdateSpec): unknown {
@@ -631,24 +572,19 @@ export const ItemUpdateSpec = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<ItemUpdateSpec>): ItemUpdateSpec {
-    const message = { ...baseItemUpdateSpec } as ItemUpdateSpec;
-    if (object.old !== undefined && object.old !== null) {
-      message.old = object.old;
-    } else {
-      message.old = new Uint8Array();
-    }
-    if (object.new !== undefined && object.new !== null) {
-      message.new = object.new;
-    } else {
-      message.new = new Uint8Array();
-    }
+  fromPartial<I extends Exact<DeepPartial<ItemUpdateSpec>, I>>(
+    object: I
+  ): ItemUpdateSpec {
+    const message = createBaseItemUpdateSpec();
+    message.old = object.old ?? new Uint8Array();
+    message.new = object.new ?? new Uint8Array();
     return message;
   },
 };
 
 declare var self: any | undefined;
 declare var window: any | undefined;
+declare var global: any | undefined;
 var globalThis: any = (() => {
   if (typeof globalThis !== "undefined") return globalThis;
   if (typeof self !== "undefined") return self;
@@ -688,6 +624,7 @@ type Builtin =
   | number
   | boolean
   | undefined;
+
 export type DeepPartial<T> = T extends Builtin
   ? T
   : T extends Array<infer U>
@@ -698,9 +635,21 @@ export type DeepPartial<T> = T extends Builtin
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
+        Exclude<keyof I, KeysOfUnion<P>>,
+        never
+      >;
+
 // If you get a compile-error about 'Constructor<Long> and ... have no overlap',
 // add '--ts_proto_opt=esModuleInterop=true' as a flag when calling 'protoc'.
 if (util.Long !== Long) {
   util.Long = Long as any;
   configure();
+}
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
 }

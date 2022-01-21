@@ -82,7 +82,9 @@ export interface Duration {
   nanos: number;
 }
 
-const baseDuration: object = { seconds: 0, nanos: 0 };
+function createBaseDuration(): Duration {
+  return { seconds: 0, nanos: 0 };
+}
 
 export const Duration = {
   encode(message: Duration, writer: Writer = Writer.create()): Writer {
@@ -98,7 +100,7 @@ export const Duration = {
   decode(input: Reader | Uint8Array, length?: number): Duration {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseDuration } as Duration;
+    const message = createBaseDuration();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -117,45 +119,31 @@ export const Duration = {
   },
 
   fromJSON(object: any): Duration {
-    const message = { ...baseDuration } as Duration;
-    if (object.seconds !== undefined && object.seconds !== null) {
-      message.seconds = Number(object.seconds);
-    } else {
-      message.seconds = 0;
-    }
-    if (object.nanos !== undefined && object.nanos !== null) {
-      message.nanos = Number(object.nanos);
-    } else {
-      message.nanos = 0;
-    }
-    return message;
+    return {
+      seconds: isSet(object.seconds) ? Number(object.seconds) : 0,
+      nanos: isSet(object.nanos) ? Number(object.nanos) : 0,
+    };
   },
 
   toJSON(message: Duration): unknown {
     const obj: any = {};
-    message.seconds !== undefined && (obj.seconds = message.seconds);
-    message.nanos !== undefined && (obj.nanos = message.nanos);
+    message.seconds !== undefined &&
+      (obj.seconds = Math.round(message.seconds));
+    message.nanos !== undefined && (obj.nanos = Math.round(message.nanos));
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Duration>): Duration {
-    const message = { ...baseDuration } as Duration;
-    if (object.seconds !== undefined && object.seconds !== null) {
-      message.seconds = object.seconds;
-    } else {
-      message.seconds = 0;
-    }
-    if (object.nanos !== undefined && object.nanos !== null) {
-      message.nanos = object.nanos;
-    } else {
-      message.nanos = 0;
-    }
+  fromPartial<I extends Exact<DeepPartial<Duration>, I>>(object: I): Duration {
+    const message = createBaseDuration();
+    message.seconds = object.seconds ?? 0;
+    message.nanos = object.nanos ?? 0;
     return message;
   },
 };
 
 declare var self: any | undefined;
 declare var window: any | undefined;
+declare var global: any | undefined;
 var globalThis: any = (() => {
   if (typeof globalThis !== "undefined") return globalThis;
   if (typeof self !== "undefined") return self;
@@ -172,6 +160,7 @@ type Builtin =
   | number
   | boolean
   | undefined;
+
 export type DeepPartial<T> = T extends Builtin
   ? T
   : T extends Array<infer U>
@@ -181,6 +170,14 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
+        Exclude<keyof I, KeysOfUnion<P>>,
+        never
+      >;
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {
@@ -194,4 +191,8 @@ function longToNumber(long: Long): number {
 if (util.Long !== Long) {
   util.Long = Long as any;
   configure();
+}
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
 }

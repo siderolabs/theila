@@ -16,6 +16,8 @@ import (
 const (
 	// TaskStatusType is the type of TaskStatus resource.
 	TaskStatusType = resource.Type("TaskStatuses.theila.sidero.dev")
+	// TaskStateType is the type of TaskState resource.
+	TaskStateType = resource.Type("TaskState.theila.sidero.dev")
 )
 
 // TaskStatus represents the ongoing K8s upgrade task status.
@@ -81,4 +83,59 @@ func (r *TaskStatus) SetProgress(progress float32) {
 // SetError sets status error.
 func (r *TaskStatus) SetError(err error) {
 	r.spec.Error = err.Error()
+}
+
+// TaskState represents the ongoing K8s upgrade task status.
+type TaskState struct {
+	spec *rpc.TaskStateSpec
+	md   resource.Metadata
+}
+
+// NewTaskState creates new TaskState resource.
+func NewTaskState(ns resource.Namespace, id, statusID resource.ID) *TaskState {
+	r := &TaskState{
+		md: resource.NewMetadata(ns, TaskStateType, id, resource.VersionUndefined),
+		spec: &rpc.TaskStateSpec{
+			StatusId: statusID,
+		},
+	}
+	r.md.BumpVersion()
+
+	return r
+}
+
+// Metadata implements resource.Resource.
+func (r *TaskState) Metadata() *resource.Metadata {
+	return &r.md
+}
+
+// Spec implements resource.Resource.
+func (r *TaskState) Spec() interface{} {
+	return r.spec
+}
+
+// TypedSpec returns typed representation for the spec.
+func (r *TaskState) TypedSpec() *rpc.TaskStateSpec {
+	return r.spec
+}
+
+func (r *TaskState) String() string {
+	return fmt.Sprintf("TaskState(%s): owner %q", r.md.ID(), r.md.Owner())
+}
+
+// DeepCopy implements resource.Resource.
+func (r *TaskState) DeepCopy() resource.Resource {
+	return &TaskState{
+		md:   r.md,
+		spec: proto.Clone(r.spec).(*rpc.TaskStateSpec),
+	}
+}
+
+// UnmarshalProto implements protobuf.ResourceUnmarshaler.
+func (r *TaskState) UnmarshalProto(md *resource.Metadata, protoSpec []byte) error {
+	r.md = *md
+
+	r.spec = &rpc.TaskStateSpec{}
+
+	return proto.Unmarshal(protoSpec, r.spec)
 }

@@ -106,7 +106,9 @@ export interface EmptyResponse {
   messages: Empty[];
 }
 
-const baseError: object = { code: 0, message: "" };
+function createBaseError(): Error {
+  return { code: 0, message: "", details: [] };
+}
 
 export const Error = {
   encode(message: Error, writer: Writer = Writer.create()): Writer {
@@ -125,8 +127,7 @@ export const Error = {
   decode(input: Reader | Uint8Array, length?: number): Error {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseError } as Error;
-    message.details = [];
+    const message = createBaseError();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -148,24 +149,13 @@ export const Error = {
   },
 
   fromJSON(object: any): Error {
-    const message = { ...baseError } as Error;
-    message.details = [];
-    if (object.code !== undefined && object.code !== null) {
-      message.code = codeFromJSON(object.code);
-    } else {
-      message.code = 0;
-    }
-    if (object.message !== undefined && object.message !== null) {
-      message.message = String(object.message);
-    } else {
-      message.message = "";
-    }
-    if (object.details !== undefined && object.details !== null) {
-      for (const e of object.details) {
-        message.details.push(Any.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      code: isSet(object.code) ? codeFromJSON(object.code) : 0,
+      message: isSet(object.message) ? String(object.message) : "",
+      details: Array.isArray(object?.details)
+        ? object.details.map((e: any) => Any.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: Error): unknown {
@@ -180,29 +170,18 @@ export const Error = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Error>): Error {
-    const message = { ...baseError } as Error;
-    message.details = [];
-    if (object.code !== undefined && object.code !== null) {
-      message.code = object.code;
-    } else {
-      message.code = 0;
-    }
-    if (object.message !== undefined && object.message !== null) {
-      message.message = object.message;
-    } else {
-      message.message = "";
-    }
-    if (object.details !== undefined && object.details !== null) {
-      for (const e of object.details) {
-        message.details.push(Any.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<Error>, I>>(object: I): Error {
+    const message = createBaseError();
+    message.code = object.code ?? 0;
+    message.message = object.message ?? "";
+    message.details = object.details?.map((e) => Any.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseMetadata: object = { hostname: "", error: "" };
+function createBaseMetadata(): Metadata {
+  return { hostname: "", error: "", status: undefined };
+}
 
 export const Metadata = {
   encode(message: Metadata, writer: Writer = Writer.create()): Writer {
@@ -221,7 +200,7 @@ export const Metadata = {
   decode(input: Reader | Uint8Array, length?: number): Metadata {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMetadata } as Metadata;
+    const message = createBaseMetadata();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -243,23 +222,11 @@ export const Metadata = {
   },
 
   fromJSON(object: any): Metadata {
-    const message = { ...baseMetadata } as Metadata;
-    if (object.hostname !== undefined && object.hostname !== null) {
-      message.hostname = String(object.hostname);
-    } else {
-      message.hostname = "";
-    }
-    if (object.error !== undefined && object.error !== null) {
-      message.error = String(object.error);
-    } else {
-      message.error = "";
-    }
-    if (object.status !== undefined && object.status !== null) {
-      message.status = Status.fromJSON(object.status);
-    } else {
-      message.status = undefined;
-    }
-    return message;
+    return {
+      hostname: isSet(object.hostname) ? String(object.hostname) : "",
+      error: isSet(object.error) ? String(object.error) : "",
+      status: isSet(object.status) ? Status.fromJSON(object.status) : undefined,
+    };
   },
 
   toJSON(message: Metadata): unknown {
@@ -271,28 +238,21 @@ export const Metadata = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Metadata>): Metadata {
-    const message = { ...baseMetadata } as Metadata;
-    if (object.hostname !== undefined && object.hostname !== null) {
-      message.hostname = object.hostname;
-    } else {
-      message.hostname = "";
-    }
-    if (object.error !== undefined && object.error !== null) {
-      message.error = object.error;
-    } else {
-      message.error = "";
-    }
-    if (object.status !== undefined && object.status !== null) {
-      message.status = Status.fromPartial(object.status);
-    } else {
-      message.status = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<Metadata>, I>>(object: I): Metadata {
+    const message = createBaseMetadata();
+    message.hostname = object.hostname ?? "";
+    message.error = object.error ?? "";
+    message.status =
+      object.status !== undefined && object.status !== null
+        ? Status.fromPartial(object.status)
+        : undefined;
     return message;
   },
 };
 
-const baseData: object = {};
+function createBaseData(): Data {
+  return { metadata: undefined, bytes: new Uint8Array() };
+}
 
 export const Data = {
   encode(message: Data, writer: Writer = Writer.create()): Writer {
@@ -308,8 +268,7 @@ export const Data = {
   decode(input: Reader | Uint8Array, length?: number): Data {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseData } as Data;
-    message.bytes = new Uint8Array();
+    const message = createBaseData();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -328,17 +287,14 @@ export const Data = {
   },
 
   fromJSON(object: any): Data {
-    const message = { ...baseData } as Data;
-    message.bytes = new Uint8Array();
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.bytes !== undefined && object.bytes !== null) {
-      message.bytes = bytesFromBase64(object.bytes);
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+      bytes: isSet(object.bytes)
+        ? bytesFromBase64(object.bytes)
+        : new Uint8Array(),
+    };
   },
 
   toJSON(message: Data): unknown {
@@ -354,23 +310,20 @@ export const Data = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Data>): Data {
-    const message = { ...baseData } as Data;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    if (object.bytes !== undefined && object.bytes !== null) {
-      message.bytes = object.bytes;
-    } else {
-      message.bytes = new Uint8Array();
-    }
+  fromPartial<I extends Exact<DeepPartial<Data>, I>>(object: I): Data {
+    const message = createBaseData();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
+    message.bytes = object.bytes ?? new Uint8Array();
     return message;
   },
 };
 
-const baseDataResponse: object = {};
+function createBaseDataResponse(): DataResponse {
+  return { messages: [] };
+}
 
 export const DataResponse = {
   encode(message: DataResponse, writer: Writer = Writer.create()): Writer {
@@ -383,8 +336,7 @@ export const DataResponse = {
   decode(input: Reader | Uint8Array, length?: number): DataResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseDataResponse } as DataResponse;
-    message.messages = [];
+    const message = createBaseDataResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -400,14 +352,11 @@ export const DataResponse = {
   },
 
   fromJSON(object: any): DataResponse {
-    const message = { ...baseDataResponse } as DataResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Data.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => Data.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: DataResponse): unknown {
@@ -422,19 +371,18 @@ export const DataResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<DataResponse>): DataResponse {
-    const message = { ...baseDataResponse } as DataResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Data.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<DataResponse>, I>>(
+    object: I
+  ): DataResponse {
+    const message = createBaseDataResponse();
+    message.messages = object.messages?.map((e) => Data.fromPartial(e)) || [];
     return message;
   },
 };
 
-const baseEmpty: object = {};
+function createBaseEmpty(): Empty {
+  return { metadata: undefined };
+}
 
 export const Empty = {
   encode(message: Empty, writer: Writer = Writer.create()): Writer {
@@ -447,7 +395,7 @@ export const Empty = {
   decode(input: Reader | Uint8Array, length?: number): Empty {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseEmpty } as Empty;
+    const message = createBaseEmpty();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -463,13 +411,11 @@ export const Empty = {
   },
 
   fromJSON(object: any): Empty {
-    const message = { ...baseEmpty } as Empty;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromJSON(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
-    return message;
+    return {
+      metadata: isSet(object.metadata)
+        ? Metadata.fromJSON(object.metadata)
+        : undefined,
+    };
   },
 
   toJSON(message: Empty): unknown {
@@ -481,18 +427,19 @@ export const Empty = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<Empty>): Empty {
-    const message = { ...baseEmpty } as Empty;
-    if (object.metadata !== undefined && object.metadata !== null) {
-      message.metadata = Metadata.fromPartial(object.metadata);
-    } else {
-      message.metadata = undefined;
-    }
+  fromPartial<I extends Exact<DeepPartial<Empty>, I>>(object: I): Empty {
+    const message = createBaseEmpty();
+    message.metadata =
+      object.metadata !== undefined && object.metadata !== null
+        ? Metadata.fromPartial(object.metadata)
+        : undefined;
     return message;
   },
 };
 
-const baseEmptyResponse: object = {};
+function createBaseEmptyResponse(): EmptyResponse {
+  return { messages: [] };
+}
 
 export const EmptyResponse = {
   encode(message: EmptyResponse, writer: Writer = Writer.create()): Writer {
@@ -505,8 +452,7 @@ export const EmptyResponse = {
   decode(input: Reader | Uint8Array, length?: number): EmptyResponse {
     const reader = input instanceof Reader ? input : new Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseEmptyResponse } as EmptyResponse;
-    message.messages = [];
+    const message = createBaseEmptyResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -522,14 +468,11 @@ export const EmptyResponse = {
   },
 
   fromJSON(object: any): EmptyResponse {
-    const message = { ...baseEmptyResponse } as EmptyResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Empty.fromJSON(e));
-      }
-    }
-    return message;
+    return {
+      messages: Array.isArray(object?.messages)
+        ? object.messages.map((e: any) => Empty.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: EmptyResponse): unknown {
@@ -544,20 +487,18 @@ export const EmptyResponse = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<EmptyResponse>): EmptyResponse {
-    const message = { ...baseEmptyResponse } as EmptyResponse;
-    message.messages = [];
-    if (object.messages !== undefined && object.messages !== null) {
-      for (const e of object.messages) {
-        message.messages.push(Empty.fromPartial(e));
-      }
-    }
+  fromPartial<I extends Exact<DeepPartial<EmptyResponse>, I>>(
+    object: I
+  ): EmptyResponse {
+    const message = createBaseEmptyResponse();
+    message.messages = object.messages?.map((e) => Empty.fromPartial(e)) || [];
     return message;
   },
 };
 
 declare var self: any | undefined;
 declare var window: any | undefined;
+declare var global: any | undefined;
 var globalThis: any = (() => {
   if (typeof globalThis !== "undefined") return globalThis;
   if (typeof self !== "undefined") return self;
@@ -597,6 +538,7 @@ type Builtin =
   | number
   | boolean
   | undefined;
+
 export type DeepPartial<T> = T extends Builtin
   ? T
   : T extends Array<infer U>
@@ -607,9 +549,21 @@ export type DeepPartial<T> = T extends Builtin
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
+        Exclude<keyof I, KeysOfUnion<P>>,
+        never
+      >;
+
 // If you get a compile-error about 'Constructor<Long> and ... have no overlap',
 // add '--ts_proto_opt=esModuleInterop=true' as a flag when calling 'protoc'.
 if (util.Long !== Long) {
   util.Long = Long as any;
   configure();
+}
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
 }
