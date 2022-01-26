@@ -354,6 +354,15 @@ func (t *upgradeTask) start(ctx context.Context, task *resources.UpgradeK8sTask,
 		return err
 	}
 
+	if err := r.Modify(ctx, resources.NewTaskStatus(Namespace, id), func(res resource.Resource) error {
+		res.(*resources.TaskStatus).SetVersions(upgradeOptions.FromVersion, upgradeOptions.ToVersion)
+		res.(*resources.TaskStatus).SetPhase(rpc.TaskStatusSpec_RUNNING)
+
+		return nil
+	}); err != nil {
+		return err
+	}
+
 	t.wg.Add(1)
 
 	go func() {

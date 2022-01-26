@@ -4,13 +4,11 @@ package rpc
 
 import (
 	context "context"
-
 	resource "github.com/talos-systems/talos/pkg/machinery/api/resource"
+	common "github.com/talos-systems/theila/api/common"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-
-	common "github.com/talos-systems/theila/api/common"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -112,23 +110,18 @@ type UnimplementedResourceServiceServer struct {
 func (UnimplementedResourceServiceServer) Get(context.Context, *resource.GetRequest) (*GetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
-
 func (UnimplementedResourceServiceServer) List(context.Context, *resource.ListRequest) (*ListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
-
 func (UnimplementedResourceServiceServer) Create(context.Context, *CreateRequest) (*CreateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
-
 func (UnimplementedResourceServiceServer) Update(context.Context, *UpdateRequest) (*UpdateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
-
 func (UnimplementedResourceServiceServer) Delete(context.Context, *DeleteRequest) (*DeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
-
 func (UnimplementedResourceServiceServer) GetConfig(context.Context, *common.Cluster) (*ConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetConfig not implemented")
 }

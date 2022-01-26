@@ -7,11 +7,10 @@
 package rpc
 
 import (
-	reflect "reflect"
-	sync "sync"
-
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	reflect "reflect"
+	sync "sync"
 )
 
 const (
@@ -212,15 +211,12 @@ func file_rpc_context_proto_rawDescGZIP() []byte {
 	return file_rpc_context_proto_rawDescData
 }
 
-var (
-	file_rpc_context_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-	file_rpc_context_proto_goTypes  = []interface{}{
-		(*Context)(nil),              // 0: cluster.Context
-		(*ListContextsRequest)(nil),  // 1: cluster.ListContextsRequest
-		(*ListContextsResponse)(nil), // 2: cluster.ListContextsResponse
-	}
-)
-
+var file_rpc_context_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_rpc_context_proto_goTypes = []interface{}{
+	(*Context)(nil),              // 0: cluster.Context
+	(*ListContextsRequest)(nil),  // 1: cluster.ListContextsRequest
+	(*ListContextsResponse)(nil), // 2: cluster.ListContextsResponse
+}
 var file_rpc_context_proto_depIdxs = []int32{
 	0, // 0: cluster.ListContextsResponse.contexts:type_name -> cluster.Context
 	1, // 1: cluster.ContextService.List:input_type -> cluster.ListContextsRequest

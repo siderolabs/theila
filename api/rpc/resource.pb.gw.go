@@ -16,25 +16,22 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"github.com/talos-systems/talos/pkg/machinery/api/resource"
+	"github.com/talos-systems/theila/api/common"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
-
-	common_0 "github.com/talos-systems/theila/api/common"
 )
 
 // Suppress "imported and not used" errors
-var (
-	_ codes.Code
-	_ io.Reader
-	_ status.Status
-	_ = runtime.String
-	_ = utilities.NewDoubleArray
-	_ = metadata.Join
-)
+var _ codes.Code
+var _ io.Reader
+var _ status.Status
+var _ = runtime.String
+var _ = utilities.NewDoubleArray
+var _ = metadata.Join
 
 func request_ResourceService_Get_0(ctx context.Context, marshaler runtime.Marshaler, client ResourceServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq resource.GetRequest
@@ -50,6 +47,7 @@ func request_ResourceService_Get_0(ctx context.Context, marshaler runtime.Marsha
 
 	msg, err := client.Get(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
+
 }
 
 func local_request_ResourceService_Get_0(ctx context.Context, marshaler runtime.Marshaler, server ResourceServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -66,6 +64,7 @@ func local_request_ResourceService_Get_0(ctx context.Context, marshaler runtime.
 
 	msg, err := server.Get(ctx, &protoReq)
 	return msg, metadata, err
+
 }
 
 func request_ResourceService_List_0(ctx context.Context, marshaler runtime.Marshaler, client ResourceServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -82,6 +81,7 @@ func request_ResourceService_List_0(ctx context.Context, marshaler runtime.Marsh
 
 	msg, err := client.List(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
+
 }
 
 func local_request_ResourceService_List_0(ctx context.Context, marshaler runtime.Marshaler, server ResourceServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -98,6 +98,7 @@ func local_request_ResourceService_List_0(ctx context.Context, marshaler runtime
 
 	msg, err := server.List(ctx, &protoReq)
 	return msg, metadata, err
+
 }
 
 func request_ResourceService_Create_0(ctx context.Context, marshaler runtime.Marshaler, client ResourceServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -114,6 +115,7 @@ func request_ResourceService_Create_0(ctx context.Context, marshaler runtime.Mar
 
 	msg, err := client.Create(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
+
 }
 
 func local_request_ResourceService_Create_0(ctx context.Context, marshaler runtime.Marshaler, server ResourceServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -130,6 +132,7 @@ func local_request_ResourceService_Create_0(ctx context.Context, marshaler runti
 
 	msg, err := server.Create(ctx, &protoReq)
 	return msg, metadata, err
+
 }
 
 func request_ResourceService_Update_0(ctx context.Context, marshaler runtime.Marshaler, client ResourceServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -146,6 +149,7 @@ func request_ResourceService_Update_0(ctx context.Context, marshaler runtime.Mar
 
 	msg, err := client.Update(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
+
 }
 
 func local_request_ResourceService_Update_0(ctx context.Context, marshaler runtime.Marshaler, server ResourceServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -162,6 +166,7 @@ func local_request_ResourceService_Update_0(ctx context.Context, marshaler runti
 
 	msg, err := server.Update(ctx, &protoReq)
 	return msg, metadata, err
+
 }
 
 func request_ResourceService_Delete_0(ctx context.Context, marshaler runtime.Marshaler, client ResourceServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -178,6 +183,7 @@ func request_ResourceService_Delete_0(ctx context.Context, marshaler runtime.Mar
 
 	msg, err := client.Delete(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
+
 }
 
 func local_request_ResourceService_Delete_0(ctx context.Context, marshaler runtime.Marshaler, server ResourceServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -194,10 +200,11 @@ func local_request_ResourceService_Delete_0(ctx context.Context, marshaler runti
 
 	msg, err := server.Delete(ctx, &protoReq)
 	return msg, metadata, err
+
 }
 
 func request_ResourceService_GetConfig_0(ctx context.Context, marshaler runtime.Marshaler, client ResourceServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq common_0.Cluster
+	var protoReq common.Cluster
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -210,10 +217,11 @@ func request_ResourceService_GetConfig_0(ctx context.Context, marshaler runtime.
 
 	msg, err := client.GetConfig(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
+
 }
 
 func local_request_ResourceService_GetConfig_0(ctx context.Context, marshaler runtime.Marshaler, server ResourceServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq common_0.Cluster
+	var protoReq common.Cluster
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -226,6 +234,7 @@ func local_request_ResourceService_GetConfig_0(ctx context.Context, marshaler ru
 
 	msg, err := server.GetConfig(ctx, &protoReq)
 	return msg, metadata, err
+
 }
 
 // RegisterResourceServiceHandlerServer registers the http handlers for service ResourceService to "mux".
@@ -233,6 +242,7 @@ func local_request_ResourceService_GetConfig_0(ctx context.Context, marshaler ru
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterResourceServiceHandlerFromEndpoint instead.
 func RegisterResourceServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server ResourceServiceServer) error {
+
 	mux.Handle("POST", pattern_ResourceService_Get_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -253,6 +263,7 @@ func RegisterResourceServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		}
 
 		forward_ResourceService_Get_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("POST", pattern_ResourceService_List_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -275,6 +286,7 @@ func RegisterResourceServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		}
 
 		forward_ResourceService_List_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("POST", pattern_ResourceService_Create_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -297,6 +309,7 @@ func RegisterResourceServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		}
 
 		forward_ResourceService_Create_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("POST", pattern_ResourceService_Update_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -319,6 +332,7 @@ func RegisterResourceServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		}
 
 		forward_ResourceService_Update_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("POST", pattern_ResourceService_Delete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -341,6 +355,7 @@ func RegisterResourceServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		}
 
 		forward_ResourceService_Delete_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("POST", pattern_ResourceService_GetConfig_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -363,6 +378,7 @@ func RegisterResourceServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		}
 
 		forward_ResourceService_GetConfig_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	return nil
@@ -405,6 +421,7 @@ func RegisterResourceServiceHandler(ctx context.Context, mux *runtime.ServeMux, 
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "ResourceServiceClient" to call the correct interceptors.
 func RegisterResourceServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client ResourceServiceClient) error {
+
 	mux.Handle("POST", pattern_ResourceService_Get_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -422,6 +439,7 @@ func RegisterResourceServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		}
 
 		forward_ResourceService_Get_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("POST", pattern_ResourceService_List_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -441,6 +459,7 @@ func RegisterResourceServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		}
 
 		forward_ResourceService_List_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("POST", pattern_ResourceService_Create_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -460,6 +479,7 @@ func RegisterResourceServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		}
 
 		forward_ResourceService_Create_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("POST", pattern_ResourceService_Update_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -479,6 +499,7 @@ func RegisterResourceServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		}
 
 		forward_ResourceService_Update_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("POST", pattern_ResourceService_Delete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -498,6 +519,7 @@ func RegisterResourceServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		}
 
 		forward_ResourceService_Delete_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("POST", pattern_ResourceService_GetConfig_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -517,6 +539,7 @@ func RegisterResourceServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		}
 
 		forward_ResourceService_GetConfig_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	return nil

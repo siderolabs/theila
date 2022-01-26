@@ -45,6 +45,11 @@ func (r *UpgradeK8sTask) Spec() interface{} {
 	return r.spec
 }
 
+// TypedSpec returns typed spec object.
+func (r *UpgradeK8sTask) TypedSpec() *rpc.UpgradeK8SSpec {
+	return r.spec
+}
+
 func (r *UpgradeK8sTask) String() string {
 	return fmt.Sprintf("UpgradeK8sTask(%s) to %s", r.md.ID(), r.spec.ToVersion)
 }

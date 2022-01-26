@@ -7,14 +7,12 @@
 package message
 
 import (
-	reflect "reflect"
-	sync "sync"
-
 	resource "github.com/talos-systems/talos/pkg/machinery/api/resource"
+	common "github.com/talos-systems/theila/api/common"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-
-	common "github.com/talos-systems/theila/api/common"
+	reflect "reflect"
+	sync "sync"
 )
 
 const (
@@ -548,24 +546,21 @@ func file_socket_message_message_proto_rawDescGZIP() []byte {
 	return file_socket_message_message_proto_rawDescData
 }
 
-var (
-	file_socket_message_message_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-	file_socket_message_message_proto_msgTypes  = make([]protoimpl.MessageInfo, 7)
-	file_socket_message_message_proto_goTypes   = []interface{}{
-		(Kind)(0),                     // 0: socket.Kind
-		(*Metadata)(nil),              // 1: socket.Metadata
-		(*Message)(nil),               // 2: socket.Message
-		(*WatchSpec)(nil),             // 3: socket.WatchSpec
-		(*SubscribedSpec)(nil),        // 4: socket.SubscribedSpec
-		(*UnsubscribeSpec)(nil),       // 5: socket.UnsubscribeSpec
-		(*ErrorSpec)(nil),             // 6: socket.ErrorSpec
-		(*ItemUpdateSpec)(nil),        // 7: socket.ItemUpdateSpec
-		(*resource.WatchRequest)(nil), // 8: resource.WatchRequest
-		(common.Runtime)(0),           // 9: common.Runtime
-		(*common.Context)(nil),        // 10: common.Context
-	}
-)
-
+var file_socket_message_message_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_socket_message_message_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_socket_message_message_proto_goTypes = []interface{}{
+	(Kind)(0),                     // 0: socket.Kind
+	(*Metadata)(nil),              // 1: socket.Metadata
+	(*Message)(nil),               // 2: socket.Message
+	(*WatchSpec)(nil),             // 3: socket.WatchSpec
+	(*SubscribedSpec)(nil),        // 4: socket.SubscribedSpec
+	(*UnsubscribeSpec)(nil),       // 5: socket.UnsubscribeSpec
+	(*ErrorSpec)(nil),             // 6: socket.ErrorSpec
+	(*ItemUpdateSpec)(nil),        // 7: socket.ItemUpdateSpec
+	(*resource.WatchRequest)(nil), // 8: resource.WatchRequest
+	(common.Runtime)(0),           // 9: common.Runtime
+	(*common.Context)(nil),        // 10: common.Context
+}
 var file_socket_message_message_proto_depIdxs = []int32{
 	0,  // 0: socket.Message.kind:type_name -> socket.Kind
 	1,  // 1: socket.Message.metadata:type_name -> socket.Metadata

@@ -16,6 +16,7 @@ import (
 type Resource struct {
 	Metadata map[string]interface{} `yaml:"metadata" json:"metadata"`
 	Spec     map[string]interface{} `yaml:"spec" json:"spec"`
+	Resource resource.Resource      `yaml:"-" json:"-"`
 	ID       string                 `yaml:"-" json:"-"`
 }
 
@@ -48,6 +49,8 @@ func NewResource(m *common.Metadata, r resource.Resource) (*Resource, error) {
 	if m != nil {
 		res.Metadata["node"] = m.GetHostname()
 	}
+
+	res.Resource = r
 
 	return res, nil
 }

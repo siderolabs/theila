@@ -16,7 +16,10 @@ import (
 	"github.com/talos-systems/theila/api/rpc"
 	"github.com/talos-systems/theila/internal/backend/grpc/router"
 	"github.com/talos-systems/theila/internal/backend/management"
+	"github.com/talos-systems/theila/internal/backend/runtime"
 	"github.com/talos-systems/theila/internal/backend/runtime/talos"
+	"github.com/talos-systems/theila/internal/backend/runtime/theila"
+	"github.com/talos-systems/theila/internal/backend/runtime/theila/resources"
 )
 
 type managementServer struct {
@@ -51,9 +54,33 @@ func (s *managementServer) UpgradeInfo(ctx context.Context, in *emptypb.Empty) (
 		},
 	}
 
-	fromVersion, err := k8s.DetectLowestVersion(ctx, &state, k8s.UpgradeOptions{})
-	if err != nil {
-		return nil, err
+	fromVersion, detectErr := k8s.DetectLowestVersion(ctx, &state, k8s.UpgradeOptions{})
+	if detectErr != nil {
+		// try to detect lowest version from an ongoing upgrade task
+		theila, err := runtime.Get(theila.Name)
+		if err != nil {
+			return nil, detectErr
+		}
+
+		items, err := theila.List(ctx, runtime.WithResource(resources.UpgradeK8sTaskType))
+		if err != nil {
+			return nil, detectErr
+		}
+
+		if len(items) == 0 {
+			return nil, detectErr
+		}
+
+		for _, item := range items {
+			upgradeTask, ok := item.(*runtime.Resource).Resource.(*resources.TaskStatus)
+			if !ok {
+				return nil, detectErr
+			}
+
+			if upgradeTask.TypedSpec().Phase == rpc.TaskStatusSpec_RUNNING {
+				fromVersion = upgradeTask.TypedSpec().FromVersion
+			}
+		}
 	}
 
 	return &rpc.UpgradeInfoResponse{

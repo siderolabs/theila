@@ -7,15 +7,13 @@
 package rpc
 
 import (
-	reflect "reflect"
-	sync "sync"
-
 	v1alpha1 "github.com/cosi-project/runtime/api/v1alpha1"
 	resource "github.com/talos-systems/talos/pkg/machinery/api/resource"
+	common "github.com/talos-systems/theila/api/common"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-
-	common "github.com/talos-systems/theila/api/common"
+	reflect "reflect"
+	sync "sync"
 )
 
 const (
@@ -581,26 +579,23 @@ func file_rpc_resource_proto_rawDescGZIP() []byte {
 	return file_rpc_resource_proto_rawDescData
 }
 
-var (
-	file_rpc_resource_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
-	file_rpc_resource_proto_goTypes  = []interface{}{
-		(*GetResponse)(nil),            // 0: theila.resource.GetResponse
-		(*ListResponse)(nil),           // 1: theila.resource.ListResponse
-		(*CreateRequest)(nil),          // 2: theila.resource.CreateRequest
-		(*CreateResponse)(nil),         // 3: theila.resource.CreateResponse
-		(*UpdateRequest)(nil),          // 4: theila.resource.UpdateRequest
-		(*UpdateResponse)(nil),         // 5: theila.resource.UpdateResponse
-		(*DeleteRequest)(nil),          // 6: theila.resource.DeleteRequest
-		(*DeleteResponse)(nil),         // 7: theila.resource.DeleteResponse
-		(*ConfigResponse)(nil),         // 8: theila.resource.ConfigResponse
-		(*KubernetesResourceSpec)(nil), // 9: theila.resource.KubernetesResourceSpec
-		(*v1alpha1.Resource)(nil),      // 10: cosi.resource.Resource
-		(*resource.GetRequest)(nil),    // 11: resource.GetRequest
-		(*resource.ListRequest)(nil),   // 12: resource.ListRequest
-		(*common.Cluster)(nil),         // 13: common.Cluster
-	}
-)
-
+var file_rpc_resource_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_rpc_resource_proto_goTypes = []interface{}{
+	(*GetResponse)(nil),            // 0: theila.resource.GetResponse
+	(*ListResponse)(nil),           // 1: theila.resource.ListResponse
+	(*CreateRequest)(nil),          // 2: theila.resource.CreateRequest
+	(*CreateResponse)(nil),         // 3: theila.resource.CreateResponse
+	(*UpdateRequest)(nil),          // 4: theila.resource.UpdateRequest
+	(*UpdateResponse)(nil),         // 5: theila.resource.UpdateResponse
+	(*DeleteRequest)(nil),          // 6: theila.resource.DeleteRequest
+	(*DeleteResponse)(nil),         // 7: theila.resource.DeleteResponse
+	(*ConfigResponse)(nil),         // 8: theila.resource.ConfigResponse
+	(*KubernetesResourceSpec)(nil), // 9: theila.resource.KubernetesResourceSpec
+	(*v1alpha1.Resource)(nil),      // 10: cosi.resource.Resource
+	(*resource.GetRequest)(nil),    // 11: resource.GetRequest
+	(*resource.ListRequest)(nil),   // 12: resource.ListRequest
+	(*common.Cluster)(nil),         // 13: common.Cluster
+}
 var file_rpc_resource_proto_depIdxs = []int32{
 	10, // 0: theila.resource.CreateRequest.resource:type_name -> cosi.resource.Resource
 	10, // 1: theila.resource.UpdateRequest.resource:type_name -> cosi.resource.Resource

@@ -25,14 +25,12 @@ import (
 )
 
 // Suppress "imported and not used" errors
-var (
-	_ codes.Code
-	_ io.Reader
-	_ status.Status
-	_ = runtime.String
-	_ = utilities.NewDoubleArray
-	_ = metadata.Join
-)
+var _ codes.Code
+var _ io.Reader
+var _ status.Status
+var _ = runtime.String
+var _ = utilities.NewDoubleArray
+var _ = metadata.Join
 
 func request_State_Get_0(ctx context.Context, marshaler runtime.Marshaler, client extV1alpha1.StateClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq extV1alpha1.GetRequest
@@ -48,6 +46,7 @@ func request_State_Get_0(ctx context.Context, marshaler runtime.Marshaler, clien
 
 	msg, err := client.Get(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
+
 }
 
 func local_request_State_Get_0(ctx context.Context, marshaler runtime.Marshaler, server extV1alpha1.StateServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -64,6 +63,7 @@ func local_request_State_Get_0(ctx context.Context, marshaler runtime.Marshaler,
 
 	msg, err := server.Get(ctx, &protoReq)
 	return msg, metadata, err
+
 }
 
 func request_State_List_0(ctx context.Context, marshaler runtime.Marshaler, client extV1alpha1.StateClient, req *http.Request, pathParams map[string]string) (extV1alpha1.State_ListClient, runtime.ServerMetadata, error) {
@@ -88,6 +88,7 @@ func request_State_List_0(ctx context.Context, marshaler runtime.Marshaler, clie
 	}
 	metadata.HeaderMD = header
 	return stream, metadata, nil
+
 }
 
 func request_State_Create_0(ctx context.Context, marshaler runtime.Marshaler, client extV1alpha1.StateClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -104,6 +105,7 @@ func request_State_Create_0(ctx context.Context, marshaler runtime.Marshaler, cl
 
 	msg, err := client.Create(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
+
 }
 
 func local_request_State_Create_0(ctx context.Context, marshaler runtime.Marshaler, server extV1alpha1.StateServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -120,6 +122,7 @@ func local_request_State_Create_0(ctx context.Context, marshaler runtime.Marshal
 
 	msg, err := server.Create(ctx, &protoReq)
 	return msg, metadata, err
+
 }
 
 func request_State_Update_0(ctx context.Context, marshaler runtime.Marshaler, client extV1alpha1.StateClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -136,6 +139,7 @@ func request_State_Update_0(ctx context.Context, marshaler runtime.Marshaler, cl
 
 	msg, err := client.Update(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
+
 }
 
 func local_request_State_Update_0(ctx context.Context, marshaler runtime.Marshaler, server extV1alpha1.StateServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -152,6 +156,7 @@ func local_request_State_Update_0(ctx context.Context, marshaler runtime.Marshal
 
 	msg, err := server.Update(ctx, &protoReq)
 	return msg, metadata, err
+
 }
 
 func request_State_Destroy_0(ctx context.Context, marshaler runtime.Marshaler, client extV1alpha1.StateClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -168,6 +173,7 @@ func request_State_Destroy_0(ctx context.Context, marshaler runtime.Marshaler, c
 
 	msg, err := client.Destroy(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
+
 }
 
 func local_request_State_Destroy_0(ctx context.Context, marshaler runtime.Marshaler, server extV1alpha1.StateServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -184,6 +190,7 @@ func local_request_State_Destroy_0(ctx context.Context, marshaler runtime.Marsha
 
 	msg, err := server.Destroy(ctx, &protoReq)
 	return msg, metadata, err
+
 }
 
 func request_State_Watch_0(ctx context.Context, marshaler runtime.Marshaler, client extV1alpha1.StateClient, req *http.Request, pathParams map[string]string) (extV1alpha1.State_WatchClient, runtime.ServerMetadata, error) {
@@ -208,6 +215,7 @@ func request_State_Watch_0(ctx context.Context, marshaler runtime.Marshaler, cli
 	}
 	metadata.HeaderMD = header
 	return stream, metadata, nil
+
 }
 
 // RegisterStateHandlerServer registers the http handlers for service State to "mux".
@@ -215,6 +223,7 @@ func request_State_Watch_0(ctx context.Context, marshaler runtime.Marshaler, cli
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterStateHandlerFromEndpoint instead.
 func RegisterStateHandlerServer(ctx context.Context, mux *runtime.ServeMux, server extV1alpha1.StateServer) error {
+
 	mux.Handle("POST", pattern_State_Get_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -235,6 +244,7 @@ func RegisterStateHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		}
 
 		forward_State_Get_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("POST", pattern_State_List_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -264,6 +274,7 @@ func RegisterStateHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		}
 
 		forward_State_Create_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("POST", pattern_State_Update_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -286,6 +297,7 @@ func RegisterStateHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		}
 
 		forward_State_Update_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("POST", pattern_State_Destroy_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -308,6 +320,7 @@ func RegisterStateHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		}
 
 		forward_State_Destroy_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("POST", pattern_State_Watch_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -357,6 +370,7 @@ func RegisterStateHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "extV1alpha1.StateClient" to call the correct interceptors.
 func RegisterStateHandlerClient(ctx context.Context, mux *runtime.ServeMux, client extV1alpha1.StateClient) error {
+
 	mux.Handle("POST", pattern_State_Get_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -374,6 +388,7 @@ func RegisterStateHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		}
 
 		forward_State_Get_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("POST", pattern_State_List_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -393,6 +408,7 @@ func RegisterStateHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		}
 
 		forward_State_List_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("POST", pattern_State_Create_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -412,6 +428,7 @@ func RegisterStateHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		}
 
 		forward_State_Create_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("POST", pattern_State_Update_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -431,6 +448,7 @@ func RegisterStateHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		}
 
 		forward_State_Update_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("POST", pattern_State_Destroy_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -450,6 +468,7 @@ func RegisterStateHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		}
 
 		forward_State_Destroy_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("POST", pattern_State_Watch_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -469,6 +488,7 @@ func RegisterStateHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		}
 
 		forward_State_Watch_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
+
 	})
 
 	return nil

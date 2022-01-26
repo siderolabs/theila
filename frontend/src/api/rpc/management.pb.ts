@@ -5,6 +5,7 @@
 import * as CommonTheila from "../common/theila.pb"
 import * as fm from "../fetch.pb"
 import * as GoogleProtobufEmpty from "../google/protobuf/empty.pb"
+import * as GoogleProtobufTimestamp from "../google/protobuf/timestamp.pb"
 
 export enum TaskStatusSpecPhase {
   FAILED = "FAILED",
@@ -30,6 +31,9 @@ export type TaskStatusSpec = {
   phase?: TaskStatusSpecPhase
   progress?: number
   error?: string
+  fromVersion?: string
+  toVersion?: string
+  finishedAt?: GoogleProtobufTimestamp.Timestamp
 }
 
 export type TaskLogSpec = {

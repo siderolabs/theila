@@ -1,6 +1,7 @@
 /* eslint-disable */
 import { util, configure, Writer, Reader } from "protobufjs/minimal";
 import * as Long from "long";
+import { Timestamp } from "../google/protobuf/timestamp";
 import { Context } from "../common/theila";
 import { Empty } from "../google/protobuf/empty";
 
@@ -33,6 +34,12 @@ export interface TaskStatusSpec {
   progress: number;
   /** Failure reason. */
   error: string;
+  /** K8s version to upgrade from. */
+  from_version: string;
+  /** K8s version to upgrade to. */
+  to_version: string;
+  /** FinishedAt is when the task either failed or completed. */
+  finished_at: Date | undefined;
 }
 
 export enum TaskStatusSpec_Phase {
@@ -276,7 +283,14 @@ export const TaskStateSpec = {
 };
 
 function createBaseTaskStatusSpec(): TaskStatusSpec {
-  return { phase: 0, progress: 0, error: "" };
+  return {
+    phase: 0,
+    progress: 0,
+    error: "",
+    from_version: "",
+    to_version: "",
+    finished_at: undefined,
+  };
 }
 
 export const TaskStatusSpec = {
@@ -289,6 +303,18 @@ export const TaskStatusSpec = {
     }
     if (message.error !== "") {
       writer.uint32(26).string(message.error);
+    }
+    if (message.from_version !== "") {
+      writer.uint32(34).string(message.from_version);
+    }
+    if (message.to_version !== "") {
+      writer.uint32(42).string(message.to_version);
+    }
+    if (message.finished_at !== undefined) {
+      Timestamp.encode(
+        toTimestamp(message.finished_at),
+        writer.uint32(50).fork()
+      ).ldelim();
     }
     return writer;
   },
@@ -309,6 +335,17 @@ export const TaskStatusSpec = {
         case 3:
           message.error = reader.string();
           break;
+        case 4:
+          message.from_version = reader.string();
+          break;
+        case 5:
+          message.to_version = reader.string();
+          break;
+        case 6:
+          message.finished_at = fromTimestamp(
+            Timestamp.decode(reader, reader.uint32())
+          );
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -324,6 +361,13 @@ export const TaskStatusSpec = {
         : 0,
       progress: isSet(object.progress) ? Number(object.progress) : 0,
       error: isSet(object.error) ? String(object.error) : "",
+      from_version: isSet(object.from_version)
+        ? String(object.from_version)
+        : "",
+      to_version: isSet(object.to_version) ? String(object.to_version) : "",
+      finished_at: isSet(object.finished_at)
+        ? fromJsonTimestamp(object.finished_at)
+        : undefined,
     };
   },
 
@@ -333,6 +377,11 @@ export const TaskStatusSpec = {
       (obj.phase = taskStatusSpec_PhaseToJSON(message.phase));
     message.progress !== undefined && (obj.progress = message.progress);
     message.error !== undefined && (obj.error = message.error);
+    message.from_version !== undefined &&
+      (obj.from_version = message.from_version);
+    message.to_version !== undefined && (obj.to_version = message.to_version);
+    message.finished_at !== undefined &&
+      (obj.finished_at = message.finished_at.toISOString());
     return obj;
   },
 
@@ -343,6 +392,9 @@ export const TaskStatusSpec = {
     message.phase = object.phase ?? 0;
     message.progress = object.progress ?? 0;
     message.error = object.error ?? "";
+    message.from_version = object.from_version ?? "";
+    message.to_version = object.to_version ?? "";
+    message.finished_at = object.finished_at ?? undefined;
     return message;
   },
 };
@@ -482,6 +534,28 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function toTimestamp(date: Date): Timestamp {
+  const seconds = date.getTime() / 1_000;
+  const nanos = (date.getTime() % 1_000) * 1_000_000;
+  return { seconds, nanos };
+}
+
+function fromTimestamp(t: Timestamp): Date {
+  let millis = t.seconds * 1_000;
+  millis += t.nanos / 1_000_000;
+  return new Date(millis);
+}
+
+function fromJsonTimestamp(o: any): Date {
+  if (o instanceof Date) {
+    return o;
+  } else if (typeof o === "string") {
+    return new Date(o);
+  } else {
+    return fromTimestamp(Timestamp.fromJSON(o));
+  }
+}
 
 // If you get a compile-error about 'Constructor<Long> and ... have no overlap',
 // add '--ts_proto_opt=esModuleInterop=true' as a flag when calling 'protoc'.

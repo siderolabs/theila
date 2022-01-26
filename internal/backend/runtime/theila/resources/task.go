@@ -6,9 +6,11 @@ package resources
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/cosi-project/runtime/pkg/resource"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/talos-systems/theila/api/rpc"
 )
@@ -73,6 +75,14 @@ func (r *TaskStatus) UnmarshalProto(md *resource.Metadata, protoSpec []byte) err
 // SetPhase updates status phase.
 func (r *TaskStatus) SetPhase(phase rpc.TaskStatusSpec_Phase) {
 	r.spec.Phase = phase
+	if phase != rpc.TaskStatusSpec_RUNNING {
+		r.spec.FinishedAt = timestamppb.New(time.Now())
+	}
+}
+
+// TypedSpec returns the exact type of the spec of this resource.
+func (r *TaskStatus) TypedSpec() *rpc.TaskStatusSpec {
+	return r.spec
 }
 
 // SetProgress updates status progress.
@@ -83,6 +93,12 @@ func (r *TaskStatus) SetProgress(progress float32) {
 // SetError sets status error.
 func (r *TaskStatus) SetError(err error) {
 	r.spec.Error = err.Error()
+}
+
+// SetVersions updates the versions of the upgrade task.
+func (r *TaskStatus) SetVersions(from, to string) {
+	r.spec.FromVersion = from
+	r.spec.ToVersion = to
 }
 
 // TaskState represents the ongoing K8s upgrade task status.

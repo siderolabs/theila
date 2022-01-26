@@ -5,6 +5,7 @@ option go_package = "github.com/talos-systems/theila/api/rpc";
 
 import "common/theila.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 message UpgradeInfoResponse {
   // FromVersion is the lowest detected Kubernetes version.
@@ -42,6 +43,12 @@ message TaskStatusSpec {
   float progress = 2;
   // Failure reason.
   string error = 3;
+  // K8s version to upgrade from.
+  string from_version = 4;
+  // K8s version to upgrade to.
+  string to_version = 5;
+  // FinishedAt is when the task either failed or completed.
+  google.protobuf.Timestamp finished_at = 6;
 }
 
 message TaskLogSpec {
