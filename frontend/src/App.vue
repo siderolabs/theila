@@ -5,7 +5,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <template>
   <div :class="{ dark: dark }" v-if="connected">
-    <t-modal />
+    <!-- <t-modal /> -->
     <t-header />
     <t-shell>
       <template v-slot:menu>
@@ -49,7 +49,6 @@ import { useRouter } from "vue-router";
 // import Shell from "./components/Shell.vue";
 // import SidebarChangeContext from "./views/SidebarChangeContext.vue";
 // import Sidebar from "./views/Sidebar.vue";
-import TModal from "./components/TModal.vue";
 // import TButton from "./components/TButton.vue";
 // import TSpinner from "./components/TSpinner.vue";
 import { context, changeContext, detectCapabilities } from "./context";
@@ -65,7 +64,6 @@ export default {
     // Shell,
     // SidebarChangeContext,
     // Sidebar,
-    TModal,
     // TButton,
     // TSpinner,
     THeader,

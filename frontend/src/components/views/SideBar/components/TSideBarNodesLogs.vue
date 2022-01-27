@@ -7,8 +7,8 @@
         <t-menu-item
           icon="log"
           v-for="service in services"
-          :name="service.metadata.id"
-          :key="service.metadata.id"
+          :name="service?.metadata?.id"
+          :key="service?.metadata?.id"
           :route="{
             name: 'Logs',
             query: {
@@ -16,7 +16,10 @@
               namespace: $route.query.namespace,
               uid: $route.query.uid,
             },
-            params: { node: $route.params.node, service: service.metadata.id },
+            params: {
+              node: $route.params.node,
+              service: service?.metadata?.id,
+            },
           }"
         />
       </ul>

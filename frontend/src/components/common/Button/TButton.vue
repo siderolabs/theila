@@ -10,6 +10,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     class="TButton"
     :class="[
       type,
+      isLightHover && 'lightHover',
       fluid && 'fluid',
       {
         _left: icon && iconPosition === 'left',
@@ -17,7 +18,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         _middle: icon && iconPosition === 'middle',
       },
     ]"
-    @click.self="() => $emit('click')"
   >
     <span class="TButton__text"><slot></slot></span>
     <t-icon
@@ -60,6 +60,10 @@ export default {
         return ["left", "middle", "right"].indexOf(value) !== -1;
       },
       default: "right",
+    },
+    isLightHover: {
+      type: Boolean,
+      default: false,
     },
   },
 };
@@ -135,6 +139,19 @@ export default {
   focus:text-primary-P2
   focus:underline
   active:text-primary-P4
+  active:no-underline
+  disabled:text-naturals-N6
+  disabled:cursor-not-allowed;
+}
+.TButton.subtle.lightHover {
+  @apply bg-transparent
+  p-0
+  border-none
+  text-naturals-N9 
+  hover:text-naturals-N12
+  focus:text-naturals-N13
+  focus:underline
+  active:text-naturals-N13
   active:no-underline
   disabled:text-naturals-N6
   disabled:cursor-not-allowed;

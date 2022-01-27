@@ -44,7 +44,7 @@
       type="error"
       class="mb-2"
     >
-      {{ err }}.
+      {{ err }}
     </t-alert>
     <t-nodes-logs-content-list :logs="logs" :searchOption="inputValue" />
   </div>

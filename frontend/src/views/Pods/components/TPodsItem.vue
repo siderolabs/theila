@@ -42,7 +42,8 @@
         </div>
       </template>
     </t-slide-down-wrapper>
-    <t-actions-box class="row__action-box">
+    <!-- Todo -->
+    <!-- <t-actions-box class="row__action-box">
       <div class="box__actions-list">
         <div class="row__box-actions-item">
           <t-icon class="row__actions-item-icon" icon="log" />
@@ -62,7 +63,7 @@
           >
         </div>
       </div>
-    </t-actions-box>
+    </t-actions-box> -->
   </div>
 </template>
 
@@ -70,10 +71,15 @@
 import TIcon from "@/components/common/Icon/TIcon.vue";
 import { computed, ref } from "@vue/reactivity";
 import TStatus from "@/components/common/Status/TStatus.vue";
-import TActionsBox from "@/components/common/ActionsBox/TActionsBox.vue";
+// import TActionsBox from "@/components/common/ActionsBox/TActionsBox.vue";
 import TSlideDownWrapper from "@/components/common/SlideDownWrapper/TSlideDownWrapper.vue";
 export default {
-  components: { TIcon, TStatus, TActionsBox, TSlideDownWrapper },
+  components: {
+    TIcon,
+    TStatus,
+    // TActionsBox,
+    TSlideDownWrapper,
+  },
   props: {
     searchOption: String,
     namespace: String,

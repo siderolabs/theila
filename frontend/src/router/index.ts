@@ -4,9 +4,10 @@
 
 import { createWebHistory, createRouter } from "vue-router";
 import Clusters from "../views/Clusters.vue";
-import Servers from "../views/Servers.vue";
+import Servers from "../views/Servers/TServers.vue";
 import Dashboard from "../views/Dashboard/TDashboard.vue";
-import UpgradeKubernetes from "../views/Upgrade/Upgrade.vue";
+import TKubernetes from "../views/Kubernetes/TKubernetes.vue";
+import TUpgradeKubernetesModal from '@/components/views/TUpgradeKubernetesModal/TUpgradeKubernetesModal.vue';
 import Nodes from "../views/Nodes/TNodes.vue";
 import Pods from "../views/cluster/Pods.vue";
 import TPods from "../views/Pods/TPods.vue";
@@ -19,8 +20,8 @@ import SidebarCluster from "../views/SidebarCluster.vue";
 import SidebarNode from "../views/SidebarNode.vue";
 import TSidebarNodesLogs from "../components/views/SideBar/components/TSideBarNodesLogs.vue";
 import Settings from "../views/Settings.vue";
-import Reboot from "../views/Reboot.vue";
-import Reset from "../views/Reset.vue";
+import TReboot from "../components/views/Reboot/TReboot.vue";
+import TReset from "../components/views/Reset/TReset.vue";
 import Upgrade from "../views/Upgrade.vue";
 import { context } from "../context";
 
@@ -118,7 +119,7 @@ const routes = [
     path: "/upgrade",
     name: "Upgrade Kubernetes",
     components: {
-      default: UpgradeKubernetes,
+      default: TKubernetes,
     },
   },
   {
@@ -167,9 +168,9 @@ const router = createRouter({
 
 const modals = {
   settings: Settings,
-  reboot: Reboot,
-  upgrade: Upgrade,
-  reset: Reset,
+  reboot: TReboot,
+  upgrade: TUpgradeKubernetesModal,
+  reset: TReset,
 };
 
 export { modals };

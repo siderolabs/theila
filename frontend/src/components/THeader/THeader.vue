@@ -6,7 +6,8 @@
           <t-icon class="theHeader__icon" icon="header-logo" />
         </router-link>
       </div>
-      <nav class="theHeader__nav">
+      <!-- Todo -->
+      <!-- <nav class="theHeader__nav">
         <router-link class="theHeader__dashboard-wrapper" to="/dashboard">
           <t-button
             class="theHeader__nav-name"
@@ -16,7 +17,7 @@
             >Dashboard</t-button
           >
         </router-link>
-      </nav>
+      </nav> -->
     </div>
     <t-dropdown-notifications title="Ongoing Tasks" hasLoader>
       <t-header-task-item
@@ -31,13 +32,12 @@
 </template>
 
 <script lang="ts">
-import TButton from "@/components/common/Button/TButton.vue";
 import TIcon from "@/components/common/Icon/TIcon.vue";
 import THeaderTaskItem from "./THeaderTaskItem/THeaderTaskItem.vue";
 import TDropdownNotifications from "@/components/common/Dropdown/TDropdownNotifications.vue";
 
 export default {
-  components: { TIcon, TButton, THeaderTaskItem, TDropdownNotifications },
+  components: { TIcon, THeaderTaskItem, TDropdownNotifications },
   setup() {
     const tasksList = [
       {

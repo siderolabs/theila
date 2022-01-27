@@ -26,6 +26,9 @@
       "@/methods": [
         "./src/methods"
       ],
+      "@/modal": [
+        "./src/modal"
+      ],
       "@/api/*": [
         "./src/api/*"
       ],

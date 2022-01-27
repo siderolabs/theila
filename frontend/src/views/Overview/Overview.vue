@@ -19,7 +19,8 @@
             :amount="data.amount"
           />
         </div>
-        <div class="overview__status-box">
+        <!-- Todo -->
+        <!-- <div class="overview__status-box">
           <div class="overview__box-header">
             <span class="overview__box-title">CAPI cluster status</span>
           </div>
@@ -29,7 +30,7 @@
             :data="box.clusterData"
             :title="box.clusterName"
           />
-        </div>
+        </div> -->
       </div>
       <t-overview-right-panel />
     </div>
@@ -51,7 +52,7 @@
 <script lang="ts">
 import { ref } from "@vue/reactivity";
 import TIcon from "@/components/common/Icon/TIcon.vue";
-import TOverviewClusterStatusBox from "./components/TOverviewClusterStatusBox/TOverviewClusterStatusBox.vue";
+// import TOverviewClusterStatusBox from "./components/TOverviewClusterStatusBox/TOverviewClusterStatusBox.vue";
 import TOverviewNodesUsage from "./components/TOverviewNodesUsage.vue";
 import TOverviewRightPanel from "./components/TOverviewRightPanel/TOverviewRightPanel.vue";
 import TOverviewErrorView from "./components/TOverviewErrorView.vue";
@@ -60,7 +61,7 @@ export default {
     TIcon,
     TOverviewNodesUsage,
     TOverviewRightPanel,
-    TOverviewClusterStatusBox,
+    // TOverviewClusterStatusBox,
     TOverviewErrorView,
   },
   setup() {
@@ -107,22 +108,19 @@ export default {
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info:
-                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: true,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info:
-                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info:
-                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: true,
               },
             ],
@@ -135,22 +133,19 @@ export default {
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info:
-                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: true,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info:
-                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info:
-                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
             ],
@@ -168,22 +163,19 @@ export default {
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info:
-                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: true,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info:
-                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info:
-                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
             ],
@@ -196,22 +188,19 @@ export default {
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info:
-                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: true,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info:
-                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info:
-                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
             ],
@@ -229,22 +218,19 @@ export default {
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info:
-                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: true,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info:
-                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info:
-                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
             ],
@@ -257,22 +243,19 @@ export default {
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info:
-                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: true,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info:
-                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
               {
                 date: "12/01/2021",
                 time: "17:00:12",
-                info:
-                  "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
+                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
                 isError: false,
               },
             ],

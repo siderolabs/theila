@@ -85,7 +85,7 @@ export default {
 
 <style scoped>
 .menu {
-  @apply relative z-20;
+  @apply relative z-10;
   min-width: 135px;
 }
 .menu__button {

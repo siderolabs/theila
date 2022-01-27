@@ -261,6 +261,9 @@ export default {
 </script>
 
 <style scoped>
+.overview {
+  @apply w-full;
+}
 .overview__heading {
   @apply flex w-full justify-between mb-9 flex-row flex-wrap;
 }

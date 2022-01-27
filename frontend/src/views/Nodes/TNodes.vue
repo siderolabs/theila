@@ -1,5 +1,6 @@
 <template>
   <div class="nodes">
+    <t-modal />
     <t-watch
       :resource="{ type: kubernetes.node }"
       showCount
@@ -26,10 +27,12 @@ import { getContext } from "@/context";
 import { kubernetes } from "@/api/resources";
 import TWatch from "@/components/common/Watch/TWatch.vue";
 import TNodesContent from "./components/TNodesContent.vue";
+import TModal from "@/components/TModal.vue";
 export default {
   components: {
     TWatch,
     TNodesContent,
+    TModal,
   },
   setup() {
     return {
@@ -42,7 +45,7 @@ export default {
 
 <style scoped>
 .nodes {
-  @apply flex flex-col;
+  @apply flex flex-col w-full;
 }
 .nodes__heading {
   @apply flex flex-col mb-5;

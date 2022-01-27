@@ -226,6 +226,9 @@ export default {
     [getName("question")]: defineAsyncComponent(() =>
       import("../../icons/IconQuestion.vue")
     ),
+    [getName("upgrade-empty-state")]: defineAsyncComponent(() =>
+      import("../../icons/IconUpgradeEmptyState.vue")
+    ),
   },
   computed: {
     getIcon() {

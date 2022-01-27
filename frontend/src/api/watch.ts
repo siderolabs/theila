@@ -110,6 +110,7 @@ export default class Watch {
       context,
       kubernetes,
       talos,
+      theila,
       compareFn,
     } = toRefs(props);
 
@@ -118,6 +119,7 @@ export default class Watch {
       context,
       kubernetes,
       talos,
+      theila,
       compareFn,
       ctx.current,
     ], (val, oldVal) => {
@@ -139,7 +141,10 @@ export default class Watch {
         source = Runtime.Kubernetes;
       } else if(talos.value) {
         source = Runtime.Talos;
-      } else {
+      }  else if(theila.value) {
+        source = Runtime.Theila;
+      }
+      else {
         throw new Error("unknown source specified");
       }
 

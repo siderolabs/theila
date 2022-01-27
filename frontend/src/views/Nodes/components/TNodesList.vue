@@ -22,7 +22,7 @@ import TNodesItem from "./TNodesItem.vue";
 import TGroupAnimation from "@/components/common/Animation/TGroupAnimation.vue";
 import { computed, toRefs } from "@vue/reactivity";
 import { TNodesViewFilterOptions } from "@/constants";
-import { getStatus } from "@/methods";
+import { getField, getStatus } from "@/methods";
 
 export default {
   components: { TNodesItem, TGroupAnimation },
@@ -36,15 +36,53 @@ export default {
     const filteredNodesList = computed(() => {
       return filterOption.value !== TNodesViewFilterOptions.ALL
         ? items?.value?.filter((elem) => {
+            const addresses = getField(elem, "status", "addresses");
+            if (!addresses) return "unknown";
+
+            let addr;
+            for (const a of addresses) {
+              if (a.type == "InternalIP") {
+                addr = a.address;
+              }
+
+              if (a.type == "ExternalIP") {
+                addr = a.address;
+                break;
+              }
+            }
             return (
-              getStatus(elem) === filterOption.value &&
-              elem?.metadata?.name?.includes(searchOption.value)
+              (getStatus(elem) === filterOption.value &&
+                elem?.metadata?.name?.includes(searchOption.value)) ||
+              (getStatus(elem) === filterOption.value &&
+                elem?.status?.nodeInfo?.osImage?.includes(
+                  searchOption.value
+                )) ||
+              (getStatus(elem) === filterOption.value &&
+                addr.includes(searchOption.value))
             );
           })
         : searchOption.value?.length === 0
         ? items?.value
         : items?.value?.filter((elem) => {
-            return elem?.metadata?.name?.includes(searchOption.value);
+            const addresses = getField(elem, "status", "addresses");
+            if (!addresses) return "unknown";
+
+            let addr;
+            for (const a of addresses) {
+              if (a.type == "InternalIP") {
+                addr = a.address;
+              }
+
+              if (a.type == "ExternalIP") {
+                addr = a.address;
+                break;
+              }
+            }
+            return (
+              elem?.metadata?.name?.includes(searchOption.value) ||
+              elem?.status?.nodeInfo?.osImage?.includes(searchOption.value) ||
+              addr.includes(searchOption.value)
+            );
           });
     });
     return {

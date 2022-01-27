@@ -34,7 +34,6 @@ export default {
   setup() {
     const isActionsDropdownOpened = ref(false);
     const settingsButton = ref(null);
-
     return {
       isActionsDropdownOpened,
       settingsButton,

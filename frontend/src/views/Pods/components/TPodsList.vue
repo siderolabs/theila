@@ -1,6 +1,10 @@
 <template>
   <div class="list__wrapper">
-    <t-pagination :items="filteredItems" :perPage="PAGINATION_PER_PAGE">
+    <t-pagination
+      :items="filteredItems"
+      :perPage="PAGINATION_PER_PAGE"
+      :searchOption="searchOption"
+    >
       <template #default="{ paginatedItems }">
         <div class="list">
           <t-pods-item
@@ -39,18 +43,34 @@ export default {
     const { items, filterOption, searchOption } = toRefs(props);
 
     const filteredItems = computed(() => {
-      return filterOption.value !== TPodsViewFilterOptions.ALL
-        ? items?.value?.items.filter((elem) => {
-            return (
-              elem?.status?.phase === filterOption.value &&
-              elem?.metadata?.name?.includes(searchOption.value)
-            );
-          })
-        : searchOption.value?.length === 0
-        ? items?.value?.items
-        : items?.value?.items.filter((elem) => {
-            return elem?.metadata?.name?.includes(searchOption.value);
-          });
+      if (filterOption.value !== TPodsViewFilterOptions.ALL) {
+        return items?.value?.items.filter((elem) => {
+          if (
+            elem?.status?.phase === filterOption.value &&
+            elem?.metadata?.name?.includes(searchOption.value)
+          ) {
+            return true;
+          } else if (
+            elem?.status?.phase === filterOption.value &&
+            elem?.metadata?.namespace?.includes(searchOption.value)
+          ) {
+            return true;
+          } else if (
+            elem?.status?.phase === filterOption.value &&
+            elem?.spec?.nodeName?.includes(searchOption.value)
+          ) {
+            return true;
+          }
+        });
+      } else if (searchOption.value?.length != 0) {
+        return items?.value?.items.filter((elem) => {
+          return (
+            elem?.metadata?.name?.includes(searchOption.value) ||
+            elem?.metadata?.namespace?.includes(searchOption.value) ||
+            elem?.spec?.nodeName?.includes(searchOption.value)
+          );
+        });
+      } else return items?.value?.items;
     });
     return {
       filteredItems,

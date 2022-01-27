@@ -76,6 +76,11 @@ export default {
                 iconTypeValue: "error",
                 iconColor: "#FF5C56",
               };
+            case TCommonStatuses.ERROR:
+              return {
+                iconTypeValue: "error",
+                iconColor: "#FF5C56",
+              };
             case TNodesViewFilterOptions.NOT_READY:
               return {
                 iconTypeValue: "time",
@@ -95,6 +100,26 @@ export default {
               return {
                 iconTypeValue: "error",
                 iconColor: "#FF5C56",
+              };
+            case TCommonStatuses.ON:
+              return {
+                iconTypeValue: "dot",
+                iconColor: "#69C297",
+              };
+            case TCommonStatuses.OFF:
+              return {
+                iconTypeValue: "dot",
+                iconColor: "#7D7D85",
+              };
+            case TCommonStatuses.TRUE:
+              return {
+                iconTypeValue: "check-in-circle-classic",
+                iconColor: "#7D7D85",
+              };
+            case TCommonStatuses.FALSE:
+              return {
+                iconTypeValue: "error",
+                iconColor: "#7D7D85",
               };
           }
         }

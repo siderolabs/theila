@@ -11,6 +11,11 @@
         class="notification__icon notification__error-icon"
         icon="error"
       />
+      <t-icon
+        v-if="type === 'success'"
+        class="notification__icon notification__success-icon"
+        icon="check-in-circle-classic"
+      />
       <div class="notification__content-box">
         <h2
           class="notification__title"
@@ -18,11 +23,12 @@
         >
           {{ title }}
         </h2>
-        <p class="notification__description">{{ description }}</p>
+        <p class="notification__description">{{ body }}</p>
       </div>
     </div>
     <div class="notification__button-box">
-      <t-button
+      <!-- Todo -->
+      <!-- <t-button
         type="subtle"
         icon="arrow-right"
         iconPosition="right"
@@ -30,11 +36,15 @@
         @click="$emit('onLeftButtonClick')"
       >
         View details</t-button
-      >
+      > -->
       <t-button
         type="primary"
         class="notification__right-button"
-        @click="$emit('onRightButtonClick')"
+        @click="
+          () => {
+            abort ? abort() : close();
+          }
+        "
         >{{ buttonTitle }}</t-button
       >
     </div>
@@ -44,20 +54,28 @@
 <script lang="ts">
 import TButton from "../Button/TButton.vue";
 import TIcon from "../Icon/TIcon.vue";
+import { modal } from "@/modal";
+import { useRoute, useRouter } from "vue-router";
+import { watch } from "@vue/runtime-core";
 export default {
   components: { TButton, TIcon },
   props: {
     type: {
       validator(value: string) {
-        return ["error", "in-progress"].indexOf(value) !== -1;
+        return (
+          ["error", "in-progress", "success", "info"].indexOf(value) !== -1
+        );
       },
       default: "in-progress",
     },
     title: {
       type: String,
     },
-    description: {
+    body: {
       type: String,
+    },
+    abort: {
+      type: Function,
     },
     buttonTitle: {
       validator(value: string) {
@@ -72,19 +90,44 @@ export default {
       type: Function,
     },
   },
+  setup() {
+    const route = useRoute();
+    const router = useRouter();
+
+    watch(
+      () => route.query,
+      () => {
+        modal.value = null;
+      }
+    );
+    return {
+      close() {
+        if (route.query.modal) router.go(-1);
+        modal.value = null;
+      },
+    };
+  },
 };
 </script>
 
 <style scoped>
 .notification {
-  @apply w-full flex justify-between items-center py-4 px-6 bg-naturals-N0 rounded;
+  @apply w-full flex justify-between items-center py-4 px-6 bg-naturals-N0 rounded z-30 border border-naturals-N5;
   min-height: 65px;
 }
 .notification--in-progress {
-  @apply border-l-4 border-yellow-Y3;
+  @apply border-l-4;
+  --tw-border-opacity: 1;
+  border-left-color: rgba(169, 120, 9, var(--tw-border-opacity));
 }
 .notification--error {
-  @apply border-l-4 border-red-R2;
+  @apply border-l-4;
+  --tw-border-opacity: 1;
+  border-left-color: rgba(110, 47, 48, var(--tw-border-opacity));
+}
+.notification--success {
+  @apply border-l-4;
+  border-left-color: #69c297;
 }
 .notification__wrapper {
   @apply flex items-center;
@@ -103,6 +146,10 @@ export default {
 .notification__error-icon {
   @apply text-red-R1;
 }
+.notification__success-icon {
+  @apply text-green-G1;
+}
+
 .notification__title {
   @apply text-sm font-medium text-naturals-N14;
 }

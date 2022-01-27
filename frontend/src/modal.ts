@@ -3,7 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import { ref, Ref, Component } from 'vue';
-import TNotification from './components/TNotification.vue';
+import TNotification from '@/components/common/Notification/TNotification.vue';
 
 export type Modal = {
   component: Component,
@@ -18,6 +18,7 @@ export const showError = (title: string, body: string) => {
     props: {
       title: title,
       body: body,
+      type:'error',
       error: true,
     }
   }
@@ -29,6 +30,7 @@ export const showInfo = (title: string, body: string) => {
     props: {
       title: title,
       body: body,
+      type:'info',
       info: true,
     }
   }
@@ -40,7 +42,20 @@ export const showSuccess = (title: string, body: string) => {
     props: {
       title: title,
       body: body,
-      success: true,
+      type:'success',
+      success: true
+    }
+  }
+};
+export const ShowInProgress = (title: string, body: string, abort?: ()=>void) => {
+  modal.value = {
+    component: TNotification,
+    props: {
+      title: title,
+      body: body,
+      type: 'in-progress',
+      buttonTitle: 'Abort',
+      abort: abort,
     }
   }
 };

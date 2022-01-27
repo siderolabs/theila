@@ -1,49 +1,58 @@
 <template>
   <div class="menu">
-    <Listbox v-model="selectedItem">
-      <ListboxButton class="menu__button">
-        <div>
-          <span class="menu__button-version">{{ selectedItem.version }}</span>
-          <span v-show="selectedItem.currentVersion" class="menu__current"
-            >Current Version</span
+    <t-spinner v-show="!selectedItem && !isUpgrading" />
+    <t-animation>
+      <div v-show="selectedItem">
+        <Listbox :disabled="isUpgrading" v-model="selectedItem">
+          <ListboxButton
+            class="menu__button"
+            :class="{ disabled: isUpgrading }"
           >
-        </div>
-        <t-icon class="menu__arrow" icon="arrow-down" />
-      </ListboxButton>
-      <t-animation>
-        <ListboxOptions class="menu__items">
-          <div class="menu__items-wrapper">
-            <div
-              @click="$emit('checkedValue', item)"
-              v-for="(item, idx) in mockData"
-              :key="idx"
-            >
-              <ListboxOption
-                v-slot="{ active, selected }"
-                class="menu__item"
-                :value="item"
+            <div v-show="!isUpgrading">
+              <span class="menu__button-version">{{ selectedItem }}</span>
+              <span
+                v-show="selectedItem && selectedItem === current"
+                class="menu__current"
+                >Current Version</span
               >
-                <div class="menu__item-wrapper">
-                  <span class="menu__item-text" :class="{ active: active }"
-                    >{{ item.version }}
-                    <span
-                      v-if="item.currentVersion"
-                      class="menu__current-version"
-                      >Current Version</span
-                    ></span
-                  >
-                  <t-icon
-                    icon="check"
-                    class="menu__check-icon"
-                    v-show="selected"
-                  />
-                </div>
-              </ListboxOption>
             </div>
-          </div>
-        </ListboxOptions>
-      </t-animation>
-    </Listbox>
+            <div v-show="isUpgrading">
+              <span class="menu__current">Upgrade is in process...</span>
+            </div>
+
+            <t-icon class="menu__arrow" icon="arrow-down" />
+          </ListboxButton>
+          <t-animation>
+            <ListboxOptions class="menu__items">
+              <div class="menu__items-wrapper">
+                <div
+                  @click="$emit('checkedValue', item)"
+                  v-for="(item, idx) in versions"
+                  :key="idx"
+                >
+                  <ListboxOption
+                    v-slot="{ active, selected }"
+                    class="menu__item"
+                    :value="item"
+                  >
+                    <div class="menu__item-wrapper">
+                      <span class="menu__item-text" :class="{ active: active }"
+                        >{{ item }}
+                      </span>
+                      <t-icon
+                        icon="check"
+                        class="menu__check-icon"
+                        v-show="selected"
+                      />
+                    </div>
+                  </ListboxOption>
+                </div>
+              </div>
+            </ListboxOptions>
+          </t-animation>
+        </Listbox>
+      </div>
+    </t-animation>
   </div>
 </template>
 
@@ -55,8 +64,10 @@ import {
   ListboxOption,
 } from "@headlessui/vue";
 import TIcon from "@/components/common/Icon/TIcon.vue";
-import { ref } from "@vue/reactivity";
+import { ref, toRefs } from "@vue/reactivity";
 import TAnimation from "@/components/common/Animation/TAnimation.vue";
+import { watch } from "@vue/runtime-core";
+import TSpinner from "@/components/common/Spinner/TSpinner.vue";
 
 export default {
   components: {
@@ -66,19 +77,22 @@ export default {
     ListboxOption,
     TIcon,
     TAnimation,
+    TSpinner,
   },
   emits: ["checkedValue"],
-  setup() {
-    const mockData = [
-      { version: "1.22.0-alpha.1" },
-      { version: "1.22.0.2", currentVersion: true },
-      { version: "1.22.0-alpha.3" },
-      { version: "1.22.0-alpha.0" },
-    ];
-    const selectedItem = ref(mockData[1]);
+  props: { versions: Array, current: String, isUpgrading: Boolean },
+  setup(props) {
+    const { current } = toRefs(props);
+
+    const selectedItem: any = ref("");
+    watch(
+      () => props.versions,
+      () => {
+        selectedItem.value = current.value;
+      }
+    );
     return {
       selectedItem,
-      mockData,
     };
   },
 };
@@ -86,7 +100,8 @@ export default {
 
 <style scoped>
 .menu {
-  @apply mb-8 relative;
+  @apply mb-8 relative flex flex-col justify-center;
+  min-height: 40px;
 }
 .menu__button {
   @apply w-full bg-naturals-N2 rounded border border-naturals-N7 flex justify-between items-center text-xs text-naturals-N13;
@@ -133,5 +148,8 @@ export default {
 }
 .menu__check-icon {
   @apply w-3 h-3 fill-current text-naturals-N14;
+}
+.disabled {
+  @apply cursor-not-allowed;
 }
 </style>

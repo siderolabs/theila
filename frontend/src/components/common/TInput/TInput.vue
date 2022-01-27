@@ -12,7 +12,7 @@
   >
     <t-icon class="input-box__icon" icon="search" />
     <input
-      @input="() => $emit('input', inputValue)"
+      @input="() => $emit('input', inputValue.trim())"
       ref="input"
       v-model="inputValue"
       type="text"

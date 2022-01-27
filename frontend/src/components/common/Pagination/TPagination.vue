@@ -34,6 +34,7 @@
 <script>
 import TIcon from "@/components/common/Icon/TIcon.vue";
 import { computed, ref, toRefs } from "@vue/reactivity";
+import { watch } from "@vue/runtime-core";
 
 export default {
   components: {
@@ -45,9 +46,10 @@ export default {
       type: Number,
       default: 8,
     },
+    searchOption: String,
   },
   setup(props) {
-    const { items, perPage } = toRefs(props);
+    const { items, perPage, searchOption } = toRefs(props);
     const DOTS = "...";
     const currentPage = ref(1);
     const totalPageCount = computed(() => {
@@ -114,6 +116,12 @@ export default {
         currentPage.value = value;
       }
     };
+    watch(
+      () => searchOption.value,
+      () => {
+        currentPage.value = 1;
+      }
+    );
     return {
       DOTS,
       paginationRange,

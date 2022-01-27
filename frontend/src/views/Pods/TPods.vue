@@ -2,7 +2,7 @@
   <t-watch kubernetes :context="ctx" :resource="{ type: kubernetes.pod }">
     <template #default="items">
       <div class="pods">
-        <h3 class="pods__header">All Podes</h3>
+        <h3 class="pods__header">All Pods</h3>
         <div class="pods__search-box">
           <t-input
             @input.self="setInputValue"
@@ -10,7 +10,6 @@
             placeholder="Search..."
             @clearInput="setInputValue"
           />
-          <t-pods-select-list @checkedValue="setFilterOption" />
           <t-select-list
             @checkedValue="setFilterOption"
             title="Phase"

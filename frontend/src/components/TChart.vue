@@ -5,24 +5,33 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <template>
   <div class="flex flex-col">
-    <div v-if="title" class="w-full text-center">{{ title }}</div>
+    <div v-if="title" class="w-full text-center text-naturals-N13">
+      {{ title }}
+    </div>
     <div class="flex-1">
-      <div v-if="err || loading" class="flex flex-row justify-center items-center w-full h-full">
-        <div v-if="err" class="flex justify-center items-center w-1/2 gap-4 text-talos-gray-500 text-sm">
+      <div
+        v-if="err || loading"
+        class="flex flex-row justify-center items-center w-full h-full"
+      >
+        <div
+          v-if="err"
+          class="flex justify-center items-center w-1/2 gap-4 text-talos-gray-500 text-sm"
+        >
           <div class="flex-0">
-            <exclamation-icon class="w-6 h-6"/>
+            <exclamation-icon class="w-6 h-6" />
           </div>
           <div>{{ err }}</div>
         </div>
-        <t-spinner v-else/>
+        <t-spinner v-else />
       </div>
-      <apexchart v-else
+      <apexchart
+        v-else
         width="100%"
         height="100%"
         :type="type"
         :options="options"
         :series="series"
-        />
+      />
     </div>
   </div>
 </template>
@@ -213,7 +222,7 @@ export default {
             }
           },
         },
-        xaxis:{ 
+        xaxis:{
           type: "datetime",
           labels: {
             datetimeFormatter: {

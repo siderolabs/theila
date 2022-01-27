@@ -1,4 +1,5 @@
 <template>
+  <t-modal />
   <t-watch
     :resource="{ type: kubernetes.node }"
     showCount
@@ -17,8 +18,9 @@ import { getContext } from "@/context";
 import { kubernetes } from "@/api/resources";
 import TWatch from "@/components/common/Watch/TWatch.vue";
 import TNodesOverviewContent from "./components/TNodesOverviewContent.vue";
+import TModal from "@/components/TModal.vue";
 export default {
-  components: { TWatch, TNodesOverviewContent },
+  components: { TWatch, TNodesOverviewContent, TModal },
   setup() {
     return {
       getContext,

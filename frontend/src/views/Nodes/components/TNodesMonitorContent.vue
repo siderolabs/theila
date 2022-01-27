@@ -96,6 +96,9 @@ export default {
 </script>
 
 <style scoped>
+.monitor {
+  @apply w-full;
+}
 .monitor__heading {
   @apply flex w-full justify-between mb-9 flex-row flex-wrap;
 }

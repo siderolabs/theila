@@ -1,15 +1,22 @@
 <template>
-  <div v-if="!!resourceWatch">
+  <div class="watch" v-if="!!resourceWatch">
     <div
       v-if="loading"
       class="flex flex-row justify-center items-center w-full h-full"
     >
-      <t-spinner />
+      <t-spinner class="spinner" />
     </div>
-    <t-alert v-else-if="err" title="Failed to Fetch Data" type="error">
+    <t-alert
+      v-else-if="errorNotificationStatus && err"
+      title="Failed to Fetch Data"
+      type="error"
+    >
       {{ err }}.
     </t-alert>
-    <t-alert v-else-if="items.length == 0" type="info" title="No Records"
+    <t-alert
+      v-else-if="recordsNotificationStatus && items.length == 0"
+      type="info"
+      title="No Records"
       >No entries of the requested resource type are found on the
       server.</t-alert
     >
@@ -24,7 +31,7 @@ import Watch from "@/api/watch";
 import { context as ctx } from "@/context";
 import { ref } from "@vue/reactivity";
 import TAlert from "@/components/TAlert.vue";
-import TSpinner from "@/components/TSpinner.vue";
+import TSpinner from "@/components/common/Spinner/TSpinner.vue";
 export default {
   components: { TAlert, TSpinner },
   props: {
@@ -34,6 +41,15 @@ export default {
     talos: Boolean,
     watch: Object,
     itemName: String,
+    theila: Boolean,
+    recordsNotificationStatus: {
+      type: Boolean,
+      default: true,
+    },
+    errorNotificationStatus: {
+      type: Boolean,
+      default: true,
+    },
   },
   setup(props, context) {
     const resourceWatch = props.watch
@@ -54,7 +70,13 @@ export default {
 </script>
 
 <style scoped>
+.watch {
+  @apply w-full h-full;
+}
 .wrapper {
   @apply w-full h-full;
+}
+.spinner {
+  @apply absolute top-2/4;
 }
 </style>
