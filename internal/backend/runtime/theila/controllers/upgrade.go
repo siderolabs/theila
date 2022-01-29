@@ -354,7 +354,7 @@ func (t *upgradeTask) start(ctx context.Context, task *resources.UpgradeK8sTask,
 		return err
 	}
 
-	if err := r.Modify(ctx, resources.NewTaskStatus(Namespace, id), func(res resource.Resource) error {
+	if err := r.Modify(ctx, resources.NewTaskStatus(namespace, id), func(res resource.Resource) error {
 		res.(*resources.TaskStatus).SetVersions(upgradeOptions.FromVersion, upgradeOptions.ToVersion)
 		res.(*resources.TaskStatus).SetPhase(rpc.TaskStatusSpec_RUNNING)
 
