@@ -1,7 +1,11 @@
 <template>
-  <div class="item" :class="isDropdownOpened && 'item__opened'">
+  <div class="item" :class="isDropdownOpened && 'item__opened'" ref="elemRef">
     <div class="item__wrapper">
-      <div class="item__icon-wrapper" @click="toggleDropdown">
+      <div
+        v-show="isClusterDropdownSubItemsVisible"
+        class="item__icon-wrapper"
+        @click="toggleDropdown"
+      >
         <t-icon
           class="item__arrow-right"
           :class="isDropdownOpened && 'item__arrow-right--pushed'"
@@ -9,9 +13,9 @@
         />
       </div>
       <p
+        @click="switchContext(context)"
         class="item__name"
         :class="isNameChecked && 'item__name--checked'"
-        @click="toggleNameCheckStatus"
       >
         {{ name }}
         <t-icon
@@ -22,9 +26,19 @@
       </p>
     </div>
     <t-animation>
-      <div v-show="isDropdownOpened" class="item__list">
+      <div
+        v-show="isClusterDropdownSubItemsVisible"
+        v-if="isDropdownOpened"
+        class="item__list"
+      >
         <div class="item item__list-item">
-          <t-side-bar-cluster-dropdown-sub-item :id="0" name="cluster 2" />
+          <t-side-bar-cluster-dropdown-sub-item
+            v-for="item in clustersItems.items"
+            :key="item?.metadata?.name"
+            :id="item?.metadata?.uid"
+            :name="item?.metadata?.name"
+            :item="item"
+          />
         </div>
       </div>
     </t-animation>
@@ -32,28 +46,47 @@
 </template>
 
 <script lang="ts">
-import { ref } from "@vue/reactivity";
+import { computed, ref, toRefs } from "@vue/reactivity";
 import TIcon from "@/components/common/Icon/TIcon.vue";
 import TAnimation from "@/components/common/Animation/TAnimation.vue";
 import TSideBarClusterDropdownSubItem from "./TSideBarClusterDropdownSubItem.vue";
+import { changeContext, getContext } from "@/context";
+import { useRouter } from "vue-router";
+import { onMounted } from "@vue/runtime-core";
+
 export default {
   components: { TIcon, TAnimation, TSideBarClusterDropdownSubItem },
   props: {
     name: String,
+    isNameChecked: Boolean,
+    context: Object,
+    clusters: Object,
   },
-  setup() {
-    let isDropdownOpened = ref(false);
-    let isNameChecked = ref(false);
+  setup(props) {
+    const { clusters, name } = toRefs(props);
+    const context = getContext();
+    const isCheckedContext = ref(context.name == name.value);
+    const ctx = getContext();
+    let isDropdownOpened = ref();
+    const router = useRouter();
     const toggleDropdown = () =>
       (isDropdownOpened.value = !isDropdownOpened.value);
-    const toggleNameCheckStatus = () =>
-      (isNameChecked.value = !isNameChecked.value);
+    const switchContext = (c) => {
+      changeContext(c);
+      router.push("/");
+    };
+    const elemRef = ref<any>(null);
 
+    onMounted(() => {
+      if (isCheckedContext.value) elemRef.value?.scrollIntoView();
+    });
     return {
       isDropdownOpened,
       toggleDropdown,
-      isNameChecked,
-      toggleNameCheckStatus,
+      switchContext,
+      isClusterDropdownSubItemsVisible: computed(() => props.name == ctx.name),
+      clustersItems: clusters.value,
+      elemRef,
     };
   },
 };

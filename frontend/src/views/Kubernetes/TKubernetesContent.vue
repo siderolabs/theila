@@ -54,19 +54,31 @@
 <script lang="ts">
 import TButton from "@/components/common/Button/TButton.vue";
 import TStatus from "@/components/common/Status/TStatus.vue";
-import { modal } from "@/modal";
-import { useRouter } from "vue-router";
+import { modal, showError, showInProgress } from "@/modal";
+import { useRoute, useRouter } from "vue-router";
 import TIcon from "@/components/common/Icon/TIcon.vue";
-import { computed } from "@vue/reactivity";
+import { computed, Ref, ref, toRefs } from "@vue/reactivity";
 import { DateTime, Duration } from "luxon";
+import { getContext } from "@/context";
+import { onMounted, watch } from "@vue/runtime-core";
+import { ResourceService } from "@/api/grpc";
+import { DefaultNamespace, UpgradeTaskType } from "@/api/resources";
+import { Runtime } from "@/api/common/theila.pb";
+import { Code } from "@/api/google/rpc/code";
+import { getUpgradeID } from "@/methods";
 
 export default {
   components: { TButton, TStatus, TIcon },
   props: {
     items: Object,
   },
-  setup() {
+  setup(props) {
+    const { items } = toRefs(props);
     const router = useRouter();
+    const route = useRoute();
+    const context = getContext();
+    const contextName = context.name;
+    const upgradeID: Ref<string> = ref("");
 
     const getDuration = (start, finish) => {
       if (!!start && !!finish) {
@@ -88,8 +100,52 @@ export default {
     };
     const openUpgrade = () => {
       modal.value = null;
-      router.push({ query: { modal: "upgrade" } });
+      router.push(
+        router.currentRoute.value.query.cluster
+          ? {
+              query: {
+                cluster: route.query.cluster,
+                namespace: route.query.namespace,
+                uid: route.query.uid,
+                modal: "upgrade",
+              },
+            }
+          : { query: { modal: "upgrade" } }
+      );
     };
+
+    const abort = async () => {
+      showInProgress(`${contextName} is aborting`, "", null, true);
+      try {
+        await ResourceService.Delete(
+          {
+            namespace: DefaultNamespace,
+            id: upgradeID.value,
+            type: UpgradeTaskType,
+          },
+          {
+            runtime: Runtime.Theila,
+          }
+        );
+      } catch (e: any) {
+        if (e.code !== Code.NOT_FOUND) {
+          showError("Failed to abort upgrade", e.toString());
+        }
+      }
+    };
+
+    onMounted(async () => {
+      upgradeID.value = await getUpgradeID();
+    });
+
+    watch(
+      () => items.value?.items?.at(-1)?.spec?.phase,
+      () => {
+        if (items.value?.items?.at(-1)?.spec?.phase == 1) {
+          showInProgress(`${contextName} is upgrading`, "", abort);
+        }
+      }
+    );
 
     return {
       getStatus,

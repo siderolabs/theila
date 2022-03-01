@@ -6,6 +6,7 @@
       <ul class="logs__list">
         <t-menu-item
           icon="log"
+          :isItemVisible="true"
           v-for="service in services"
           :name="service?.metadata?.id"
           :key="service?.metadata?.id"

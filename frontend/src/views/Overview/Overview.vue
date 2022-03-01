@@ -1,315 +1,99 @@
 <template>
-  <div>
-    <div v-if="!isNoConnection && !isFailedAuth" class="overview">
-      <div class="overview__container">
-        <div class="overview__title-box">
-          <h2 class="overview__title">talos-GCP-US-oprkf</h2>
-          <t-icon class="overview__icon" icon="edit" />
-        </div>
-        <div class="overview__usage-list">
-          <div class="overview__box-header">
-            <span class="overview__box-title">Node Usage</span>
-            <span class="overview__usage-subtitle">Top 5</span>
-          </div>
-          <t-overview-nodes-usage
-            v-for="(data, index) in mockNodesUsageData"
-            :key="index"
-            :title="data.title"
-            :id="data.id"
-            :amount="data.amount"
-          />
-        </div>
-        <!-- Todo -->
-        <!-- <div class="overview__status-box">
-          <div class="overview__box-header">
-            <span class="overview__box-title">CAPI cluster status</span>
-          </div>
-          <t-overview-cluster-status-box
-            v-for="(box, idx) in mockNodesStatusData"
-            :key="idx"
-            :data="box.clusterData"
-            :title="box.clusterName"
-          />
-        </div> -->
-      </div>
-      <t-overview-right-panel />
-    </div>
-    <t-overview-error-view
-      v-if="isNoConnection"
-      title="We cannot get information about the “talos-GCP-US-oprkf”"
-      subtitle="There is no connection to this cluster"
-      iconName="no-connection"
-    />
-    <t-overview-error-view
-      v-if="isFailedAuth"
-      title="We cannot get information about the “talos-GCP-US-oprkf”"
-      subtitle="Authentication failed"
-      iconName="fail-auth"
-    />
-  </div>
+  <t-watch
+    :resource="{ type: TaskStatusType, namespace: upgradeID }"
+    theila
+    :context="getContext()"
+    :recordsNotificationStatus="false"
+    :isSpinnerActive="false"
+  >
+    <template #default="items">
+      <t-overview-content
+        :nodesItems="nodesItems"
+        :clustersItems="clustersItems"
+        :podsItems="podsItems"
+        :currVersion="currVersion"
+        :upgradesList="items.items"
+      />
+    </template>
+  </t-watch>
 </template>
 
 <script lang="ts">
+import Watch from "@/api/watch";
+import { kubernetes, TaskStatusType } from "@/api/resources";
+import { context as ctx, getContext } from "@/context";
+import TOverviewContent from "./components/TOverviewContent.vue";
 import { ref } from "@vue/reactivity";
-import TIcon from "@/components/common/Icon/TIcon.vue";
-// import TOverviewClusterStatusBox from "./components/TOverviewClusterStatusBox/TOverviewClusterStatusBox.vue";
-import TOverviewNodesUsage from "./components/TOverviewNodesUsage.vue";
-import TOverviewRightPanel from "./components/TOverviewRightPanel/TOverviewRightPanel.vue";
-import TOverviewErrorView from "./components/TOverviewErrorView.vue";
+import { ManagementService } from "@/api/grpc";
+import { onMounted } from "@vue/runtime-core";
+import TWatch from "@/components/common/Watch/TWatch.vue";
+import { getUpgradeID } from "@/methods";
 export default {
   components: {
-    TIcon,
-    TOverviewNodesUsage,
-    TOverviewRightPanel,
-    // TOverviewClusterStatusBox,
-    TOverviewErrorView,
+    TOverviewContent,
+    TWatch,
   },
-  setup() {
-    const isNoConnection = ref(false);
-    const isFailedAuth = ref(false);
+  setup(props, context) {
+    const contextData = getContext();
+    const currVersion = ref("");
+    const upgradeID = ref("");
 
-    // Remove mock data below after API connection
-    const mockNodesUsageData = [
+    const resourceNodesWatch = new Watch(ctx.api, ref([]));
+    resourceNodesWatch.setup(
       {
-        title: "ip-10-0-5-151.us-e.name-of-node",
-        id: "10.128.0.44",
-        amount: 5,
+        kubernetes: true,
+        resource: { type: kubernetes.node },
+        context: contextData,
       },
+      context
+    );
+    const resourcePodsWatch = new Watch(ctx.api, ref([]));
+    resourcePodsWatch.setup(
       {
-        title: "ip-10-0-5-151.us-e.name-of-node",
-        id: "10.128.0.44",
-        amount: 5,
+        kubernetes: true,
+        resource: { type: kubernetes.pod },
+        context: contextData,
       },
+      context
+    );
+    const resourceClusterWatch = new Watch(ctx.api, ref([]));
+    resourceClusterWatch.setup(
       {
-        title: "ip-10-0-5-151.us-e.name-of-node",
-        id: "10.128.0.44",
-        amount: 5,
+        kubernetes: true,
+        resource: { type: kubernetes.cluster },
+        context: (getContext().cluster = undefined),
       },
-      {
-        title: "ip-10-0-5-151.us-e.name-of-node",
-        id: "10.128.0.44",
-        amount: 5,
-      },
-      {
-        title: "ip-10-0-5-151.us-e.name-of-node",
-        id: "10.128.0.44",
-        amount: 5,
-      },
-    ];
-    const mockNodesStatusData = [
-      {
-        clusterName: "ClusterInfrastructure - AWSCluster/cluster-2 ",
-        clusterData: [
+      context
+    );
+
+    onMounted(async () => {
+      try {
+        const upgradeInfo = await ManagementService.UpgradeInfo(
+          {},
           {
-            title: "ClusterSecurityGroupsReady",
-            subtitle: "12d",
-            status: false,
-            logs: [
-              {
-                date: "12/01/2021",
-                time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
-                isError: true,
-              },
-              {
-                date: "12/01/2021",
-                time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
-                isError: false,
-              },
-              {
-                date: "12/01/2021",
-                time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
-                isError: true,
-              },
-            ],
-          },
-          {
-            title: "LoadBalancerReady",
-            subtitle: "12d",
-            status: true,
-            logs: [
-              {
-                date: "12/01/2021",
-                time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
-                isError: true,
-              },
-              {
-                date: "12/01/2021",
-                time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
-                isError: false,
-              },
-              {
-                date: "12/01/2021",
-                time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
-                isError: false,
-              },
-            ],
-          },
-        ],
-      },
-      {
-        clusterName: "ControlPlane - TalosControlPlane/cluster-2-controlplane",
-        clusterData: [
-          {
-            title: "ClusterSecurityGroupsReady",
-            subtitle: "12d",
-            status: true,
-            logs: [
-              {
-                date: "12/01/2021",
-                time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
-                isError: true,
-              },
-              {
-                date: "12/01/2021",
-                time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
-                isError: false,
-              },
-              {
-                date: "12/01/2021",
-                time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
-                isError: false,
-              },
-            ],
-          },
-          {
-            title: "LoadBalancerReady",
-            subtitle: "12d",
-            status: true,
-            logs: [
-              {
-                date: "12/01/2021",
-                time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
-                isError: true,
-              },
-              {
-                date: "12/01/2021",
-                time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
-                isError: false,
-              },
-              {
-                date: "12/01/2021",
-                time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
-                isError: false,
-              },
-            ],
-          },
-        ],
-      },
-      {
-        clusterName: "Machine/cluster-2-controlplane-2zh8z",
-        clusterData: [
-          {
-            title: "ClusterSecurityGroupsReady",
-            subtitle: "12d",
-            status: true,
-            logs: [
-              {
-                date: "12/01/2021",
-                time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
-                isError: true,
-              },
-              {
-                date: "12/01/2021",
-                time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
-                isError: false,
-              },
-              {
-                date: "12/01/2021",
-                time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
-                isError: false,
-              },
-            ],
-          },
-          {
-            title: "LoadBalancerReady",
-            subtitle: "12d",
-            status: true,
-            logs: [
-              {
-                date: "12/01/2021",
-                time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
-                isError: true,
-              },
-              {
-                date: "12/01/2021",
-                time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
-                isError: false,
-              },
-              {
-                date: "12/01/2021",
-                time: "17:00:12",
-                info: "user: warning:  [2021-10-04T10:10:54.140381769Z]: [talos] adjusting time (slew) by 107.94728ms via 198.199.75.250, state TIME_OK, status",
-                isError: false,
-              },
-            ],
-          },
-        ],
-      },
-    ];
+            context: contextData,
+          }
+        );
+
+        currVersion.value = upgradeInfo["fromVersion"] || "unknown";
+      } catch (e: any) {
+        console.log("Error:" + e);
+      }
+    });
+    onMounted(async () => {
+      upgradeID.value = await getUpgradeID();
+    });
 
     return {
-      mockNodesUsageData,
-      mockNodesStatusData,
-      isNoConnection,
-      isFailedAuth,
+      getContext,
+      kubernetes,
+      nodesItems: resourceNodesWatch.items,
+      clustersItems: resourceClusterWatch.items,
+      podsItems: resourcePodsWatch.items,
+      currVersion,
+      TaskStatusType,
+      upgradeID,
     };
   },
 };
 </script>
-
-<style scoped>
-.divider {
-  @apply w-full bg-naturals-N4;
-  height: 1px;
-}
-.overview {
-  @apply w-full flex justify-start items-start;
-}
-.overview__container {
-  @apply w-full lg:mr-6 mr-2;
-  max-width: 80%;
-}
-.overview__title-box {
-  @apply flex items-center;
-  margin-bottom: 35px;
-}
-.overview__title {
-  @apply text-xl text-naturals-N14 mr-2;
-}
-.overview__icon {
-  @apply fill-current text-naturals-N14 w-5 h-5 cursor-pointer;
-}
-.overview__usage-list {
-  @apply flex-col py-5 bg-naturals-N2 pb-0 rounded lg:mb-6 mb-2;
-}
-.overview__box-header {
-  @apply flex px-2 mb-4 lg:px-6;
-}
-.overview__box-title {
-  @apply text-xs text-naturals-N13;
-  margin-right: 6px;
-}
-.overview__usage-subtitle {
-  @apply text-xs text-naturals-N10;
-}
-.overview__status-box {
-  @apply w-full bg-naturals-N2 py-5 rounded flex-col pb-0;
-}
-</style>

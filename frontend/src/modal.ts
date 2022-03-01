@@ -47,7 +47,7 @@ export const showSuccess = (title: string, body: string) => {
     }
   }
 };
-export const ShowInProgress = (title: string, body: string, abort?: ()=>void) => {
+export const showInProgress = (title: string, body: string, abort?: (()=>void) | null, isButtonHidden:Boolean = false) => {
   modal.value = {
     component: TNotification,
     props: {
@@ -56,6 +56,7 @@ export const ShowInProgress = (title: string, body: string, abort?: ()=>void) =>
       type: 'in-progress',
       buttonTitle: 'Abort',
       abort: abort,
+      isButtonHidden: isButtonHidden,
     }
   }
 };

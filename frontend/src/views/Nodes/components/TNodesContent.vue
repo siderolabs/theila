@@ -44,6 +44,7 @@ export default {
     const setInputValue = (data) => {
       inputValue.value = data;
     };
+
     return {
       setFilterOption,
       setInputValue,

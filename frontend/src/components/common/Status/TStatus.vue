@@ -96,6 +96,11 @@ export default {
                 iconTypeValue: "question",
                 iconColor: "#7D7D85",
               };
+            case TCommonStatuses.HEALTHY:
+              return {
+                iconTypeValue: "check-in-circle-classic",
+                iconColor: "#69C297",
+              };
             case TCommonStatuses.UNHEALTHY:
               return {
                 iconTypeValue: "error",

@@ -1,13 +1,21 @@
 <template>
-  <header class="theHeader">
-    <div class="theHeader__nav-wrapper">
-      <div class="theHeader__logo-wrapper">
-        <router-link to="/">
-          <t-icon class="theHeader__icon" icon="header-logo" />
-        </router-link>
-      </div>
-      <!-- Todo -->
-      <!-- <nav class="theHeader__nav">
+  <t-watch
+    :resource="{ type: TaskStatusType, namespace: upgradeID }"
+    theila
+    :context="context"
+    :recordsNotificationStatus="false"
+    :isSpinnerActive="false"
+  >
+    <template #default="items">
+      <header class="theHeader">
+        <div class="theHeader__nav-wrapper">
+          <div class="theHeader__logo-wrapper">
+            <router-link to="/">
+              <t-icon class="theHeader__icon" icon="header-logo" />
+            </router-link>
+          </div>
+          <!-- Todo -->
+          <!-- <nav class="theHeader__nav">
         <router-link class="theHeader__dashboard-wrapper" to="/dashboard">
           <t-button
             class="theHeader__nav-name"
@@ -18,43 +26,57 @@
           >
         </router-link>
       </nav> -->
-    </div>
-    <t-dropdown-notifications title="Ongoing Tasks" hasLoader>
-      <t-header-task-item
-        v-for="(task, index) in tasksList"
-        :title="task.title"
-        :time="task.time"
-        :description="task.description"
-        :key="index"
-      />
-    </t-dropdown-notifications>
-  </header>
+        </div>
+
+        <t-dropdown-notifications
+          title="Ongoing Tasks"
+          hasLoader
+          :isLoading="isLoadingPhase(items)"
+        >
+          <t-header-task-item
+            v-show="isLoadingPhase(items)"
+            :title="'Upgrading ' + currentClusterName"
+            :time="items?.items?.at(-1)?.metadata?.updated"
+            :description="''"
+          />
+        </t-dropdown-notifications>
+      </header>
+    </template>
+  </t-watch>
 </template>
 
 <script lang="ts">
 import TIcon from "@/components/common/Icon/TIcon.vue";
 import THeaderTaskItem from "./THeaderTaskItem/THeaderTaskItem.vue";
 import TDropdownNotifications from "@/components/common/Dropdown/TDropdownNotifications.vue";
+import { computed, onMounted, Ref, ref } from "@vue/runtime-core";
+import { getContext } from "@/context";
+import TWatch from "@/components/common/Watch/TWatch.vue";
+import { TaskStatusType } from "@/api/resources";
+import { getUpgradeID } from "@/methods";
 
 export default {
-  components: { TIcon, THeaderTaskItem, TDropdownNotifications },
+  components: { TIcon, THeaderTaskItem, TDropdownNotifications, TWatch },
   setup() {
-    const tasksList = [
-      {
-        title: "Disconnected talos-prod-US-bbkgi (5 nodes)",
-        time: "06:12:22",
-        description:
-          "kubernetes.namespace.name=’istio-system’and kubkubernetes.namespace.name=’istio-system’and kubkubernetes.namespace.name=’istio-system’and kub",
-      },
-      {
-        title: "Disconnected talos-prod-US-bbkgi (5 nodes)",
-        time: "06:12:22",
-        description:
-          "kubernetes.namespace.name=’istio-system’and kubkubernetes.namespace.name=’istio-system’and kubkubernetes.namespace.name=’istio-system’and kub",
-      },
-    ];
+    const upgradeID: Ref<string> = ref("");
+    const context = computed(() => getContext());
+    const isLoadingPhase = (items) => {
+      return items?.items?.at(-1)?.spec?.phase == "1";
+    };
+    onMounted(async () => {
+      upgradeID.value = await getUpgradeID();
+    });
     return {
-      tasksList,
+      context,
+      TaskStatusType,
+      upgradeID,
+      currentClusterName: computed(() =>
+        context.value?.cluster
+          ? context.value?.cluster?.name
+          : context.value?.name
+      ),
+      isLoadingPhase,
+      contextName: context.value.name,
     };
   },
 };

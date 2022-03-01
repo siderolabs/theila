@@ -1,14 +1,19 @@
 <template>
   <div class="dropdown__item item">
-    <div class="item__heading">
+    <div class="item__heading" :class="{ 'mb-1': description.length > 0 }">
       <h3 class="item__title">{{ title }}</h3>
-      <span class="item__time">{{ time }}</span>
+      <span class="item__time">{{
+        DateTime.fromISO(time).toFormat("HH:mm:ss")
+      }}</span>
     </div>
-    <p class="item__description truncate">{{ description }}</p>
+    <p v-if="description.length > 0" class="item__description truncate">
+      {{ description }}
+    </p>
   </div>
 </template>
 
 <script lang="ts">
+import { DateTime } from "luxon";
 export default {
   props: {
     title: {
@@ -21,6 +26,11 @@ export default {
       type: String,
     },
   },
+  setup() {
+    return {
+      DateTime,
+    };
+  },
 };
 </script>
 
@@ -30,7 +40,7 @@ export default {
   width: 361px;
 }
 .item__heading {
-  @apply flex justify-between mb-2;
+  @apply flex justify-between items-center;
 }
 .item__title {
   @apply text-xs text-naturals-N13 w-9/12;

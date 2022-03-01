@@ -1,39 +1,59 @@
 <template>
-  <p
-    class="name"
-    :class="(isChecked && 'name__checked', !isLoading && 'name__pushed')"
-    @click="$emit('click', id)"
+  <router-link
+    :to="{
+      name: 'Nodes',
+      query: {
+        cluster: item?.metadata?.name,
+        namespace: item?.metadata?.namespace,
+        uid: item?.metadata?.uid,
+      },
+    }"
+    class="block overflow-visible"
   >
-    <t-icon
-      v-show="isLoading"
-      class="name__loading animate-spin"
-      icon="loading"
-      :class="{ 'name__check--checked': isChecked }"
-    />
-    {{ name }}
-    <t-icon
-      class="name__check"
-      icon="check"
-      :class="{ 'name__check--checked': isChecked }"
-    />
-  </p>
+    <p
+      class="name"
+      :class="(isItemSelected && 'name__checked', !isLoading && 'name__pushed')"
+      @click="$emit('click', id)"
+    >
+      <t-icon
+        v-show="isLoading"
+        class="name__loading animate-spin"
+        icon="loading"
+        :class="{ 'name__check--checked': isItemSelected }"
+      />
+      {{ name }}
+      <t-icon
+        class="name__check"
+        icon="check"
+        :class="{ 'name__check--checked': isItemSelected }"
+      />
+    </p>
+  </router-link>
 </template>
 
 <script lang="ts">
 import TIcon from "@/components/common/Icon/TIcon.vue";
+import { useRoute } from "vue-router";
+import { computed, toRefs } from "@vue/reactivity";
 export default {
   components: { TIcon },
   props: {
-    id: Number,
+    id: String,
     name: String,
-    isChecked: {
-      type: Boolean,
-      default: false,
-    },
     isLoading: {
       type: Boolean,
       default: false,
     },
+    item: Object,
+  },
+  setup(props) {
+    const { name } = toRefs(props);
+    const route = useRoute();
+    return {
+      isItemSelected: computed(() => {
+        return route.query.cluster == name.value ? true : false;
+      }),
+    };
   },
 };
 </script>

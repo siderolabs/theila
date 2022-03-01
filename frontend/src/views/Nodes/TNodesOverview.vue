@@ -1,5 +1,4 @@
 <template>
-  <t-modal />
   <t-watch
     :resource="{ type: kubernetes.node }"
     showCount
@@ -8,7 +7,8 @@
     :context="getContext()"
   >
     <template #default="items">
-      <t-nodes-overview-content :items="items.items" />
+      <t-modal />
+      <t-nodes-overview-content :items="items.items" class="pt-2" />
     </template>
   </t-watch>
 </template>

@@ -34,18 +34,6 @@ const withPrefix = (prefix, routes) =>
 export function getBreadcrumbs(route) {
   const crumbs: Object[] = [];
 
-  if (
-    route.query &&
-    route.query.cluster &&
-    route.query.uid &&
-    route.query.namespace
-  ) {
-    crumbs.push({
-      text: "Clusters",
-      to: "/clusters",
-    });
-  }
-
   if (route.params.node) {
     crumbs.push(
       {

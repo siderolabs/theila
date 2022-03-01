@@ -271,7 +271,7 @@ export default {
   @apply xl:mb-0 mb-3;
 }
 .overview__heading-buttons {
-  @apply flex;
+  @apply flex justify-end;
 }
 .overview__heading-button {
   @apply text-naturals-N13;

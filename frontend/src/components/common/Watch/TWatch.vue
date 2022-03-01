@@ -1,7 +1,7 @@
 <template>
   <div class="watch" v-if="!!resourceWatch">
     <div
-      v-if="loading"
+      v-if="isSpinnerActive && loading"
       class="flex flex-row justify-center items-center w-full h-full"
     >
       <t-spinner class="spinner" />
@@ -47,6 +47,10 @@ export default {
       default: true,
     },
     errorNotificationStatus: {
+      type: Boolean,
+      default: true,
+    },
+    isSpinnerActive: {
       type: Boolean,
       default: true,
     },

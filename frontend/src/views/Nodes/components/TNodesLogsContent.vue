@@ -241,7 +241,7 @@ export default {
   @apply xl:mb-0 mb-3;
 }
 .logs__heading-buttons {
-  @apply flex;
+  @apply flex justify-end;
 }
 .logs__heading-button {
   @apply text-naturals-N13;

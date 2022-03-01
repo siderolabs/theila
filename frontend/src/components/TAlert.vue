@@ -7,10 +7,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
   <div :class="classes" v-if="!closed">
     <div class="flex">
       <div class="flex-shrink-0" id="icon">
-        <component :is="'icon-' + type"/>
+        <component :is="'icon-' + type" />
       </div>
       <div class="ml-3">
-        <h3 id="title">{{title}}</h3>
+        <h3 id="title">{{ title }}</h3>
         <div id="description">
           <p>
             <slot></slot>
@@ -19,8 +19,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       </div>
       <div class="pl-3 ml-auto" v-if="withDismiss">
         <div class="-mx-1.5 -my-1.5">
-          <button type="button" @click="closed = true" id="dismiss" class="hover:bg-black dark:hover:bg-white hover:bg-opacity-10 focus:bg-black dark:focus:bg-white focus:outline-none focus:bg-opacity-10 focus:shadow-outline">
-            <span class="sr-only">Dismiss</span><x-icon class="w-5 h-5"/>
+          <button
+            type="button"
+            @click="closed = true"
+            id="dismiss"
+            class="hover:bg-black dark:hover:bg-white hover:bg-opacity-10 focus:bg-black dark:focus:bg-white focus:outline-none focus:bg-opacity-10 focus:shadow-outline"
+          >
+            <span class="sr-only">Dismiss</span><x-icon class="w-5 h-5" />
           </button>
         </div>
       </div>
@@ -29,14 +34,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 </template>
 
 <script lang="ts">
-import { ref } from 'vue';
+import { ref } from "vue";
 import {
   ExclamationIcon,
   XCircleIcon,
   InformationCircleIcon,
   CheckCircleIcon,
-} from '@heroicons/vue/solid';
-import { XIcon } from '@heroicons/vue/outline';
+} from "@heroicons/vue/solid";
+import { XIcon } from "@heroicons/vue/outline";
 
 export default {
   components: {
@@ -58,25 +63,24 @@ export default {
 
     return {
       closed,
-    }
+    };
   },
 
   computed: {
     classes() {
       return `p-4 rounded-md alert-${this.type}`;
     },
-  }
-}
+  },
+};
 </script>
 
 <style>
-
 #title {
   @apply text-sm font-medium;
 }
 
 #description {
-  @apply mt-2 text-sm font-normal; 
+  @apply mt-2 text-sm font-normal;
 }
 
 #icon > * {
@@ -88,55 +92,55 @@ export default {
 }
 
 .alert-error {
-  @apply bg-red-50 dark:bg-red-300 dark:bg-opacity-10;
+  @apply bg-red-300 bg-opacity-10;
 }
 
 .alert-error #title,
 .alert-error #dismiss,
 .alert-error #description {
-  @apply text-red-800 dark:text-red-400;
+  @apply text-red-400;
 }
 
 .alert-error #icon {
-  @apply text-red-400 dark:text-red-300;
+  @apply text-red-300;
 }
 
 .alert-info {
-  @apply bg-blue-50 dark:bg-blue-300 dark:bg-opacity-10;
+  @apply bg-blue-300 bg-opacity-10;
 }
 
 .alert-info #title,
 .alert-info #dismiss,
 .alert-info #description {
-  @apply text-blue-800 dark:text-blue-400;
+  @apply text-blue-400;
 }
 
 .alert-info #icon {
-  @apply text-blue-400 dark:text-blue-300;
+  @apply text-blue-300;
 }
 
 .alert-success {
-  @apply bg-green-50 dark:bg-green-300 dark:bg-opacity-10;
+  @apply bg-green-300 bg-opacity-10;
 }
 
 .alert-success #title,
 .alert-success #dismiss,
 .alert-success #description {
-  @apply text-green-800 dark:text-green-400;
+  @apply text-green-400;
 }
 
 .alert-success #icon {
-  @apply text-green-400 dark:text-green-300;
+  @apply text-green-300;
 }
 
 .alert-warning {
-  @apply bg-yellow-50 dark:bg-yellow-300 dark:bg-opacity-10;
+  @apply bg-yellow-300 bg-opacity-10;
 }
 
 .alert-warning #title,
 .alert-warning #dismiss,
 .alert-warning #description {
-  @apply text-yellow-800 dark:text-yellow-200;
+  @apply text-yellow-200;
 }
 
 .alert-warning #icon {

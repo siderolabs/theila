@@ -1,11 +1,13 @@
 <template>
   <t-animation>
     <aside class="side">
-      <t-side-bar-cluster-dropdown
-        v-click-outside="onClickOutside"
-        v-show="isSidebarClusterDropdownsActive"
-        :contexts="contexts"
-      />
+      <transition name="fade">
+        <t-side-bar-cluster-dropdown
+          v-click-outside="onClickOutside"
+          v-if="isSidebarClusterDropdownsActive"
+          :contexts="contexts"
+        />
+      </transition>
       <div
         ref="dropdown"
         class="side__cluster-box"

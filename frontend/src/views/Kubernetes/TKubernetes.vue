@@ -38,29 +38,36 @@ import { DefaultNamespace, TaskStatusType } from "@/api/resources";
 import TWatch from "@/components/common/Watch/TWatch.vue";
 import TKubernetesContent from "./TKubernetesContent.vue";
 import TButton from "@/components/common/Button/TButton.vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import TModal from "@/components/TModal.vue";
 import { modal } from "@/modal";
 import { onMounted, ref, Ref } from "@vue/runtime-core";
-import { ContextService } from "@/api/grpc";
+import { getUpgradeID } from "@/methods";
 
 export default {
   components: { TWatch, TKubernetesContent, TButton, TModal },
   setup() {
     const router = useRouter();
+    const route = useRoute();
     const upgradeID: Ref<string> = ref("");
     const openUpgrade = () => {
       modal.value = null;
-      router.push({ query: { modal: "upgrade" } });
+      router.push(
+        router.currentRoute.value.query.cluster
+          ? {
+              query: {
+                cluster: route.query.cluster,
+                namespace: route.query.namespace,
+                uid: route.query.uid,
+                modal: "upgrade",
+              },
+            }
+          : { query: { modal: "upgrade" } }
+      );
     };
-    const ctx = getContext();
-    const contextName = ctx.name;
 
     onMounted(async () => {
-      const response = await ContextService.List();
-      upgradeID.value = ctx.cluster
-        ? ctx.cluster.uid
-        : null || contextName || response?.currentContext;
+      upgradeID.value = await getUpgradeID();
     });
     return {
       getContext,

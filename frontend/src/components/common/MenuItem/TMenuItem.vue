@@ -1,5 +1,5 @@
 <template>
-  <router-link :to="route" active-class="item__active">
+  <router-link v-if="isItemVisible" :to="route" active-class="item__active">
     <div class="item">
       <t-icon class="item__icon" :icon="icon" />
       <p class="item__name">{{ name }}</p>
@@ -9,6 +9,7 @@
 
 <script lang="ts">
 import TIcon from "../Icon/TIcon.vue";
+
 export default {
   components: { TIcon },
   props: {
@@ -24,6 +25,7 @@ export default {
       type: String,
       required: true,
     },
+    isItemVisible: Boolean,
   },
 };
 </script>

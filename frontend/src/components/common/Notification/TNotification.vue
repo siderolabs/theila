@@ -38,6 +38,7 @@
         View details</t-button
       > -->
       <t-button
+        v-if="!isButtonHidden"
         type="primary"
         class="notification__right-button"
         @click="
@@ -77,6 +78,7 @@ export default {
     abort: {
       type: Function,
     },
+    isButtonHidden: Boolean,
     buttonTitle: {
       validator(value: string) {
         return ["Dismiss", "Abort"].indexOf(value) !== -1;
@@ -133,7 +135,7 @@ export default {
   @apply flex items-center;
 }
 .notification__button-box {
-  @apply flex items-center;
+  @apply flex items-center justify-end;
 }
 .notification__icon {
   @apply mr-5 fill-current;

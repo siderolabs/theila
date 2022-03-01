@@ -36,7 +36,6 @@
         />
       </div>
     </div>
-    <t-modal class="mb-7" />
     <div class="servers__input-box">
       <t-input
         @input.self="setInputValue"
@@ -55,13 +54,12 @@ import TInput from "@/components/common/TInput/TInput.vue";
 import TServersContentList from "./TServersContentList.vue";
 import TIcon from "@/components/common/Icon/TIcon.vue";
 import TSelectList from "@/components/common/SelectList/TSelectList.vue";
-import TModal from "@/components/TModal.vue";
 import {
   TServersServersFilterOptions,
   TServersStatusesFilterOptions,
 } from "@/constants";
 export default {
-  components: { TInput, TServersContentList, TIcon, TSelectList, TModal },
+  components: { TInput, TServersContentList, TIcon, TSelectList },
   props: {
     items: Object,
   },
@@ -147,7 +145,7 @@ export default {
   @apply flex items-center flex-wrap;
 }
 .heading__filters-box {
-  @apply flex justify-end flex-wrap;
+  @apply flex justify-end;
 }
 .heading__page-name {
   @apply text-xl text-naturals-N14 mr-8 font-medium;
@@ -171,10 +169,9 @@ export default {
   @apply text-naturals-N9 font-normal;
   font-size: 16px;
 }
-.heading__filters-item:first-of-type {
-  @apply xl:mb-0 mb-2 xl:mr-2 mr-0;
+.heading__filters-item:last-of-type {
+  @apply ml-2;
 }
-
 .servers__input-box {
   @apply flex;
   margin-bottom: 31px;

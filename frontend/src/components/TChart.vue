@@ -176,7 +176,6 @@ export default {
     });
 
     w.setup(props, componentContext);
-
     const options = computed(() => {
       return {
         theme: {

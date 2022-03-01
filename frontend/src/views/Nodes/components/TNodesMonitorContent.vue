@@ -106,7 +106,7 @@ export default {
   @apply xl:mb-0 mb-3;
 }
 .monitor__heading-buttons {
-  @apply flex;
+  @apply flex justify-end;
 }
 .monitor__heading-button {
   @apply text-naturals-N13;

@@ -34,6 +34,7 @@ export enum TCommonStatuses {
   UNKNOWN = "Unknown",
   HEALTH_UNKNOWN = "Health Unknown",
   UNHEALTHY = "Unhealthy",
+  HEALTHY = "Healthy",
   ON = 'On',
   OFF = 'Off',
   TRUE = 'True',

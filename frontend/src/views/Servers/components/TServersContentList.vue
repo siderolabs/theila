@@ -36,6 +36,7 @@ import {
   isCreationTimeMatches,
   sortServersByNames,
 } from "@/methods";
+import { watch } from "@vue/runtime-core";
 
 export default {
   components: { TIcon, TServersContentListItem, TGroupAnimation },
@@ -45,14 +46,17 @@ export default {
   setup(props) {
     const filterByCreatedStatus = ref(false);
     const { items } = toRefs(props);
+    watch(
+      () => filterByCreatedStatus.value,
+      () =>
+        (items.value = isCreationTimeMatches(items.value)
+          ? sortServersByNames(items.value, filterByCreatedStatus.value)
+          : sortServersByTimestamp(items.value, filterByCreatedStatus.value))
+    );
 
     return {
       filterByCreatedStatus,
-      filteredItems: computed(() => {
-        return isCreationTimeMatches(items.value)
-          ? sortServersByNames(items.value, filterByCreatedStatus.value)
-          : sortServersByTimestamp(items.value, filterByCreatedStatus.value);
-      }),
+      filteredItems: computed(() => items.value),
     };
   },
 };

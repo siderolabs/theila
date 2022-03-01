@@ -38,11 +38,11 @@ import { ref } from "@vue/reactivity";
 import Watch from "@/api/watch";
 import { onMounted, onUnmounted, computed, Ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { ResourceService, ManagementService, ContextService } from "@/api/grpc";
+import { ResourceService, ManagementService } from "@/api/grpc";
 import { Runtime } from "@/api/common/theila.pb";
 import { Kind } from "@/api/socket/message";
 import { TaskStatusSpec_Phase } from "@/api/rpc/management";
-import { showError, ShowInProgress, showSuccess } from "../../../modal";
+import { showError, showInProgress, showSuccess } from "../../../modal";
 import { context, getContext } from "@/context";
 import {
   DefaultNamespace,
@@ -53,6 +53,7 @@ import {
 } from "@/api/resources";
 import { Code } from "@/api/google/rpc/code";
 import { isValidSemVer, compareSemVer } from "semver-parser";
+import { getUpgradeID } from "@/methods";
 export default {
   components: { TButton, TIcon, TUpgradeKubernetesSelectList },
   setup() {
@@ -86,8 +87,11 @@ export default {
     });
 
     const handleStatusChange = (message, spec) => {
+      if (spec.new?.spec.error == "the task was aborted")
+        return showSuccess("Upgrade was aborted", "");
       if (message.kind != Kind.EventItemUpdate) return;
-      ShowInProgress(`${contextName} is upgrading`, "", abort);
+
+      showInProgress(`${contextName} is upgrading`, "", abort);
 
       const old = spec["old"]["spec"];
       const current = spec["new"]["spec"];
@@ -142,7 +146,7 @@ export default {
     });
 
     const abort = async () => {
-      ShowInProgress("Upgrade is aborting", "");
+      showInProgress(`${contextName} is aborting`, "", null, true);
       try {
         await ResourceService.Delete(
           {
@@ -159,18 +163,11 @@ export default {
           showError("Failed to abort upgrade", e.toString());
         }
       }
-      showSuccess("Upgrade was aborted", "");
     };
 
     onMounted(async () => {
       try {
-        const response = await ContextService.List();
-
-        upgradeID.value = `${
-          ctx.cluster
-            ? ctx.cluster.uid
-            : null || contextName || response?.currentContext
-        }`;
+        upgradeID.value = await getUpgradeID();
 
         await statusWatch.start(
           Runtime.Theila,
@@ -241,7 +238,7 @@ export default {
       selectListValue,
       changeSelectedValue,
       isUpgrading,
-      clusterName: computed(() => contextName),
+      clusterName: computed(() => ctx?.cluster?.name ?? contextName),
       versions: computed(() => {
         const res: string[] = [];
         if (fromVersion.value === "unknown") return res;
@@ -249,7 +246,11 @@ export default {
         for (const version of versions.value) {
           const v = version["spec"]["version"];
           if (!isValidSemVer(v)) continue;
-          if (compareSemVer(v, fromVersion.value) === 1) res.push(v);
+          if (
+            compareSemVer(v, fromVersion.value) === 0 ||
+            compareSemVer(v, fromVersion.value) === 1
+          )
+            res.push(v);
         }
 
         return res;
@@ -265,7 +266,7 @@ export default {
       }),
       abort,
       upgrade: async () => {
-        ShowInProgress(`${contextName} is upgrading`, "", abort);
+        showInProgress(`${contextName} is upgrading`, "", abort);
         try {
           let pending;
           try {
@@ -336,7 +337,7 @@ export default {
   width: 390px;
 }
 .modal__wrapper {
-  @apply fixed top-0 bottom-0 left-0 right-0 w-full h-full flex justify-center items-center;
+  @apply fixed top-0 bottom-0 left-0 right-0 w-full h-full flex justify-center items-center z-10;
   background-color: rgba(16, 17, 24, 0.5);
 }
 .modal__heading {

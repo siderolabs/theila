@@ -2,77 +2,82 @@
   <t-animation>
     <div class="clusters">
       <div class="clusters__input-box">
-        <t-input />
+        <t-input @input.self="setInputValue" @clearInput="setInputValue" />
       </div>
-      <div class="clusters__checkbox-box">
+      <!-- Todo: in progress -->
+      <!-- <div class="clusters__checkbox-box">
         <t-side-bar-cluster-checkbox />
-      </div>
-      <div class="clusters__list">
-        <t-side-bar-cluster-dropdown-item
-          v-for="(context, idx) in shownContexts"
-          :key="idx"
-          :name="context.name"
-        />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-        <t-side-bar-cluster-dropdown-item name="test" />
-      </div>
+      </div> -->
+      <t-watch
+        :resource="{ type: kubernetes.cluster }"
+        kubernetes
+        :recordsNotificationStatus="false"
+        :errorNotificationStatus="false"
+        :isSpinnerActive="false"
+      >
+        <template #default="items">
+          <div class="clusters__list">
+            <t-side-bar-cluster-dropdown-item
+              v-for="(context, idx) in shownContexts"
+              :clusters="items"
+              :key="idx"
+              :name="context.name"
+              :isNameChecked="
+                ctx.name == context.name &&
+                !router.currentRoute.value.query.cluster
+              "
+              :context="context"
+            />
+          </div>
+        </template>
+      </t-watch>
     </div>
   </t-animation>
 </template>
 
 <script lang="ts">
 import TInput from "@/components/common/TInput/TInput.vue";
-import TSideBarClusterCheckbox from "./TSideBarClusterCheckbox.vue";
+// import TSideBarClusterCheckbox from "./TSideBarClusterCheckbox.vue";
 import TAnimation from "@/components/common/Animation/TAnimation.vue";
+import TWatch from "@/components/common/Watch/TWatch.vue";
 import TSideBarClusterDropdownItem from "./TSideBarClusterDropdownItem.vue";
-import { ref, toRefs } from "@vue/reactivity";
+import { computed, ref, toRefs } from "@vue/reactivity";
+import { getContext } from "@/context";
+import { useRouter } from "vue-router";
+import { kubernetes } from "@/api/resources";
 export default {
   components: {
-    TSideBarClusterCheckbox,
+    // TSideBarClusterCheckbox,
     TInput,
     TAnimation,
     TSideBarClusterDropdownItem,
+    TWatch,
   },
   props: {
     contexts: Array,
   },
   setup(props) {
     const { contexts } = toRefs(props);
+    const ctx = getContext();
+    const router = useRouter();
     const shownContexts = ref(contexts.value);
+    const inputValue = ref("");
+    const setInputValue = (data) => {
+      inputValue.value = data;
+    };
 
     return {
-      shownContexts,
+      shownContexts: computed(() => {
+        return inputValue.value?.length === 0
+          ? shownContexts.value
+          : shownContexts?.value?.filter((elem: any) => {
+              return elem?.name.includes(inputValue.value);
+            });
+      }),
+      ctx,
+      router,
+      setInputValue,
+      kubernetes,
     };
   },
 };

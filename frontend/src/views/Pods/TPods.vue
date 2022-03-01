@@ -1,6 +1,7 @@
 <template>
   <t-watch kubernetes :context="ctx" :resource="{ type: kubernetes.pod }">
     <template #default="items">
+      <t-modal />
       <div class="pods">
         <h3 class="pods__header">All Pods</h3>
         <div class="pods__search-box">
@@ -42,8 +43,9 @@ import { ref } from "@vue/reactivity";
 import TPodsList from "./components/TPodsList.vue";
 import TSelectList from "@/components/common/SelectList/TSelectList.vue";
 import { TPodsViewFilterOptions } from "@/constants";
+import TModal from "@/components/TModal.vue";
 export default {
-  components: { TInput, TWatch, TPodsList, TSelectList },
+  components: { TInput, TWatch, TPodsList, TSelectList, TModal },
   setup() {
     const ctx = getContext();
     const filterOption = ref("All");
@@ -69,7 +71,7 @@ export default {
 
 <style scoped>
 .pods {
-  @apply flex flex-col h-full;
+  @apply flex flex-col h-full pt-2;
 }
 .pods__header {
   @apply text-xl text-naturals-N14 mb-7;

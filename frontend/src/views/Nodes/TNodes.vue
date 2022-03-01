@@ -48,7 +48,7 @@ export default {
   @apply flex flex-col w-full;
 }
 .nodes__heading {
-  @apply flex flex-col mb-5;
+  @apply flex flex-col mb-5 pt-2;
 }
 .nodes__title {
   @apply text-xl font-medium text-naturals-N14;

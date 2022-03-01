@@ -73,7 +73,7 @@ export default {
   @apply flex justify-start items-center cursor-pointer;
 }
 .dropdown__wrapper {
-  @apply relative;
+  @apply relative  z-40;
 }
 .dropdown__icon {
   @apply mr-2 flex justify-center items-center fill-current text-naturals-N13 transition-all duration-300;
