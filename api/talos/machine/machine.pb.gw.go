@@ -1120,7 +1120,7 @@ func local_request_MachineService_ServiceStop_0(ctx context.Context, marshaler r
 }
 
 func request_MachineService_Shutdown_0(ctx context.Context, marshaler runtime.Marshaler, client extMachine.MachineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmptypb.Empty
+	var protoReq extMachine.ShutdownRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -1137,7 +1137,7 @@ func request_MachineService_Shutdown_0(ctx context.Context, marshaler runtime.Ma
 }
 
 func local_request_MachineService_Shutdown_0(ctx context.Context, marshaler runtime.Marshaler, server extMachine.MachineServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq extEmptypb.Empty
+	var protoReq extMachine.ShutdownRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
