@@ -445,6 +445,11 @@ export interface Shutdown {
   metadata: Metadata | undefined;
 }
 
+export interface ShutdownRequest {
+  /** Force indicates whether node should shutdown without first cordening and draining */
+  force: boolean;
+}
+
 export interface ShutdownResponse {
   messages: Shutdown[];
 }
@@ -2911,6 +2916,57 @@ export const Shutdown = {
       object.metadata !== undefined && object.metadata !== null
         ? Metadata.fromPartial(object.metadata)
         : undefined;
+    return message;
+  },
+};
+
+function createBaseShutdownRequest(): ShutdownRequest {
+  return { force: false };
+}
+
+export const ShutdownRequest = {
+  encode(message: ShutdownRequest, writer: Writer = Writer.create()): Writer {
+    if (message.force === true) {
+      writer.uint32(8).bool(message.force);
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): ShutdownRequest {
+    const reader = input instanceof Reader ? input : new Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseShutdownRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.force = reader.bool();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ShutdownRequest {
+    return {
+      force: isSet(object.force) ? Boolean(object.force) : false,
+    };
+  },
+
+  toJSON(message: ShutdownRequest): unknown {
+    const obj: any = {};
+    message.force !== undefined && (obj.force = message.force);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ShutdownRequest>, I>>(
+    object: I
+  ): ShutdownRequest {
+    const message = createBaseShutdownRequest();
+    message.force = object.force ?? false;
     return message;
   },
 };
@@ -12036,7 +12092,7 @@ export interface MachineService {
   ): Promise<ServiceRestartResponse>;
   ServiceStart(request: ServiceStartRequest): Promise<ServiceStartResponse>;
   ServiceStop(request: ServiceStopRequest): Promise<ServiceStopResponse>;
-  Shutdown(request: Empty): Promise<ShutdownResponse>;
+  Shutdown(request: ShutdownRequest): Promise<ShutdownResponse>;
   Stats(request: StatsRequest): Promise<StatsResponse>;
   SystemStat(request: Empty): Promise<SystemStatResponse>;
   Upgrade(request: UpgradeRequest): Promise<UpgradeResponse>;

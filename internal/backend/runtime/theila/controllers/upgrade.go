@@ -137,7 +137,6 @@ func (ctrl *UpgradeController) Run(ctx context.Context, r controller.Runtime, lo
 			}
 		case log := <-ctrl.logs:
 			taskLog := resources.NewTaskLog(log.namespace, log.id, "")
-			fmt.Printf("update %s %s\n", log.namespace, log.id)
 
 			if err := r.Modify(ctx, taskLog, func(res resource.Resource) error {
 				res.(*resources.TaskLog).Update(log.line)
@@ -275,6 +274,10 @@ func (ctrl *UpgradeController) abortTask(ctx context.Context, id resource.ID, r 
 	statusID := res.(*resources.TaskState).TypedSpec().StatusId
 	if err = r.Modify(ctx, resources.NewTaskStatus(id, statusID), func(res resource.Resource) error {
 		s := res.(*resources.TaskStatus) //nolint:errcheck,forcetypeassert
+		if s.TypedSpec().Phase == rpc.TaskStatusSpec_COMPLETE {
+			return nil
+		}
+
 		s.SetPhase(rpc.TaskStatusSpec_FAILED)
 		s.SetError(fmt.Errorf("the task was aborted"))
 

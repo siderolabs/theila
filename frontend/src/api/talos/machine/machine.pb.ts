@@ -179,6 +179,10 @@ export type Shutdown = {
   metadata?: CommonCommon.Metadata
 }
 
+export type ShutdownRequest = {
+  force?: boolean
+}
+
 export type ShutdownResponse = {
   messages?: Shutdown[]
 }
@@ -949,8 +953,8 @@ export class MachineService {
   static ServiceStop(req: ServiceStopRequest, initReq?: fm.InitReq): Promise<ServiceStopResponse> {
     return fm.fetchReq<ServiceStopRequest, ServiceStopResponse>(`/machine.MachineService/ServiceStop`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
-  static Shutdown(req: GoogleProtobufEmpty.Empty, initReq?: fm.InitReq): Promise<ShutdownResponse> {
-    return fm.fetchReq<GoogleProtobufEmpty.Empty, ShutdownResponse>(`/machine.MachineService/Shutdown`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  static Shutdown(req: ShutdownRequest, initReq?: fm.InitReq): Promise<ShutdownResponse> {
+    return fm.fetchReq<ShutdownRequest, ShutdownResponse>(`/machine.MachineService/Shutdown`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static Stats(req: StatsRequest, initReq?: fm.InitReq): Promise<StatsResponse> {
     return fm.fetchReq<StatsRequest, StatsResponse>(`/machine.MachineService/Stats`, {...initReq, method: "POST", body: JSON.stringify(req)})
