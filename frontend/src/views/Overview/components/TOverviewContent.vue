@@ -384,7 +384,7 @@ export default {
       ),
       memoryUsageProcentage: computed(() =>
         (
-          (clusterNodesAllocatableMemory() * 100) /
+          100 - (clusterNodesAllocatableMemory() * 100) /
           clusterNodesCapacityMemory()
         ).toFixed(1)
       ),
@@ -392,11 +392,11 @@ export default {
         formatBytes(clusterNodesCapacityMemory())
       ),
       memoryUsageCurrent: computed(() =>
-        formatBytes(clusterNodesAllocatableMemory())
+        formatBytes(clusterNodesCapacityMemory() - clusterNodesAllocatableMemory())
       ),
       storageUsageProcentage: computed(() =>
         (
-          (clusterNodesAllocatableStorage() * 100) /
+          100 - (clusterNodesAllocatableStorage() * 100) /
           clusterNodesCapacityStorage()
         ).toFixed(1)
       ),
@@ -404,16 +404,16 @@ export default {
         formatBytes(clusterNodesCapacityStorage())
       ),
       storageUsageCurrent: computed(() =>
-        formatBytes(clusterNodesAllocatableStorage())
+        formatBytes(clusterNodesCapacityStorage() - clusterNodesAllocatableStorage())
       ),
       CPUUsageProcentage: computed(() =>
         (
-          (clusterNodesAllocatableCPU() * 100) /
+          100 - (clusterNodesAllocatableCPU() * 100) /
           clusterNodesCapacityCPU()
         ).toFixed(1)
       ),
       CPUUsageTotal: computed(() => clusterNodesCapacityCPU()),
-      CPUUsageCurrent: computed(() => clusterNodesAllocatableCPU()),
+      CPUUsageCurrent: computed(() => (clusterNodesCapacityCPU() - clusterNodesAllocatableCPU()).toFixed(2)),
     };
   },
 };
