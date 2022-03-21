@@ -2,45 +2,25 @@
 commit = "HEAD"
 
 project_name = "theila"
-github_repo = "talos-systems/theila"
-match_deps = "^github.com/(talos-systems/[a-zA-Z0-9-]+)$"
+github_repo = "siderolabs/theila"
+match_deps = "^github.com/((talos-systems|siderolabs)/[a-zA-Z0-9-]+)$"
 
 pre_release = true
+previous = "v0.1.1"
 
 [notes]
 
-  [notes.intro]
+  [notes.ui]
 
-    title = "The First Release"
+    title = "The New UI"
     description = """\
-This is the very first release of the UI for Talos and Sidero.
+Sidero UI is getting the next iteration of the design.
+The color scheme was aligned to the new Sidero company color scheme.
 
-Theila gets credentials from `~/.kube/config` or from the file defined in `KUBECONFIG`
-environment variable.
-
-For each cluster it is possible to get the list of nodes and pods.
-
-If Sidero is deployed then the UI also provides a way to view:
-- the list of servers.
-- the list of clusters (for any CAPI provider).
-- allows getting kubeconfig and talosconfig for each Sidero cluster.
-
-For each node in the cluster it is possible to:
-- get the list of services and their health.
-- get node logs.
-- get performance metrics.
-- get each internal service logs (etcd, apid, machined and so on).
-- reboot the node.
-- reset the node EPHEMERAL partition.
-"""
-  [nodes.upgrades]
-    title = "Kubernetes Upgrade Automation"
-    description = """\
-Both current cluster and CAPI cluster Kubernetes components can be upgraded right from
-the web.
-Theila manages in-memory internal state of ongoing upgrades and presents progress and logs
-back to the web.
-Upgrade flow is the same as for `talosctl upgrade-k8s` cli command, except for the fact that Theila
-maintains Kubernetes versions list. So when upgrade is initialized Theila can present list of versions
-it can upgrade to.
+Main changes UX-wise:
+- all clusters are now placed in the context dropdown: both kubeconfig clusters and CAPI clusters.
+- now it is possible to see Kubernetes upgrades history (dropped after theila restart as of now).
+- pod information has got more details.
+- servers list is now also available for CAPI clusters.
+- now the UI provides summary page for cluster resources usage.
 """
