@@ -20,7 +20,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.3.0
 	github.com/stretchr/testify v1.7.0
-	github.com/talos-systems/capi-utils v0.0.0-20220317162331-3a6f8ee7b753
+	github.com/talos-systems/capi-utils v0.0.0-20220321161353-e994250edede
 	github.com/talos-systems/go-retry v0.3.1
 	github.com/talos-systems/grpc-proxy v0.2.0
 	github.com/talos-systems/talos v1.0.0-beta.1

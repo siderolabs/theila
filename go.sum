@@ -1245,8 +1245,8 @@ github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69
 github.com/syndtr/gocapability v0.0.0-20170704070218-db04d3cc01c8/go.mod h1:hkRG7XYTFWNJGYcbNJQlaLq0fg1yr4J4t/NcTQtrfww=
 github.com/syndtr/gocapability v0.0.0-20180916011248-d98352740cb2/go.mod h1:hkRG7XYTFWNJGYcbNJQlaLq0fg1yr4J4t/NcTQtrfww=
 github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635/go.mod h1:hkRG7XYTFWNJGYcbNJQlaLq0fg1yr4J4t/NcTQtrfww=
-github.com/talos-systems/capi-utils v0.0.0-20220317162331-3a6f8ee7b753 h1:uYiifZ7BQ+Ia3qKkJ7CLwxCCPRoCknk0wAPmR727nwY=
-github.com/talos-systems/capi-utils v0.0.0-20220317162331-3a6f8ee7b753/go.mod h1:XRAFzC9OQMcKmZNT/KwQv1e5vrZCgTFGpalfvCusaXk=
+github.com/talos-systems/capi-utils v0.0.0-20220321161353-e994250edede h1:0y1lVz0tLqHdpmVSEtloDSj8qcM7PQ0CNz1uWk9Y6UQ=
+github.com/talos-systems/capi-utils v0.0.0-20220321161353-e994250edede/go.mod h1:XRAFzC9OQMcKmZNT/KwQv1e5vrZCgTFGpalfvCusaXk=
 github.com/talos-systems/crypto v0.3.5-0.20211220133734-6fa2d93d0382/go.mod h1:xaNCB2/Bxaj+qrkdeodhRv5eKQVvKOGBBMj58MrIPY8=
 github.com/talos-systems/crypto v0.3.5 h1:Jkxjzx/IfOvisjDAAoe7QaHySZ5+8v1xWOJ0o0GhtQI=
 github.com/talos-systems/crypto v0.3.5/go.mod h1:xaNCB2/Bxaj+qrkdeodhRv5eKQVvKOGBBMj58MrIPY8=
