@@ -5,7 +5,7 @@
 package runtime
 
 import (
-	"github.com/talos-systems/theila/api/common"
+	"github.com/siderolabs/theila/api/common"
 )
 
 // QueryOptions List and Get query options.

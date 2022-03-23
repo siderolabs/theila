@@ -19,9 +19,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/talos-systems/theila/api/talos/machine"
-	"github.com/talos-systems/theila/internal/backend/grpc/router"
-	"github.com/talos-systems/theila/internal/backend/logging"
+	"github.com/siderolabs/theila/api/talos/machine"
+	"github.com/siderolabs/theila/internal/backend/grpc/router"
+	"github.com/siderolabs/theila/internal/backend/logging"
 )
 
 // Server implements grpc server.

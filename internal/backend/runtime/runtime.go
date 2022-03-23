@@ -12,8 +12,8 @@ import (
 
 	cosiresource "github.com/cosi-project/runtime/pkg/resource"
 
-	"github.com/talos-systems/theila/api/common"
-	"github.com/talos-systems/theila/api/socket/message"
+	"github.com/siderolabs/theila/api/common"
+	"github.com/siderolabs/theila/api/socket/message"
 )
 
 // DefaultClient defines default client id.

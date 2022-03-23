@@ -10,9 +10,9 @@ import (
 
 	"github.com/talos-systems/capi-utils/pkg/capi"
 
-	"github.com/talos-systems/theila/api/common"
-	"github.com/talos-systems/theila/internal/backend/runtime"
-	"github.com/talos-systems/theila/internal/backend/runtime/kubernetes"
+	"github.com/siderolabs/theila/api/common"
+	"github.com/siderolabs/theila/internal/backend/runtime"
+	"github.com/siderolabs/theila/internal/backend/runtime/kubernetes"
 )
 
 func (r *Runtime) fetchTalosconfig(ctx context.Context, name string, clusterCtx *common.Cluster) error {

@@ -4,8 +4,8 @@ package rpc
 
 import (
 	context "context"
+	common "github.com/siderolabs/theila/api/common"
 	resource "github.com/talos-systems/talos/pkg/machinery/api/resource"
-	common "github.com/talos-systems/theila/api/common"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"

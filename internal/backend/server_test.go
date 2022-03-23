@@ -23,12 +23,12 @@ import (
 	"github.com/talos-systems/talos/pkg/machinery/api/resource"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/talos-systems/theila/api/common"
-	"github.com/talos-systems/theila/api/socket/message"
-	"github.com/talos-systems/theila/internal/backend"
-	"github.com/talos-systems/theila/internal/backend/runtime"
-	"github.com/talos-systems/theila/internal/backend/runtime/talos"
-	"github.com/talos-systems/theila/internal/backend/ws/proto"
+	"github.com/siderolabs/theila/api/common"
+	"github.com/siderolabs/theila/api/socket/message"
+	"github.com/siderolabs/theila/internal/backend"
+	"github.com/siderolabs/theila/internal/backend/runtime"
+	"github.com/siderolabs/theila/internal/backend/runtime/talos"
+	"github.com/siderolabs/theila/internal/backend/ws/proto"
 )
 
 type testRuntime struct {

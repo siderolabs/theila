@@ -22,10 +22,10 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/talos-systems/theila/api/common"
-	"github.com/talos-systems/theila/api/socket/message"
-	"github.com/talos-systems/theila/internal/backend/logging"
-	"github.com/talos-systems/theila/internal/backend/runtime"
+	"github.com/siderolabs/theila/api/common"
+	"github.com/siderolabs/theila/api/socket/message"
+	"github.com/siderolabs/theila/internal/backend/logging"
+	"github.com/siderolabs/theila/internal/backend/runtime"
 )
 
 // Name talos runtime string id.

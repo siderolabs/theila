@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-10-22T16:23:42Z by kres f6c7130-dirty.
+# Generated on 2022-03-24T12:00:33Z by kres latest.
 
 # options for analysis running
 run:
@@ -36,7 +36,7 @@ linters-settings:
     lines: 60
     statements: 40
   gci:
-    local-prefixes: github.com/talos-systems/theila
+    local-prefixes: github.com/siderolabs/theila
   gocognit:
     min-complexity: 30
   nestif:
@@ -58,7 +58,7 @@ linters-settings:
   gofmt:
     simplify: true
   goimports:
-    local-prefixes: github.com/talos-systems/theila
+    local-prefixes: github.com/siderolabs/theila
   golint:
     min-confidence: 0.8
   gomnd:

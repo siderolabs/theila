@@ -1,7 +1,7 @@
 syntax = "proto3";
 package theila.resource;
 
-option go_package = "github.com/talos-systems/theila/api/rpc";
+option go_package = "github.com/siderolabs/theila/api/rpc";
 
 import "talos/resource/resource.proto";
 import "common/theila.proto";

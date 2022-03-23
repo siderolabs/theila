@@ -17,9 +17,9 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	"github.com/talos-systems/theila/api/socket/message"
-	"github.com/talos-systems/theila/internal/backend/logging"
-	"github.com/talos-systems/theila/internal/backend/ws/proto"
+	"github.com/siderolabs/theila/api/socket/message"
+	"github.com/siderolabs/theila/internal/backend/logging"
+	"github.com/siderolabs/theila/internal/backend/ws/proto"
 )
 
 // Server is a websocket server.

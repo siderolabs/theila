@@ -18,9 +18,9 @@ import (
 	"github.com/talos-systems/talos/pkg/machinery/client"
 	"golang.org/x/oauth2"
 
-	"github.com/talos-systems/theila/api/common"
-	"github.com/talos-systems/theila/internal/backend/runtime"
-	"github.com/talos-systems/theila/internal/backend/runtime/talos"
+	"github.com/siderolabs/theila/api/common"
+	"github.com/siderolabs/theila/internal/backend/runtime"
+	"github.com/siderolabs/theila/internal/backend/runtime/talos"
 )
 
 // NewUpgradeClientProvider creates new ClientProvider for the upgrade or management modules.

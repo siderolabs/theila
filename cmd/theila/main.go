@@ -17,7 +17,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/talos-systems/theila/internal/backend"
+	"github.com/siderolabs/theila/internal/backend"
 )
 
 // rootCmd represents the base command when called without any subcommands.

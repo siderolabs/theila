@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package common;
 
-option go_package = "github.com/talos-systems/theila/api/common";
+option go_package = "github.com/siderolabs/theila/api/common";
 
 // Data source.
 enum Runtime {

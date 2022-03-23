@@ -19,11 +19,11 @@ import (
 	k8s "github.com/talos-systems/talos/pkg/cluster/kubernetes"
 	"go.uber.org/zap"
 
-	"github.com/talos-systems/theila/api/rpc"
-	"github.com/talos-systems/theila/internal/backend/constants"
-	"github.com/talos-systems/theila/internal/backend/management"
-	"github.com/talos-systems/theila/internal/backend/runtime/talos"
-	"github.com/talos-systems/theila/internal/backend/runtime/theila/resources"
+	"github.com/siderolabs/theila/api/rpc"
+	"github.com/siderolabs/theila/internal/backend/constants"
+	"github.com/siderolabs/theila/internal/backend/management"
+	"github.com/siderolabs/theila/internal/backend/runtime/talos"
+	"github.com/siderolabs/theila/internal/backend/runtime/theila/resources"
 )
 
 const (

@@ -4,15 +4,16 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <template>
-  <div class="flex flex-col gap-2">
-    <div class="p-4 flex-1 flex flex-col overflow-hidden">
-      <div class="flex flex-1 gap-2">
-        <div class="flex-1">
-          <t-chart
+  <div class="monitor">
+    <div class="monitor__charts-box">
+      <div class="monitor__charts-wrapper">
+        <div class="monitor__chart">
+          <t-nodes-monitor-chart
             class="h-full"
             name="cpu"
-            title="CPU Utilization"
+            title="CPU usage"
             type="area"
+            :colors="['#FFB103', '#FF8B59']"
             talos
             :resource="{
               type: talos.cpu,
@@ -23,12 +24,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             :point-fn="handleCPU"
           />
         </div>
-        <div class="flex-1">
-          <t-chart
+        <div class="monitor__chart">
+          <t-nodes-monitor-chart
             class="h-full"
             name="mem"
-            title="Memory Usage"
+            title="Memory"
             type="area"
+            :colors="['#69C297']"
             talos
             :resource="{
               type: talos.mem,
@@ -40,13 +42,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           />
         </div>
       </div>
-      <div class="flex flex-1 gap-2">
-        <div class="flex-1">
-          <t-chart
+      <div class="monitor__charts-wrapper">
+        <div class="monitor__chart monitor__chart--wide">
+          <t-nodes-monitor-chart
             class="h-full"
             name="procs"
             title="Processes"
             type="area"
+            :colors="['#5DA8D1', '#69C197', '#FFB103']"
             talos
             :resource="{
               type: talos.cpu,
@@ -59,16 +62,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         </div>
       </div>
     </div>
-    <h4 class="text-naturals-N13">Process List</h4>
-    <div
-      class="p-2 text-xs text-naturals-N13 flex-1 flex flex-col overflow-hidden w-full"
-    >
+    <div class="monitor__data-wrapper">
       <div class="grid grid-cols-12 uppercase font-bold select-none">
         <div
           v-for="h in headers"
           @click="() => sortBy(h.id)"
           :key="h.id"
-          class="flex flex-row items-center cursor-pointer gap-1"
+          class="flex flex-row items-center text-center cursor-pointer gap-1 text-xs text-naturals-N9 capitalize"
         >
           <span>{{ h.header || h.id }}</span>
           <arrow-down-icon
@@ -78,11 +78,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           />
         </div>
       </div>
-      <div class="flex-1 overflow-x-auto">
+      <div class="monitor__data-box">
         <div
-          class="grid grid-cols-12"
+          class="grid grid-cols-12 text-xs text-naturals-N12 py-2"
           v-for="process in processes"
           :key="process.pid"
+          :title="process.command + ' ' + process.args"
         >
           <div>
             {{ process.pid }}
@@ -122,11 +123,11 @@ import { getContext } from '../../context';
 import { Runtime } from '../../api/common/theila.pb';
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { MachineService } from '../../api/grpc';
-import TChart from '../../components/TChart.vue';
 import {
   ArrowDownIcon,
 } from '@heroicons/vue/solid';
 import { talos } from '../../api/resources';
+import TNodesMonitorChart from '../Nodes/components/TNodesMonitorChart.vue';
 
 function humanizeBytes(size) {
   var gb = Math.pow(1024, 3);
@@ -168,8 +169,8 @@ function diff(a, b) {
 
 export default {
   components: {
-    TChart,
     ArrowDownIcon,
+    TNodesMonitorChart,
   },
 
   setup() {
@@ -334,6 +335,41 @@ export default {
 };
 </script>
 <style scoped>
+.monitor {
+  @apply flex flex-col justify-start;
+}
+.monitor__charts-box {
+  @apply flex flex-col overflow-hidden;
+  padding-bottom: 0 !important;
+}
+.monitor__charts-wrapper {
+  @apply flex flex-1 gap-2 mb-6;
+}
+.monitor__charts-wrapper:last-of-type {
+  @apply mb-0;
+}
+.monitor__chart {
+  @apply flex-1 bg-naturals-N2 rounded p-3 pt-4;
+  min-height: 220px;
+}
+.monitor__chart:nth-child(1) {
+  @apply mr-3;
+}
+.monitor__chart:nth-child(2) {
+  @apply ml-3;
+}
+.monitor__chart--wide {
+  @apply border-b border-naturals-N5;
+  margin-right: 0 !important;
+  padding-bottom: 29px;
+  border-radius: 4px 4px 0 0;
+}
+.monitor__data-wrapper {
+  @apply px-2 lg:px-8 py-5 text-xs text-naturals-N13 flex-1 flex flex-col overflow-hidden w-full bg-naturals-N2;
+}
+.monitor__data-box {
+  @apply flex-1 overflow-x-auto py-3 bg-naturals-N2;
+}
 .ok {
   @apply h-5 w-5 text-green-400;
 }

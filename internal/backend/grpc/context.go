@@ -10,8 +10,8 @@ import (
 	gateway "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 
-	"github.com/talos-systems/theila/api/rpc"
-	"github.com/talos-systems/theila/internal/backend/runtime/kubernetes"
+	"github.com/siderolabs/theila/api/rpc"
+	"github.com/siderolabs/theila/internal/backend/runtime/kubernetes"
 )
 
 type contextServer struct {

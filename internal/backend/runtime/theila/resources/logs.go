@@ -10,7 +10,7 @@ import (
 	"github.com/cosi-project/runtime/pkg/resource"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/talos-systems/theila/api/rpc"
+	"github.com/siderolabs/theila/api/rpc"
 )
 
 const (

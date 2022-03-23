@@ -12,7 +12,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/talos-systems/theila/api/rpc"
+	"github.com/siderolabs/theila/api/rpc"
 )
 
 const (

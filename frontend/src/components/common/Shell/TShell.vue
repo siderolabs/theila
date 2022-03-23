@@ -34,7 +34,7 @@ export default {
   min-height: calc(100vh - 52px);
 }
 .shell__content {
-  @apply flex justify-start items-start w-full px-2 py-7 lg:px-6 overflow-hidden;
+  @apply flex justify-start items-start w-full px-2 py-6 lg:px-6 overflow-hidden;
 }
 .shell__menu {
   transition: 0.4s ease all;

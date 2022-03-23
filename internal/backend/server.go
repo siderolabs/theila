@@ -15,14 +15,14 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/talos-systems/theila/internal/backend/grpc"
-	"github.com/talos-systems/theila/internal/backend/logging"
-	"github.com/talos-systems/theila/internal/backend/runtime"
-	"github.com/talos-systems/theila/internal/backend/runtime/kubernetes"
-	"github.com/talos-systems/theila/internal/backend/runtime/talos"
-	"github.com/talos-systems/theila/internal/backend/runtime/theila"
-	"github.com/talos-systems/theila/internal/backend/ws"
-	"github.com/talos-systems/theila/internal/frontend"
+	"github.com/siderolabs/theila/internal/backend/grpc"
+	"github.com/siderolabs/theila/internal/backend/logging"
+	"github.com/siderolabs/theila/internal/backend/runtime"
+	"github.com/siderolabs/theila/internal/backend/runtime/kubernetes"
+	"github.com/siderolabs/theila/internal/backend/runtime/talos"
+	"github.com/siderolabs/theila/internal/backend/runtime/theila"
+	"github.com/siderolabs/theila/internal/backend/ws"
+	"github.com/siderolabs/theila/internal/frontend"
 )
 
 // Server is main backend entrypoint that starts REST API, WebSocket and Serves static contents.

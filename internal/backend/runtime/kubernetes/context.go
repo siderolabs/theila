@@ -12,7 +12,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
-	"github.com/talos-systems/theila/api/rpc"
+	"github.com/siderolabs/theila/api/rpc"
 )
 
 // CurrentContext returns current local context.

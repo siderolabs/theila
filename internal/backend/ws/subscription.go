@@ -12,10 +12,10 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/talos-systems/theila/api/socket/message"
-	"github.com/talos-systems/theila/internal/backend/logging"
-	"github.com/talos-systems/theila/internal/backend/runtime"
-	"github.com/talos-systems/theila/internal/backend/ws/proto"
+	"github.com/siderolabs/theila/api/socket/message"
+	"github.com/siderolabs/theila/internal/backend/logging"
+	"github.com/siderolabs/theila/internal/backend/runtime"
+	"github.com/siderolabs/theila/internal/backend/ws/proto"
 )
 
 // Subscription is a reactive list of items that sends updates to the websocket on each state change.

@@ -13,13 +13,13 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/talos-systems/theila/api/rpc"
-	"github.com/talos-systems/theila/internal/backend/grpc/router"
-	"github.com/talos-systems/theila/internal/backend/management"
-	"github.com/talos-systems/theila/internal/backend/runtime"
-	"github.com/talos-systems/theila/internal/backend/runtime/talos"
-	"github.com/talos-systems/theila/internal/backend/runtime/theila"
-	"github.com/talos-systems/theila/internal/backend/runtime/theila/resources"
+	"github.com/siderolabs/theila/api/rpc"
+	"github.com/siderolabs/theila/internal/backend/grpc/router"
+	"github.com/siderolabs/theila/internal/backend/management"
+	"github.com/siderolabs/theila/internal/backend/runtime"
+	"github.com/siderolabs/theila/internal/backend/runtime/talos"
+	"github.com/siderolabs/theila/internal/backend/runtime/theila"
+	"github.com/siderolabs/theila/internal/backend/runtime/theila/resources"
 )
 
 type managementServer struct {

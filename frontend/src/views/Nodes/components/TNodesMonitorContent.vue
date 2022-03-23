@@ -29,9 +29,8 @@
       type="monitor"
       :ip="$route.params.node"
     />
-    <div class="monitor__wrapper">
-      <monitor />
-    </div>
+
+    <monitor />
   </div>
 </template>
 
@@ -97,7 +96,15 @@ export default {
 
 <style scoped>
 .monitor {
-  @apply w-full;
+  @apply w-full flex flex-col;
+  height: 89vh;
+  overflow: auto;
+}
+@media screen and (max-width: 1024px) {
+  .monitor {
+    height: auto;
+    overflow: auto;
+  }
 }
 .monitor__heading {
   @apply flex w-full justify-between mb-9 flex-row flex-wrap;
@@ -120,8 +127,8 @@ export default {
 .monitor__content-types {
   @apply mb-6;
 }
-.monitor__wrapper {
+/* .monitor__wrapper {
   @apply overflow-x-auto;
   max-height: 700px;
-}
+} */
 </style>

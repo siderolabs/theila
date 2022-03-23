@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2021-12-13T13:09:51Z by kres c4d092b-dirty.
+# Generated on 2022-03-24T12:00:33Z by kres latest.
 
 # common variables
 
@@ -9,7 +9,7 @@ TAG := $(shell git describe --tag --always --dirty)
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 ARTIFACTS := _out
 REGISTRY ?= ghcr.io
-USERNAME ?= talos-systems
+USERNAME ?= siderolabs
 REGISTRY_AND_USERNAME ?= $(REGISTRY)/$(USERNAME)
 PROTOBUF_TS_VERSION ?= 1.79.2
 PROTOBUF_GRPC_GATEWAY_TS_VERSION ?= 1.1.0
@@ -21,7 +21,7 @@ GRPC_GO_VERSION ?= 1.1.0
 GRPC_GATEWAY_VERSION ?= 2.4.0
 VTPROTOBUF_VERSION ?= 81d623a9a700ede8ef765e5ab08b3aa1f5b4d5a8
 TESTPKGS ?= ./...
-KRES_IMAGE ?= ghcr.io/talos-systems/kres:latest
+KRES_IMAGE ?= ghcr.io/siderolabs/kres:latest
 
 # docker build settings
 
@@ -128,7 +128,7 @@ fmt:  ## Formats the source code
 	@docker run --rm -it -v $(PWD):/src -w /src golang:$(GO_VERSION) \
 		bash -c "export GO111MODULE=on; export GOPROXY=https://proxy.golang.org; \
 		go install mvdan.cc/gofumpt/gofumports@$(GOFUMPT_VERSION) && \
-		gofumports -w -local github.com/talos-systems/theila ."
+		gofumports -w -local github.com/siderolabs/theila ."
 
 generate:  ## Generate .proto definitions.
 	@$(MAKE) local-$@ DEST=./

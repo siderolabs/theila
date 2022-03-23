@@ -1,12 +1,12 @@
-## Using the Context on the Client
+# Using the Context on the Client
 
 The UI backend allows communication with 3 different systems:
 
 - `kubernetes` - is using Kubernetes Go client underneath and talks to the
 Kubernetes resource API.
-- `talos` - talks directly to Talos node API. COSI Resource API has almost the same
-request parameters and responses as Kubernetes resource API. Also provides a way to
-call any machine APIs.
+- `talos` - talks directly to Talos node API.
+COSI Resource API has almost the same request parameters and responses as Kubernetes resource API.
+Also provides a way to call any machine APIs.
 - `theila` - consists of COSI resource API describing the UI internal state.
 
 The context plays an important role while doing resource APIs of any kinds and
@@ -22,7 +22,7 @@ Context can contain the following fields:
 - `cluster.name` - CAPI cluster name (from `metadata.name`)
 - `nodes` - Talos nodes IP.
 
-### Kubernetes Context Kinds
+## Kubernetes Context Kinds
 
 Talking to the cluster from the Kubeconfig:
 
@@ -45,7 +45,7 @@ context = {
 }
 ```
 
-### Talos Context Kinds
+## Talos Context Kinds
 
 Talking to a node in the cluster from the Kubeconfig:
 
@@ -83,24 +83,23 @@ context = {
 
 Theila context doesn't need any parameters as it doesn't proxy requests anywhere in that case.
 
-### Context helpers methods
+## Context helpers methods
 
-#### `getContext` from `@/context`.
+### `getContext` from `@/context`
 
 Extracts context options from the URL query parameters.
 Query should be in the following format:
 
-```
+```bash
 /?name=<context name>&cluster=<cluster name>&namespace=<cluster namespace>&uid=<cluster uid>&node=<node ip>
 ```
 
 > Note: it doesn't support multiple nodes
 
-#### `contextName` from `@/context`
+### `contextName` from `@/context`
 
 Gets current Kubernetes context name defined in the local storage.
 
-#### `changeContext` from `@/context`
+### `changeContext` from `@/context`
 
 Changes current Kubernetes context.
-

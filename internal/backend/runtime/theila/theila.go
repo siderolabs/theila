@@ -22,12 +22,12 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/talos-systems/theila/api/common"
-	"github.com/talos-systems/theila/api/socket/message"
-	"github.com/talos-systems/theila/internal/backend/logging"
-	"github.com/talos-systems/theila/internal/backend/runtime"
-	"github.com/talos-systems/theila/internal/backend/runtime/theila/controllers"
-	"github.com/talos-systems/theila/internal/backend/runtime/theila/resources"
+	"github.com/siderolabs/theila/api/common"
+	"github.com/siderolabs/theila/api/socket/message"
+	"github.com/siderolabs/theila/internal/backend/logging"
+	"github.com/siderolabs/theila/internal/backend/runtime"
+	"github.com/siderolabs/theila/internal/backend/runtime/theila/controllers"
+	"github.com/siderolabs/theila/internal/backend/runtime/theila/resources"
 )
 
 // Name is the runtime time.

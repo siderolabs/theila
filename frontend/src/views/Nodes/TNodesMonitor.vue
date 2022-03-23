@@ -8,7 +8,7 @@
   >
     <template #default="items">
       <t-modal />
-      <t-nodes-monitor-content :items="items.items" class="pt-2" />
+      <t-nodes-monitor-content :items="items.items" />
     </template>
   </t-watch>
 </template>

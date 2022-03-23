@@ -15,10 +15,10 @@ import (
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/talos-systems/theila/api/common"
-	"github.com/talos-systems/theila/api/rpc"
-	"github.com/talos-systems/theila/internal/backend/runtime"
-	"github.com/talos-systems/theila/internal/backend/runtime/theila"
+	"github.com/siderolabs/theila/api/common"
+	"github.com/siderolabs/theila/api/rpc"
+	"github.com/siderolabs/theila/internal/backend/runtime"
+	"github.com/siderolabs/theila/internal/backend/runtime/theila"
 )
 
 const (

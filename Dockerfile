@@ -2,14 +2,14 @@
 
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2022-01-21T16:59:14Z by kres latest.
+# Generated on 2022-03-24T12:29:51Z by kres latest.
 
 ARG JS_TOOLCHAIN
 ARG TOOLCHAIN
 
-FROM ghcr.io/talos-systems/ca-certificates:v0.3.0-12-g90722c3 AS image-ca-certificates
+FROM ghcr.io/siderolabs/ca-certificates:v1.0.0 AS image-ca-certificates
 
-FROM ghcr.io/talos-systems/fhs:v0.3.0-12-g90722c3 AS image-fhs
+FROM ghcr.io/siderolabs/fhs:v1.0.0 AS image-fhs
 
 # base toolchain image
 FROM ${JS_TOOLCHAIN} AS js-toolchain
@@ -26,6 +26,7 @@ RUN npm i -g markdownlint-cli@0.23.2
 RUN npm i sentences-per-line@0.2.1
 WORKDIR /src
 COPY .markdownlint.json .
+COPY ./docs ./docs
 COPY ./CHANGELOG.md ./CHANGELOG.md
 COPY ./CONTRIBUTING.md ./CONTRIBUTING.md
 COPY ./README.md ./README.md
@@ -39,9 +40,9 @@ ADD api/rpc/resource.proto /api/rpc/
 ADD api/rpc/context.proto /api/rpc/
 ADD api/rpc/management.proto /api/rpc/
 ADD https://raw.githubusercontent.com/googleapis/googleapis/master/google/rpc/status.proto /api/google/rpc/
-ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/common/common.proto /api/common/
-ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/resource/resource.proto /api/talos/resource/
-ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/machine/machine.proto /api/talos/machine/
+ADD https://raw.githubusercontent.com/siderolabs/talos/master/api/common/common.proto /api/common/
+ADD https://raw.githubusercontent.com/siderolabs/talos/master/api/resource/resource.proto /api/talos/resource/
+ADD https://raw.githubusercontent.com/siderolabs/talos/master/api/machine/machine.proto /api/talos/machine/
 ADD https://raw.githubusercontent.com/cosi-project/runtime/master/api/v1alpha1/state.proto /api/v1alpha1/
 ADD https://raw.githubusercontent.com/cosi-project/runtime/master/api/v1alpha1/resource.proto /api/v1alpha1/
 
@@ -53,14 +54,14 @@ ADD api/rpc/resource.proto /frontend/src/api/rpc/
 ADD api/rpc/context.proto /frontend/src/api/rpc/
 ADD api/rpc/management.proto /frontend/src/api/rpc/
 ADD https://raw.githubusercontent.com/googleapis/googleapis/master/google/rpc/status.proto /frontend/src/api/google/rpc/
-ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/resource/resource.proto /frontend/src/api/talos/resource/
-ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/machine/machine.proto /frontend/src/api/talos/machine/
+ADD https://raw.githubusercontent.com/siderolabs/talos/master/api/resource/resource.proto /frontend/src/api/talos/resource/
+ADD https://raw.githubusercontent.com/siderolabs/talos/master/api/machine/machine.proto /frontend/src/api/talos/machine/
 ADD https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/any.proto /frontend/src/api/google/protobuf/
 ADD https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/duration.proto /frontend/src/api/google/protobuf/
 ADD https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/empty.proto /frontend/src/api/google/protobuf/
 ADD https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/timestamp.proto /frontend/src/api/google/protobuf/
 ADD https://raw.githubusercontent.com/googleapis/googleapis/master/google/rpc/code.proto /frontend/src/api/google/rpc/
-ADD https://raw.githubusercontent.com/talos-systems/talos/master/api/common/common.proto /frontend/src/api/common/
+ADD https://raw.githubusercontent.com/siderolabs/talos/master/api/common/common.proto /frontend/src/api/common/
 ADD https://raw.githubusercontent.com/cosi-project/runtime/master/api/v1alpha1/resource.proto /frontend/src/api/v1alpha1/
 
 # base toolchain image
@@ -194,7 +195,7 @@ COPY --from=proto-compile /api/ /api/
 FROM base AS lint-gofumpt
 RUN find . -name '*.pb.go' | xargs -r rm
 RUN find . -name '*.pb.gw.go' | xargs -r rm
-RUN FILES="$(gofumports -l -local github.com/talos-systems/theila .)" && test -z "${FILES}" || (echo -e "Source code is not formatted with 'gofumports -w -local github.com/talos-systems/theila .':\n${FILES}"; exit 1)
+RUN FILES="$(gofumports -l -local github.com/siderolabs/theila .)" && test -z "${FILES}" || (echo -e "Source code is not formatted with 'gofumports -w -local github.com/siderolabs/theila .':\n${FILES}"; exit 1)
 
 # runs golangci-lint
 FROM base AS lint-golangci-lint
@@ -276,6 +277,6 @@ ARG TARGETARCH
 COPY --from=theila theila-linux-${TARGETARCH} /theila
 COPY --from=image-fhs / /
 COPY --from=image-ca-certificates / /
-LABEL org.opencontainers.image.source https://github.com/talos-systems/theila
+LABEL org.opencontainers.image.source https://github.com/siderolabs/theila
 ENTRYPOINT ["/theila"]
 
