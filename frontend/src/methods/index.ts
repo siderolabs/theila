@@ -126,28 +126,3 @@ export const getUpgradeID = async () => {
     ? ctx.cluster.uid
     : null || contextName || response?.currentContext;
 }
-
-export const checkIsSidero = async (context) => {
-  
-  const checkCRD = async (id: string) => {
-    try {
-      await ResourceService.Get({
-        type: kubernetes.crd,
-        id: id,
-      }, {
-        context:context
-      });
-
-      return true;
-    } catch(e:any) {
-      if(e.code !== Code.NOT_FOUND)
-        throw e;
-
-      return false;
-    }
-  }
-  const sidero = checkCRD("servers.metal.sidero.dev");
-  const hasSidero = await sidero;
-  
-  return hasSidero;
-}

@@ -1,5 +1,5 @@
 <template>
-  <router-link v-if="isItemVisible" :to="route" active-class="item__active">
+  <router-link :to="route" active-class="item__active">
     <div class="item">
       <t-icon class="item__icon" :icon="icon" />
       <p class="item__name">{{ name }}</p>
@@ -25,7 +25,6 @@ export default {
       type: String,
       required: true,
     },
-    isItemVisible: Boolean,
   },
 };
 </script>

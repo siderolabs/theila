@@ -2,112 +2,76 @@
   <nav class="nav">
     <div class="nav__list">
       <t-menu-item
-        v-for="(item, idx) of menuItems"
-        :key="idx"
-        :route="item.route"
-        :name="item.name"
-        :icon="item.icon"
-        :isActive="item.active"
-        :isItemVisible="isServersItemVisible(item.name)"
-      />
+         v-for="item of menuItems"
+         :key="item.name"
+         :route="item.route"
+         :name="item.name"
+         :icon="item.icon"
+         :isActive="item.active"
+       />
     </div>
   </nav>
 </template>
 
 <script lang="ts">
-import { useRoute } from "vue-router";
-import { computed, onMounted, ref, watch } from "@vue/runtime-core";
 import TMenuItem from "@/components/common/MenuItem/TMenuItem.vue";
-import { getContext } from "@/context";
-import { checkIsSidero } from "@/methods";
+
+import { useRoute } from "vue-router";
+import { computed, watch } from "@vue/runtime-core";
+import { context as ctx, getContext } from "@/context";
+
 export default {
   components: { TMenuItem },
   setup() {
     const route = useRoute();
-    let context = getContext();
+    const context = getContext();
+    const getRoute = (name: string, path: string) => {
+      return route.query.cluster !== undefined ? {
+        name: name,
+        query: {
+          cluster: route.query.cluster,
+          namespace: route.query.namespace,
+          uid: route.query.uid,
+        },
+      } : path
+    }
+
     const menuItems = computed(() => {
-      return [
+      const res = [
         {
           name: "Overview",
-          route:
-            route.query.cluster !== undefined
-              ? {
-                  name: "OverviewPage",
-                  query: {
-                    cluster: route.query.cluster,
-                    namespace: route.query.namespace,
-                    uid: route.query.uid,
-                  },
-                }
-              : "/overview",
+          route: getRoute("OverviewPage", "/overview"),
           icon: "overview",
         },
         {
           name: "Nodes",
-          route:
-            route.query.cluster !== undefined
-              ? {
-                  name: "Nodes",
-                  query: {
-                    cluster: route.query.cluster,
-                    namespace: route.query.namespace,
-                    uid: route.query.uid,
-                  },
-                }
-              : "/",
+          route: getRoute("Nodes", "/"),
           icon: "nodes",
         },
         {
           name: "Pods",
-          route:
-            route.query.cluster !== undefined
-              ? {
-                  name: "Pods",
-                  query: {
-                    cluster: route.query.cluster,
-                    namespace: route.query.namespace,
-                    uid: route.query.uid,
-                  },
-                }
-              : "/pods",
+          route: getRoute("Pods", "/pods"),
           icon: "podes",
         },
-        {
-          name: "Servers",
-          route:
-            route.query.cluster !== undefined
-              ? {
-                  name: "Servers",
-                  query: {
-                    cluster: route.query.cluster,
-                    namespace: route.query.namespace,
-                    uid: route.query.uid,
-                  },
-                }
-              : "/servers",
-          icon: "cloud-connection",
-        },
-        {
-          name: "Upgrade Kubernetes",
-          route:
-            route.query.cluster !== undefined
-              ? {
-                  name: "Upgrade Kubernetes",
-                  query: {
-                    cluster: route.query.cluster,
-                    namespace: route.query.namespace,
-                    uid: route.query.uid,
-                  },
-                }
-              : "/upgrade",
-          icon: "kubernetes",
-        },
       ];
+
+      if (ctx.capabilities.sidero.value) {
+        res.push({
+          name: "Servers",
+          route: getRoute("Servers", "/servers"),
+          icon: "cloud-connection",
+        });
+      }
+
+      res.push({
+        name: "Upgrade Kubernetes",
+        route: getRoute("Upgrade Kubernetes", "/upgrade"),
+        icon: "kubernetes",
+      });
+
+      return res;
     });
-    let isSidero: any = ref(null);
-    onMounted(() =>
-      checkIsSidero(context).then((data) => (isSidero.value = data))
-    );
+
     watch(
       () => route.query,
       () => {
@@ -118,18 +82,12 @@ export default {
             uid: String(route?.query?.uid),
           };
         } else context.cluster = undefined;
-        checkIsSidero(context).then((data) => (isSidero.value = data));
       }
     );
-    const isServersItemVisible = (name) => {
-      if (name == "Servers" && !isSidero.value) return false;
-      return true;
-    };
+
     return {
       route,
       menuItems,
-      isSidero,
-      isServersItemVisible,
     };
   },
 };

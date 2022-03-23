@@ -13,9 +13,9 @@
 import { computed, ref, toRefs } from "@vue/reactivity";
 import { getField } from "@/methods";
 import { getContext, context as ctx } from "@/context";
-import Watch from "@/api/watch";
 import { Kind } from "@/api/socket/message";
-import { DateTime } from "luxon";
+import Watch from "@/api/watch";
+
 export default {
   props: {
     item: Object,
@@ -31,12 +31,7 @@ export default {
   emits: ["cpu"],
   setup(props, componentContext) {
     const { item, index } = toRefs(props);
-    const series: any = ref([]);
-    const seriesMap: any = {};
-    let points: any = {};
-    let flush: any = {};
-
-    const numPoints = ref(props["resource"]["tail_events"] || 25);
+    const point = ref({ user: 0, system: 0 });
 
     const ip = computed(() => {
       const addresses: any = getField(item.value, "status", "addresses");
@@ -122,52 +117,7 @@ export default {
         return;
       }
 
-      const data = handleCPU(spec["new"]["spec"], spec["old"]["spec"]);
-      for (const key in data) {
-        if (!(key in seriesMap)) {
-          series.value.push({
-            name: key,
-            data: [],
-          });
-
-          seriesMap[key] = {
-            index: series.value.length - 1,
-            version: 0,
-          };
-        }
-
-        const version = spec["new"]["metadata"]["version"];
-        const meta = seriesMap[key];
-        if (version <= meta.version) {
-          continue;
-        }
-
-        let point = data[key];
-        const updated = spec["new"]["metadata"]["updated"];
-        if (updated) {
-          point = [DateTime.fromISO(updated).toMillis(), point];
-        }
-
-        clearTimeout(flush[meta.index]);
-
-        if (!points[meta.index]) points[meta.index] = [];
-
-        points[meta.index].push(point);
-        meta.version = version;
-
-        flush[meta.index] = setTimeout(() => {
-          let dst = series.value[meta.index].data;
-
-          dst = dst.concat(points[meta.index]);
-
-          if (dst.length >= numPoints.value) {
-            dst.splice(0, dst.length - numPoints.value + 1);
-          }
-
-          series.value[meta.index].data = dst;
-          points[meta.index] = [];
-        }, 50);
-      }
+      point.value = handleCPU(spec["new"]["spec"], spec["old"]["spec"]);
     };
 
     const w = new Watch(ctx.api, null, handlePoint);
@@ -175,9 +125,14 @@ export default {
     w.setup({ ...props, context }, componentContext);
 
     const currentCPUUsage = computed(() => {
-      const data = series.value[1]?.data?.at(-1)?.at(1).toFixed(2) ?? 0;
-      componentContext.emit("cpu", { cpu: data, index: index.value });
-      return data;
+      if (!point.value) {
+        return 0;
+      }
+
+      const total = point.value.user + point.value.system;
+      componentContext.emit("cpu", { cpu: total.toFixed(2), index: index.value });
+
+      return total.toFixed(2);
     });
 
     return {

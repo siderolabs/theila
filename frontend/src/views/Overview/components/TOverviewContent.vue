@@ -55,7 +55,7 @@
             :resource="{
               type: talos.cpu,
               namespace: talos.perfNamespace,
-              tail_events: 25,
+              tail_events: 2,
             }"
             :context="context"
             @cpu="(data) => getDataFromNode(data)"
@@ -309,6 +309,7 @@ export default {
         return b.cpu - a.cpu;
       });
     };
+
     const getDataFromNode = (data) => {
       nodesItems.value![data.index].cpu = +data.cpu;
     };
