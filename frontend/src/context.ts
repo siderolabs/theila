@@ -29,8 +29,8 @@ export function changeContext(c: Object) {
   context.current.value = c;
 }
 
-export function getContext() {
-  const route = useRoute();
+export function getContext(route: any = null) {
+  route = route || useRoute();
 
   const name = contextName();
 
@@ -56,7 +56,7 @@ export function contextName(): string | null {
   return context.current.value ? context.current.value.name : null;
 }
 
-export async function detectCapabilities() {
+export async function detectCapabilities(route) {
   context.capabilities.capi.value = false;
   context.capabilities.sidero.value = false;
   context.capabilities.packet.value = false;
@@ -67,6 +67,8 @@ export async function detectCapabilities() {
       await ResourceService.Get({
         type: kubernetes.crd,
         id: id,
+      }, {
+        context: getContext(route),
       });
 
       return true;

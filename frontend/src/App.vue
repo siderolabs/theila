@@ -45,7 +45,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 <script lang="ts">
 import { ref, onMounted, watch } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 // import Shell from "./components/Shell.vue";
 // import SidebarChangeContext from "./views/SidebarChangeContext.vue";
 // import Sidebar from "./views/Sidebar.vue";
@@ -78,6 +78,7 @@ export default {
     const currentContext = ref("");
     const selectContext = ref(false);
     const router = useRouter();
+    const route = useRoute();
 
     const updateTheme = (mode: string) => {
       dark.value = isDark(mode);
@@ -99,7 +100,7 @@ export default {
 
       connected.value = true;
 
-      await detectCapabilities();
+      await detectCapabilities(route);
     });
 
     updateTheme(theme.value);
@@ -108,8 +109,14 @@ export default {
       updateTheme(val);
     });
 
+    watch(() => route.query, (val, old) => {
+      if (val.cluster != old.cluster) {
+        detectCapabilities(route);
+      }
+    })
+
     watch(context.current, (val, old) => {
-      if (val != old) detectCapabilities();
+      if (val != old) detectCapabilities(route);
     });
 
     watch(systemTheme, (val) => {
