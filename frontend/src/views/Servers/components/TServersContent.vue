@@ -79,10 +79,6 @@ export default {
       inputValue.value = data;
     };
 
-    const getAllocated = () => {
-      return items?.value?.length;
-    };
-
     const filteredItems = computed(() => {
       const arr =
         serversFilterOption.value !== TServersServersFilterOptions.ALL
@@ -109,6 +105,11 @@ export default {
             return elem?.metadata?.uid?.includes(inputValue.value);
           });
     });
+
+    const allocated = computed(() => {
+      return (items?.value || []).filter((elem) => elem?.status?.inUse).length;
+    });
+
     return {
       setServersFilterOption,
       setStatusesFilterOption,
@@ -116,14 +117,13 @@ export default {
       filteredItems,
       TServersServersFilterOptions,
       TServersStatusesFilterOptions,
-      allocated: computed(() => {
-        if (items.value.length === 0) return null;
-
-        return getAllocated();
-      }),
+      allocated: allocated,
       capacity: computed(() => {
-        if (items.value.length === 0) return null;
-        return 100 - (getAllocated() / items.value.length) * 100 + "%";
+        if (items?.value?.length === 0) {
+          return null;
+        }
+
+        return 100 - (allocated.value / items.value.length) * 100 + "%";
       }),
     };
   },

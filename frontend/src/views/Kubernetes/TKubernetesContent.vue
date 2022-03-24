@@ -32,7 +32,7 @@
         <div class="info__wrapper">
           <t-icon class="info__icon" icon="upgrade-empty-state" />
           <h3 class="info__title">
-            You have not yet updated the Kubernetes for this cluster
+            No kubernetes upgrades have yet been done
           </h3>
           <p class="info__subtitle">
             After the update, information about it will appear here
