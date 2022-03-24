@@ -22,6 +22,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             }"
             :context="context"
             :point-fn="handleCPU"
+            :total-fn="handleTotalCPU"
           />
         </div>
         <div class="monitor__chart">
@@ -39,6 +40,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             }"
             :context="context"
             :point-fn="handleMem"
+            :total-fn="handleTotalMem"
           />
         </div>
       </div>
@@ -101,10 +103,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             {{ process.mem.toFixed(1) }}
           </div>
           <div>
-            {{ humanizeBytes(process.virtualMemory) }}
+            {{ formatBytes(process.virtualMemory) }}
           </div>
           <div>
-            {{ humanizeBytes(process.residentMemory) }}
+            {{ formatBytes(process.residentMemory) }}
           </div>
           <div>
             {{ process.cpuTime }}
@@ -126,23 +128,9 @@ import { MachineService } from '../../api/grpc';
 import {
   ArrowDownIcon,
 } from '@heroicons/vue/solid';
+import { formatBytes } from "@/methods";
 import { talos } from '../../api/resources';
 import TNodesMonitorChart from '../Nodes/components/TNodesMonitorChart.vue';
-
-function humanizeBytes(size) {
-  var gb = Math.pow(1024, 3);
-  var mb = Math.pow(1024, 2);
-  var kb = 1024;
-
-  if (size >= gb)
-    return Math.floor(size / gb) + ' GB';
-  else if (size >= mb)
-    return Math.floor(size / mb) + ' MB';
-  else if (size >= kb)
-    return Math.floor(size / kb) + ' KB';
-  else
-    return size + ' B';
-}
 
 function diff(a, b) {
   const result = {};
@@ -280,6 +268,12 @@ export default {
       };
     };
 
+    const handleTotalCPU = (oldObj, newObj) => {
+      const point = handleCPU(oldObj, newObj);
+
+      return `${(point.user + point.system).toFixed(1)} %`;
+    };
+
     const handleMem = (_, m) => {
       const used = m["used"] - m["cached"] - m["buffers"]
 
@@ -288,6 +282,12 @@ export default {
       return {
         total: used/m["total"] * 100,
       }
+    };
+
+    const handleTotalMem = (_, m) => {
+      const used = m["used"] - m["cached"] - m["buffers"];
+
+      return `${formatBytes(used * 1024)} / ${formatBytes(m["total"] * 1024) }`;
     };
 
     const handleProcs = (oldObj, newObj) => {
@@ -303,13 +303,15 @@ export default {
     return {
       talos,
       handleMem,
+      handleTotalMem,
       handleCPU,
+      handleTotalCPU,
       handleProcs,
       context,
       sort,
       headers,
       sortReverse,
-      humanizeBytes,
+      formatBytes,
       processes: computed(() => {
         return [].concat(processes.value).sort((a, b) => {
           let res = 0;

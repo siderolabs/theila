@@ -10,16 +10,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         {{ title }}
       </div>
       <div
-        v-if="total?.cpuTotal"
+        v-if="total"
         class="w-full text-right text-naturals-N9 pr-3 text-xs"
       >
-        {{ total?.cpuTotal?.toFixed(1) }} Cores
-      </div>
-      <div
-        v-if="total?.memoryTotal"
-        class="w-full text-right text-naturals-N9 pr-3 text-xs"
-      >
-        {{ total?.memoryTotal?.toFixed(2) }} GIB
+        {{ total }}
       </div>
     </div>
     <div id="chartContainer" class="flex-1">
@@ -109,6 +103,9 @@ export default {
       type: Function,
       required: true,
     },
+    totalFn: {
+      type: Function,
+    },
   },
 
   setup(props, componentContext) {
@@ -125,12 +122,9 @@ export default {
 
       const data = pointFn.value(spec["new"]["spec"], spec["old"]["spec"]);
 
-     if(data.system || data.user){
-        total.value = {cpuTotal: data.user + data.system};
-     }
-     if(data.total){
-        total.value =  {memoryTotal:data.total};
-     }
+      if (totalFn.value) {
+        total.value = totalFn.value(spec["new"]["spec"], spec["old"]["spec"]);
+      }
 
       for (const key in data) {
         if (!(key in seriesMap)) {
@@ -181,7 +175,7 @@ export default {
 
     const numPoints = ref(props["resource"]["tail_events"] || 25);
 
-    const { name, animations, legend, dataLabels, stroke, pointFn, colors } =
+    const { name, animations, legend, dataLabels, stroke, pointFn, colors, totalFn } =
       toRefs(props);
 
     const w = new Watch(ctx.api, null, handlePoint);
