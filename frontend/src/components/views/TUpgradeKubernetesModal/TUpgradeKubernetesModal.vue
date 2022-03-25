@@ -243,17 +243,20 @@ export default {
         const res: string[] = [];
         if (fromVersion.value === "unknown") return res;
 
-        for (const version of versions.value) {
-          const v = version["spec"]["version"];
+        for (const ver of versions.value) {
+          const v = ver["spec"]["version"];
           if (!isValidSemVer(v)) continue;
+
+          const parts = fromVersion.value.split(".");
+          const version = `${parts.slice(0, 2).join(".")}.0`;
+
           if (
-            compareSemVer(v, fromVersion.value) === 0 ||
-            compareSemVer(v, fromVersion.value) === 1
+            compareSemVer(v, version) === 0 ||
+            compareSemVer(v, version) === 1
           )
             res.push(v);
         }
-
-        return res;
+        return res.sort();
       }),
       running: computed(() => {
         if (statuses.value.length === 0) {

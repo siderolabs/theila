@@ -3,13 +3,11 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import { createWebHistory, createRouter } from "vue-router";
-import Clusters from "../views/Clusters.vue";
 import Servers from "../views/Servers/TServers.vue";
 import Dashboard from "../views/Dashboard/TDashboard.vue";
 import TKubernetes from "../views/Kubernetes/TKubernetes.vue";
 import TUpgradeKubernetesModal from '@/components/views/TUpgradeKubernetesModal/TUpgradeKubernetesModal.vue';
 import Nodes from "../views/Nodes/TNodes.vue";
-import Pods from "../views/cluster/Pods.vue";
 import TPods from "../views/Pods/TPods.vue";
 import Overview from "../views/Nodes/TNodesOverview.vue";
 import OverviewPage from "../views/Overview/Overview.vue";
@@ -19,11 +17,8 @@ import SidebarRoot from "../views/SidebarRoot.vue";
 import SidebarCluster from "../views/SidebarCluster.vue";
 import SidebarNode from "../views/SidebarNode.vue";
 import TSidebarNodesLogs from "../components/views/SideBar/components/TSideBarNodesLogs.vue";
-import Settings from "../views/Settings.vue";
 import TReboot from "../components/views/Reboot/TReboot.vue";
 import TReset from "../components/views/Reset/TReset.vue";
-import Upgrade from "../views/Upgrade.vue";
-import { context } from "../context";
 
 const withPrefix = (prefix, routes) =>
   routes.map((route) => {
@@ -90,13 +85,6 @@ const routes = [
     },
   },
   {
-    path: "/clusters",
-    name: "Clusters",
-    components: {
-      default: Clusters,
-    },
-  },
-  {
     path: "/servers",
     name: "Servers",
     components: {
@@ -155,7 +143,6 @@ const router = createRouter({
 });
 
 const modals = {
-  settings: Settings,
   reboot: TReboot,
   upgrade: TUpgradeKubernetesModal,
   reset: TReset,

@@ -2,13 +2,13 @@
   <nav class="nav">
     <div class="nav__list">
       <t-menu-item
-         v-for="item of menuItems"
-         :key="item.name"
-         :route="item.route"
-         :name="item.name"
-         :icon="item.icon"
-         :isActive="item.active"
-       />
+        v-for="item of menuItems"
+        :key="item.name"
+        :route="item.route"
+        :name="item.name"
+        :icon="item.icon"
+        :isActive="item.active"
+      />
     </div>
   </nav>
 </template>
@@ -26,15 +26,17 @@ export default {
     const route = useRoute();
     const context = getContext();
     const getRoute = (name: string, path: string) => {
-      return route.query.cluster !== undefined ? {
-        name: name,
-        query: {
-          cluster: route.query.cluster,
-          namespace: route.query.namespace,
-          uid: route.query.uid,
-        },
-      } : path
-    }
+      return route.query.cluster !== undefined
+        ? {
+            name: name,
+            query: {
+              cluster: route.query.cluster,
+              namespace: route.query.namespace,
+              uid: route.query.uid,
+            },
+          }
+        : path;
+    };
 
     const menuItems = computed(() => {
       const res = [

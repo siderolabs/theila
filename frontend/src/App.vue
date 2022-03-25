@@ -5,7 +5,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <template>
   <div :class="{ dark: dark }" v-if="connected">
-    <!-- <t-modal /> -->
     <t-header />
     <t-shell>
       <template v-slot:menu>
@@ -17,40 +16,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         <router-view class="w-full h-full" />
       </template>
     </t-shell>
-    <!-- Old Views Below -->
-    <!-- <shell class="h-screen">
-      <template v-slot:menu>
-        <sidebar-change-context
-          v-if="selectContext"
-          :contexts="contexts"
-          :active="explicitContext ? explicitContext['name'] : currentContext"
-          :changed="switchContext"
-          :cancel="() => (selectContext = false)"
-          class="overflow-y-hidden h-screen"
-        />
-        <sidebar v-else />
-        <t-button @click="toggleContextChange" :disabled="!contexts">
-          <t-spinner v-if="!currentContext && !explicitContext" />
-          <div v-else class="flex-1">
-            {{ explicitContext ? explicitContext["name"] : currentContext }}
-          </div>
-        </t-button>
-      </template>
-      <template v-slot:content>
-        <router-view class="w-full h-full" />
-      </template>
-    </shell> -->
   </div>
 </template>
 
 <script lang="ts">
 import { ref, onMounted, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-// import Shell from "./components/Shell.vue";
-// import SidebarChangeContext from "./views/SidebarChangeContext.vue";
-// import Sidebar from "./views/Sidebar.vue";
-// import TButton from "./components/TButton.vue";
-// import TSpinner from "./components/TSpinner.vue";
 import { context, changeContext, detectCapabilities } from "./context";
 import { theme, systemTheme, isDark } from "./theme";
 import { ContextService } from "./api/grpc";
@@ -61,11 +32,6 @@ import TShell from "./components/common/Shell/TShell.vue";
 
 export default {
   components: {
-    // Shell,
-    // SidebarChangeContext,
-    // Sidebar,
-    // TButton,
-    // TSpinner,
     THeader,
     TSideBar,
     TShell,
@@ -109,11 +75,14 @@ export default {
       updateTheme(val);
     });
 
-    watch(() => route.query, (val, old) => {
-      if (val.cluster != old.cluster) {
-        detectCapabilities(route);
+    watch(
+      () => route.query,
+      (val, old) => {
+        if (val.cluster != old.cluster) {
+          detectCapabilities(route);
+        }
       }
-    })
+    );
 
     watch(context.current, (val, old) => {
       if (val != old) detectCapabilities(route);
