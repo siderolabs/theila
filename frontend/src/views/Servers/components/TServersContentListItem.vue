@@ -17,11 +17,79 @@
                 :highlightStyle="{ 'background-color': 'white' }"
               />
             </p>
-            <p v-if="item?.spec?.system" class="list__item-description">
-              <span>{{ item?.spec?.system?.manufacturer }}&nbsp;</span>
-              <span>{{ item?.spec?.system?.productName }}&nbsp;</span>
-              <span>{{ cpu }}</span>
-            </p>
+            <div class="flex gap-1 items-center">
+              <p v-if="item?.spec?.hardware" class="list__item-description">
+                <span v-if="item.spec.hardware.system">{{ item.spec.hardware.system.manufacturer }} {{ item.spec.hardware.system.productName }}</span>
+                <span v-if="item.spec.hardware.compute">, {{ item.spec.hardware.compute.totalCoreCount }} CPUs</span>
+                <span v-if="item.spec.hardware.memory">, {{ item.spec.hardware.memory.totalSize }} RAM</span>
+                <span v-if="item.spec.hardware.storage">, {{ item.spec.hardware.storage.totalSize }} storage</span>
+              </p>
+              <p v-else-if="item?.spec?.system" class="list__item-description">
+                <span>{{ item?.spec?.system?.manufacturer }}&nbsp;</span>
+                <span>{{ item?.spec?.system?.productName }}&nbsp;</span>
+                <span>{{ item?.spec?.cpu?.version }}</span>
+              </p>
+              <span v-if="item?.spec?.hardware">
+                <popper hover offsetDistance="10" placement="right-start">
+                  <div class="h-3">
+                    <t-icon icon="info" class="list__item-info-icon" />
+                  </div>
+                  <template #content>
+                    <div class="list__item-hardware">
+                      <template  v-if="item?.spec?.hardware?.system">
+                        <p class="list__item-hardware-title">System information</p>
+                        <p class="list__item-hardware-description">
+                          <span>Manufacturer: {{ item.spec.hardware.system.manufacturer }}<br/></span>
+                          <span>Product name: {{ item.spec.hardware.system.productName }}<br/></span>
+                          <span v-if="item.spec.hardware.system.version">Version: {{ item.spec.hardware.system.version }}<br/></span>
+                          <span v-if="item.spec.hardware.system.serialNumber">Serial number: {{ item.spec.hardware.system.serialNumber }}<br/></span>
+                        </p>
+                      </template>
+                      <template  v-if="item?.spec?.hardware?.compute">
+                        <p class="list__item-hardware-title">Compute information</p>
+                        <p class="list__item-hardware-description">
+                          <span>Total core count: {{ item.spec.hardware.compute.totalCoreCount }}<br/></span>
+                          <span>Total thread count: {{ item.spec.hardware.compute.totalThreadCount }}<br/></span>
+                          <span>Number of processors: {{ item.spec.hardware.compute.processorCount }}<br/></span>
+                          <span v-bind:key="index" v-for="(cpu, index) in item.spec.hardware.compute.processors">
+                            CPU {{index}}: {{ cpu.manufacturer }} {{cpu.productName}} ({{cpu.coreCount}} cores @ {{cpu.speed}} MHz, {{cpu.threadCount}} threads)<br/>
+                          </span>
+                        </p>
+                      </template>
+                      <template v-if="item?.spec?.hardware?.memory">
+                        <p class="list__item-hardware-title">Memory information</p>
+                        <p class="list__item-hardware-description">
+                          <span>Total memory size: {{ item.spec.hardware.memory.totalSize }}<br/></span>
+                          <span>Number of memory modules: {{ item.spec.hardware.memory.moduleCount }}<br/></span>
+                          <span v-bind:key="index" v-for="(mem, index) in item.spec.hardware.memory.modules">
+                            Memory module {{index}}: {{mem.size}} MB {{mem.type}} @ {{mem.speed}} Mhz<br/>
+                          </span>
+                        </p>
+                      </template>
+                      <template v-if="item?.spec?.hardware?.storage">
+                        <p class="list__item-hardware-title">Storage information</p>
+                        <p class="list__item-hardware-description">
+                          <span>Total storage size: {{ item.spec.hardware.storage.totalSize }}<br/></span>
+                          <span>Number of storage devices: {{ item.spec.hardware.storage.deviceCount }}<br/></span>
+                          <span v-bind:key="index" v-for="(dev, index) in item.spec.hardware.storage.devices">
+                            Storage device {{dev.deviceName}}: {{dev.size / 1024 / 1024 / 1024}} GB {{dev.type}}<br/>
+                          </span>
+                        </p>
+                      </template>
+                      <template v-if="item?.spec?.hardware?.network">
+                        <p class="list__item-hardware-title">Network information</p>
+                        <p class="list__item-hardware-description">
+                          <span>Number of network interfaces: {{ item.spec.hardware.network.interfaceCount }}<br/></span>
+                          <span v-bind:key="index" v-for="(ifc, index) in item.spec.hardware.network.interfaces">
+                            Network interface {{ ifc.name }}: {{ifc.mac }} = {{ ifc.addresses || [] }}<br/>
+                          </span>
+                        </p>
+                      </template>
+                    </div>
+                  </template>
+                </popper>
+              </span>
+            </div>
           </div>
           <div class="list__item-created">{{ created }}</div>
           <div class="list__item-status">
@@ -103,6 +171,7 @@ import { KubernetesResourceType } from "@/api/resources";
 import { Runtime } from "@/api/common/theila.pb";
 import { showError } from "@/modal";
 import TButton from "@/components/common/Button/TButton.vue";
+import Popper from "vue3-popper";
 import WordHighlighter from "vue-word-highlighter";
 
 export default {
@@ -114,6 +183,7 @@ export default {
     TTag,
     TButton,
     WordHighlighter,
+    Popper,
   },
   props: {
     item: Object,
@@ -128,13 +198,9 @@ export default {
         .setLocale("eng")
         .toRelative();
     });
-    const cpu = computed(() => {
-      return (item.value!["spec"]["cpu"] || {})["version"];
-    });
     return {
       isDropdownOpened,
       created,
-      cpu,
       acceptServer: async () => {
         if (item.value!["spec"]["accepted"]) return;
 
@@ -199,11 +265,18 @@ export default {
   @apply flex flex-col pr-1;
   width: 38.3%;
 }
+.list__item-info {
+  @apply flex flex-col;
+}
+.list__item-info-icon {
+  @apply fill-current text-naturals-N11 hover:bg-naturals-N7 transition-all rounded duration-300 cursor-pointer mr-1 self-start;
+  width: 16px;
+}
 .list__item-name {
   @apply text-xs text-naturals-N14 overflow-ellipsis overflow-hidden whitespace-nowrap w-full;
 }
 .list__item-description {
-  @apply text-xs text-naturals-N9 overflow-ellipsis overflow-hidden whitespace-nowrap w-full;
+  @apply text-xs text-naturals-N9 overflow-ellipsis overflow-hidden whitespace-nowrap;
   padding-top: 6px;
 }
 .list__item-hostname-description {
@@ -218,6 +291,19 @@ export default {
 }
 .list__item-power {
   width: 17%;
+}
+.list__item-hardware {
+  border: 1px solid rgba(39, 41, 50, var(--tw-border-opacity));
+  border-radius: 4px;
+  background-color: rgba(19, 20, 28, var(--tw-bg-opacity));
+  padding: 0.5rem;
+}
+.list__item-hardware-title {
+  @apply text-xs text-naturals-N12;
+  margin-bottom: 3px;
+}
+.list__item-hardware-description {
+  @apply text-xs text-naturals-N9 overflow-ellipsis overflow-hidden whitespace-nowrap;
 }
 .list__action-box {
   @apply absolute right-5;
