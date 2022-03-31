@@ -359,6 +359,18 @@ export default {
       }, 0);
     };
 
+    const calculatePercentage = (occupied, total, inverse = false) => {
+      if (total === 0) {
+        return 0;
+      }
+
+      let value = occupied * 100 / total;
+      if (inverse)
+        value = 100 - value
+
+      return value.toFixed(1)
+    }
+
     return {
       mockNodesStatusData,
       isNoConnection,
@@ -381,13 +393,10 @@ export default {
       }),
       usedPodsNumber,
       podsUsageProcentage: computed(() =>
-        ((usedPodsNumber() * 100) / maxClusterPodsNumber()).toFixed(1)
+        calculatePercentage(usedPodsNumber(), maxClusterPodsNumber())
       ),
       memoryUsageProcentage: computed(() =>
-        (
-          100 - (clusterNodesAllocatableMemory() * 100) /
-          clusterNodesCapacityMemory()
-        ).toFixed(1)
+        calculatePercentage(clusterNodesAllocatableMemory(), clusterNodesCapacityMemory(), true)
       ),
       memoryUsageTotal: computed(() =>
         formatBytes(clusterNodesCapacityMemory())
@@ -396,10 +405,7 @@ export default {
         formatBytes(clusterNodesCapacityMemory() - clusterNodesAllocatableMemory())
       ),
       storageUsageProcentage: computed(() =>
-        (
-          100 - (clusterNodesAllocatableStorage() * 100) /
-          clusterNodesCapacityStorage()
-        ).toFixed(1)
+        calculatePercentage(clusterNodesAllocatableStorage(), clusterNodesCapacityStorage(), true)
       ),
       storageUsageTotal: computed(() =>
         formatBytes(clusterNodesCapacityStorage())
@@ -408,10 +414,7 @@ export default {
         formatBytes(clusterNodesCapacityStorage() - clusterNodesAllocatableStorage())
       ),
       CPUUsageProcentage: computed(() =>
-        (
-          100 - (clusterNodesAllocatableCPU() * 100) /
-          clusterNodesCapacityCPU()
-        ).toFixed(1)
+        calculatePercentage(clusterNodesAllocatableCPU(), clusterNodesCapacityCPU(), true)
       ),
       CPUUsageTotal: computed(() => clusterNodesCapacityCPU()),
       CPUUsageCurrent: computed(() => (clusterNodesCapacityCPU() - clusterNodesAllocatableCPU()).toFixed(2)),
