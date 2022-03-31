@@ -4,15 +4,27 @@
       <router-link
         :to="{ name: 'Overview', params: { node: ip }, query: getQuery() }"
       >
-        {{ item?.metadata?.name }}
+        <WordHighlighter
+          :query="searchOption"
+          :textToHighlight="item?.metadata?.name"
+          :highlightStyle="{ 'background-color': 'white' }"
+        />
       </router-link>
     </p>
 
     <p class="nodes-list__item-info nodes-list__item-info--first">
-      {{ ip }}
+      <WordHighlighter
+        :query="searchOption"
+        :textToHighlight="ip"
+        :highlightStyle="{ 'background-color': 'white' }"
+      />
     </p>
     <p class="nodes-list__item-info">
-      {{ os }}
+      <WordHighlighter
+        :query="searchOption"
+        :textToHighlight="os"
+        :highlightStyle="{ 'background-color': 'white' }"
+      />
     </p>
     <div class="nodes-list__item-roles">
       <t-tag
@@ -50,11 +62,13 @@ import TIcon from "@/components/common/Icon/TIcon.vue";
 import { computed, toRef } from "@vue/reactivity";
 import { useRoute, useRouter } from "vue-router";
 import { getStatus } from "@/methods";
+import WordHighlighter from "vue-word-highlighter";
 
 export default {
-  components: { TTag, TStatus, TActionsBox, TIcon },
+  components: { TTag, TStatus, TActionsBox, TIcon, WordHighlighter },
   props: {
     item: Object,
+    searchOption: String,
   },
   setup(props) {
     const item = toRef(props, "item");

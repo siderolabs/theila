@@ -6,12 +6,20 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 <template>
   <div>
     <div class="flex flex-col gap-2">
-      <component :is="link ? 'router-link' : 'a'" :to="link" :class="{'shell-menu-link': true, 'router-link-active': active, 'cursor-pointer': true}">
+      <component
+        :is="link ? 'router-link' : 'a'"
+        :to="link"
+        :class="{
+          'shell-menu-link': true,
+          'router-link-active': active,
+          'cursor-pointer': true,
+        }"
+      >
         <div class="flex flex-row items-center gap-2">
           <slot name="icon"></slot>
           <span class="text-sm leading-none font-medium">{{ name }}</span>
         </div>
-      </component> 
+      </component>
     </div>
   </div>
 </template>

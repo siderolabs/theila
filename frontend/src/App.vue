@@ -4,8 +4,8 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 <template>
-  <div :class="{ dark: dark }" v-if="connected">
-    <t-header />
+  <div v-if="connected">
+    <t-header :key="headerComponentKey" />
     <t-shell>
       <template v-slot:menu>
         <t-side-bar :contexts="contexts">{{
@@ -46,6 +46,8 @@ export default {
     const router = useRouter();
     const route = useRoute();
 
+    const headerComponentKey = ref(0);
+
     const updateTheme = (mode: string) => {
       dark.value = isDark(mode);
     };
@@ -80,6 +82,7 @@ export default {
       (val, old) => {
         if (val.cluster != old.cluster) {
           detectCapabilities(route);
+          headerComponentKey.value += 1;
         }
       }
     );
@@ -105,6 +108,7 @@ export default {
     };
 
     return {
+      headerComponentKey,
       connected,
       dark,
       contexts,

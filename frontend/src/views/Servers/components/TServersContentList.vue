@@ -21,6 +21,7 @@
         v-for="item in filteredItems"
         :key="item?.metadata?.name"
         :item="item"
+        :searchOption="searchOption"
       />
     </t-group-animation>
   </ul>
@@ -42,6 +43,7 @@ export default {
   components: { TIcon, TServersContentListItem, TGroupAnimation },
   props: {
     items: Array,
+    searchOption: String,
   },
   setup(props) {
     const filterByCreatedStatus = ref(false);

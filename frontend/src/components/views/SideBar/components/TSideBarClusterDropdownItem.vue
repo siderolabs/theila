@@ -17,7 +17,11 @@
         class="item__name"
         :class="isNameChecked && 'item__name--checked'"
       >
-        {{ name }}
+        <WordHighlighter
+          :query="searchOption"
+          :textToHighlight="name"
+          :highlightStyle="{ 'background-color': 'white' }"
+        />
         <t-icon
           class="item__check"
           icon="check"
@@ -53,14 +57,21 @@ import TSideBarClusterDropdownSubItem from "./TSideBarClusterDropdownSubItem.vue
 import { changeContext, getContext } from "@/context";
 import { useRouter } from "vue-router";
 import { onMounted } from "@vue/runtime-core";
+import WordHighlighter from "vue-word-highlighter";
 
 export default {
-  components: { TIcon, TAnimation, TSideBarClusterDropdownSubItem },
+  components: {
+    TIcon,
+    TAnimation,
+    TSideBarClusterDropdownSubItem,
+    WordHighlighter,
+  },
   props: {
     name: String,
     isNameChecked: Boolean,
     context: Object,
     clusters: Object,
+    searchOption: String,
   },
   setup(props) {
     const { clusters, name } = toRefs(props);
