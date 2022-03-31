@@ -27,7 +27,11 @@
           {{ log.time }}
         </div>
         <div class="logs__item-message">
-          {{ log.message }}
+          <WordHighlighter
+            :query="searchOption"
+            :textToHighlight="log.message"
+            :highlightStyle="{ 'background-color': 'white' }"
+          />
         </div>
       </li>
     </ul>
@@ -38,9 +42,12 @@
 import TCheckbox from "@/components/common/Checkbox/TCheckbox.vue";
 import { computed, ref, toRefs } from "@vue/reactivity";
 import { onMounted, onUpdated, watch } from "@vue/runtime-core";
+import WordHighlighter from "vue-word-highlighter";
+
 export default {
   components: {
     TCheckbox,
+    WordHighlighter,
   },
   props: {
     logs: Array,

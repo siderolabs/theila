@@ -12,6 +12,7 @@
         v-for="item in filteredNodesList"
         :key="item?.metadata?.name"
         :item="item"
+        :searchOption="searchOption"
       />
     </t-group-animation>
   </div>

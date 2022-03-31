@@ -10,14 +10,31 @@
               :class="{ 'row__arrow-right--pushed': isDropdownOpened }"
               icon="drop-up"
             />
-            <span>{{ namespace }}</span>
+            <span>
+              <WordHighlighter
+                :query="searchOption"
+                :textToHighlight="namespace"
+                :highlightStyle="{ 'background-color': 'white' }"
+              />
+            </span>
           </li>
-          <li class="row__item">{{ name }}</li>
+          <li class="row__item">
+            <WordHighlighter
+              :query="searchOption"
+              :textToHighlight="name"
+              :highlightStyle="{ 'background-color': 'white' }"
+            />
+          </li>
           <li class="row__item">
             <t-status :title="phase" />
           </li>
           <li class="row__item row__item--spaced">
-            <span>{{ nodeName }}</span>
+            <span>
+              <WordHighlighter
+                :query="searchOption"
+                :textToHighlight="nodeName"
+                :highlightStyle="{ 'background-color': 'white' }"
+            /></span>
           </li>
         </ul>
       </template>
@@ -73,12 +90,14 @@ import { computed, ref } from "@vue/reactivity";
 import TStatus from "@/components/common/Status/TStatus.vue";
 // import TActionsBox from "@/components/common/ActionsBox/TActionsBox.vue";
 import TSlideDownWrapper from "@/components/common/SlideDownWrapper/TSlideDownWrapper.vue";
+import WordHighlighter from "vue-word-highlighter";
 export default {
   components: {
     TIcon,
     TStatus,
     // TActionsBox,
     TSlideDownWrapper,
+    WordHighlighter,
   },
   props: {
     searchOption: String,

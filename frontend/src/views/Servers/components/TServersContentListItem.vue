@@ -10,7 +10,13 @@
             icon="drop-up"
           />
           <div class="list__item-data">
-            <p class="list__item-name">{{ item?.metadata?.uid }}</p>
+            <p class="list__item-name">
+              <WordHighlighter
+                :query="searchOption"
+                :textToHighlight="item?.metadata?.uid"
+                :highlightStyle="{ 'background-color': 'white' }"
+              />
+            </p>
             <p v-if="item?.spec?.system" class="list__item-description">
               <span>{{ item?.spec?.system?.manufacturer }}&nbsp;</span>
               <span>{{ item?.spec?.system?.productName }}&nbsp;</span>
@@ -97,11 +103,21 @@ import { KubernetesResourceType } from "@/api/resources";
 import { Runtime } from "@/api/common/theila.pb";
 import { showError } from "@/modal";
 import TButton from "@/components/common/Button/TButton.vue";
+import WordHighlighter from "vue-word-highlighter";
 
 export default {
-  components: { TSlideDownWrapper, TStatus, TActionsBox, TIcon, TTag, TButton },
+  components: {
+    TSlideDownWrapper,
+    TStatus,
+    TActionsBox,
+    TIcon,
+    TTag,
+    TButton,
+    WordHighlighter,
+  },
   props: {
     item: Object,
+    searchOption: String,
   },
   setup(props) {
     const isDropdownOpened = ref(false);

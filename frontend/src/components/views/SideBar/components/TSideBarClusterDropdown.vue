@@ -27,6 +27,7 @@
                 !router.currentRoute.value.query.cluster
               "
               :context="context"
+              :searchOption="searchOption"
             />
           </div>
         </template>
@@ -77,6 +78,7 @@ export default {
       ctx,
       router,
       setInputValue,
+      searchOption: computed(() => inputValue.value),
       kubernetes,
     };
   },

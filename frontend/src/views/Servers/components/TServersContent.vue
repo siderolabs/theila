@@ -44,7 +44,10 @@
         @clearInput="setInputValue"
       />
     </div>
-    <t-servers-content-list :items="filteredItems" />
+    <t-servers-content-list
+      :items="filteredItems"
+      :searchOption="searchOption"
+    />
   </div>
 </template>
 
@@ -114,6 +117,7 @@ export default {
       setServersFilterOption,
       setStatusesFilterOption,
       setInputValue,
+      searchOption: computed(() => inputValue.value),
       filteredItems,
       TServersServersFilterOptions,
       TServersStatusesFilterOptions,
