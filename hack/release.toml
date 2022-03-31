@@ -24,3 +24,16 @@ Main changes UX-wise:
 - servers list is now also available for CAPI clusters.
 - now the UI provides summary page for cluster resources usage.
 """
+
+  [notes.config]
+    title = "Configuration Priority Changes"
+    description = """\
+Starting from 0.2.1 Theila no longer relies on the local Kubeconfig.
+Instead it fetches the initial list of cluster from `~/.talos/config` or whatever is set in the `TALOSCONFIG`
+environment variable.
+It helps to get rid of strong requirement for matching context in `~/.kube/config` and `~/.talos/config` as
+Kubernetes config is now always retrieved from the Talos API.
+
+> Note: due to change in that flow it may be required to drop browser local storage cache for your Theila page as it will have
+an old context name cached there.
+"""

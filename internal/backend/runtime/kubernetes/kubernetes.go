@@ -59,29 +59,17 @@ type Runtime struct {
 // Watch creates new kubernetes watch.
 func (r *Runtime) Watch(ctx context.Context, request *message.WatchSpec, events chan runtime.Event) error {
 	var (
-		cfg         *rest.Config
-		err         error
-		contextName string
+		cfg *rest.Config
+		err error
 	)
-
-	if request.Context != nil {
-		contextName = request.Context.Name
-	}
-
-	cfg, err = config.GetConfigWithContext(contextName)
-	if err != nil {
-		return err
-	}
 
 	ctx, cancel := context.WithCancel(ctx)
 
-	if request.Context != nil && request.Context.Cluster != nil {
-		cfg, err = r.GetKubeconfig(ctx, request.Context)
-		if err != nil {
-			cancel()
+	cfg, err = r.GetKubeconfig(ctx, request.Context)
+	if err != nil {
+		cancel()
 
-			return err
-		}
+		return err
 	}
 
 	w := &Watch{
@@ -262,7 +250,24 @@ func (r *Runtime) GetCapiProxy(ctx context.Context, context *common.Context) (*c
 // GetKubeconfig returns kubeconfig.
 func (r *Runtime) GetKubeconfig(ctx context.Context, context *common.Context) (*rest.Config, error) {
 	if context == nil || context.Cluster == nil {
-		return nil, fmt.Errorf("kubeconfig cluster must specified")
+		talos, err := runtime.Get(common.Runtime_Talos.String())
+		if err != nil {
+			return nil, err
+		}
+
+		id := context.Name
+
+		config, err := talos.(runtime.KubeconfigSource).GetKubeconfig(ctx, context)
+		if err != nil {
+			return nil, err
+		}
+
+		r.configsMu.RLock()
+		defer r.configsMu.RUnlock()
+
+		r.configs[id] = config
+
+		return r.configs[id], nil
 	}
 
 	cluster := context.Cluster
@@ -296,25 +301,23 @@ func (r *Runtime) GetKubeconfig(ctx context.Context, context *common.Context) (*
 }
 
 func (r *Runtime) getOrCreateClient(ctx context.Context, opts *runtime.QueryOptions) (*client, error) {
-	client, err := r.getClient(opts.Context)
+	_, err := r.GetKubeconfig(ctx, &common.Context{
+		Name:    opts.Context,
+		Cluster: opts.Cluster,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	// initialize the client if it's not initialized and we have Cluster information
-	if opts.Cluster != nil {
-		_, err = r.GetKubeconfig(ctx, &common.Context{
-			Name:    opts.Context,
-			Cluster: opts.Cluster,
-		})
-		if err != nil {
-			return nil, err
-		}
+	id := opts.Context
 
-		client, err = r.getClient(opts.Cluster.Uid)
-		if err != nil {
-			return nil, err
-		}
+	if opts.Cluster != nil {
+		id = opts.Cluster.Uid
+	}
+
+	client, err := r.getClient(id)
+	if err != nil {
+		return nil, err
 	}
 
 	return client, nil

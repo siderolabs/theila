@@ -21,6 +21,8 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/siderolabs/theila/api/common"
 	"github.com/siderolabs/theila/api/socket/message"
@@ -201,6 +203,21 @@ func (r *Runtime) AddContext(id string, data []byte) error {
 	config.Merge(c)
 
 	return nil
+}
+
+// GetKubeconfig returns kubeconfig for the cluster.
+func (r *Runtime) GetKubeconfig(ctx context.Context, context *common.Context) (*rest.Config, error) {
+	client, err := r.GetClient(ctx, context)
+	if err != nil {
+		return nil, err
+	}
+
+	kubeconfig, err := client.Kubeconfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return clientcmd.RESTConfigFromKubeConfig(kubeconfig)
 }
 
 // GetContext implements runtime.Runtime.

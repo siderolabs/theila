@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	cosiresource "github.com/cosi-project/runtime/pkg/resource"
+	"k8s.io/client-go/rest"
 
 	"github.com/siderolabs/theila/api/common"
 	"github.com/siderolabs/theila/api/socket/message"
@@ -41,6 +42,11 @@ type Runtime interface {
 	Delete(context.Context, ...QueryOption) error
 	AddContext(string, []byte) error
 	GetContext(context.Context, *common.Context, *common.Cluster) ([]byte, error)
+}
+
+// KubeconfigSource is implemented by runtimes that allow getting kubeconfigs.
+type KubeconfigSource interface {
+	GetKubeconfig(context.Context, *common.Context) (*rest.Config, error)
 }
 
 var (

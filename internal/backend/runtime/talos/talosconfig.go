@@ -7,10 +7,14 @@ package talos
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/talos-systems/capi-utils/pkg/capi"
+	clientconfig "github.com/talos-systems/talos/pkg/machinery/client/config"
 
 	"github.com/siderolabs/theila/api/common"
+	"github.com/siderolabs/theila/api/rpc"
 	"github.com/siderolabs/theila/internal/backend/runtime"
 	"github.com/siderolabs/theila/internal/backend/runtime/kubernetes"
 )
@@ -72,4 +76,58 @@ func (r *Runtime) fetchTalosconfig(ctx context.Context, name string, clusterCtx 
 	r.configMu.Unlock()
 
 	return nil
+}
+
+// CurrentContext returns current local context.
+func CurrentContext() (string, error) {
+	config, err := loadConfig()
+	if err != nil {
+		return "", err
+	}
+
+	return config.Context, nil
+}
+
+// GetContexts returns all locally defined contexts in the talosconfig.
+func GetContexts() ([]*rpc.Context, error) {
+	config, err := loadConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	contexts := make([]*rpc.Context, 0, len(config.Contexts))
+
+	for name := range config.Contexts {
+		parts := strings.Split(name, "@")
+		if len(parts) == 2 {
+			parts = parts[1:]
+		}
+
+		contexts = append(contexts, &rpc.Context{
+			Name:    name,
+			Cluster: parts[0],
+		})
+	}
+
+	sort.Slice(contexts, func(i, j int) bool {
+		return contexts[i].Name < contexts[j].Name
+	})
+
+	return contexts, nil
+}
+
+func loadConfig() (*clientconfig.Config, error) {
+	var path string
+
+	path, err := clientconfig.GetDefaultPath()
+	if err != nil {
+		return nil, err
+	}
+
+	config, err := clientconfig.Open(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return config, nil
 }

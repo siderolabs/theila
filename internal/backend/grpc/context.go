@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/siderolabs/theila/api/rpc"
-	"github.com/siderolabs/theila/internal/backend/runtime/kubernetes"
+	"github.com/siderolabs/theila/internal/backend/runtime/talos"
 )
 
 type contextServer struct {
@@ -28,12 +28,12 @@ func (s *contextServer) gateway(ctx context.Context, mux *gateway.ServeMux, addr
 
 // List returns the list of locally defined clusters.
 func (s *contextServer) List(ctx context.Context, in *rpc.ListContextsRequest) (*rpc.ListContextsResponse, error) {
-	current, err := kubernetes.CurrentContext()
+	current, err := talos.CurrentContext()
 	if err != nil {
 		return nil, err
 	}
 
-	contexts, err := kubernetes.GetContexts()
+	contexts, err := talos.GetContexts()
 	if err != nil {
 		return nil, err
 	}

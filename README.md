@@ -1,7 +1,10 @@
 # theila
 
-Cluster management UI which is like many others relies on `kubeconfig` but also provides OS level hooks
-when running against Talos based clusters by reading `talosconfig` and connecting to Talos gRPC API.
+Cluster management UI which relies on local `~/.talos/config` and provides OS level hooks
+by connecting to Talos gRPC API.
+Then Kubernetes credentials are requested from the Talos API.
+
+`TALOSCONFIG` environment variable can be used to alter the lookup path for the Talos configuration.
 
 ## Documentation
 
@@ -14,7 +17,7 @@ By default it binds `localhost:8080` address.
 ## Community
 
 - Slack: Join our [slack channel](https://slack.dev.talos-systems.io)
-- Support: Questions, bugs, feature requests [GitHub Discussions](https://github.com/talos-systems/talos/discussions)
+- Support: Questions, bugs, feature requests [GitHub Discussions](https://github.com/siderolabs/talos/discussions)
 - Forum: [community](https://groups.google.com/a/talos-systems.com/forum/#!forum/community)
 - Twitter: [@SideroLabs](https://twitter.com/SideroLabs)
 - Email: [info@SideroLabs.com](mailto:info@SideroLabs.com)
