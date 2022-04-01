@@ -6,6 +6,22 @@ Then Kubernetes credentials are requested from the Talos API.
 
 `TALOSCONFIG` environment variable can be used to alter the lookup path for the Talos configuration.
 
+## Compatibility Matrix
+
+Theila versions are compatible with the following versions of Talos:
+
+|               | v0.11 | v0.12  | v0.13 | v0.14 | v1.0  |
+| ------------- | ----- | ------ | ----- | ----- | ----- |
+| Theila (v0.1) | ✓     | ✓      | ✓     | ✓     |       |
+| Theila (v0.2) | ✓     | ✓      | ✓     | ✓     | ✓     |
+
+CAPI compatibility matrix:
+
+|               | v1alpha3 (v0.3) | v1alpha4 (v0.4) | v1beta1 (v1.x) |
+| ------------- | --------------- | --------------- | -------------- |
+| Theila (v0.1) | ✓               | ✓               |                |
+| Theila (v0.2) |                 |                 | ✓              |
+
 ## Documentation
 
 For instructions on deploying and managing Talos, see the [Documentation](https://www.talos.dev/docs/latest/).
