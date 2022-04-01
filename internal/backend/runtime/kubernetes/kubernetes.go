@@ -262,8 +262,8 @@ func (r *Runtime) GetKubeconfig(ctx context.Context, context *common.Context) (*
 			return nil, err
 		}
 
-		r.configsMu.RLock()
-		defer r.configsMu.RUnlock()
+		r.configsMu.Lock()
+		defer r.configsMu.Unlock()
 
 		r.configs[id] = config
 
