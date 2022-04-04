@@ -20,7 +20,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/dynamic/dynamicinformer"
 	"k8s.io/client-go/rest"
 	toolscache "k8s.io/client-go/tools/cache"
@@ -81,7 +80,21 @@ func (r *Runtime) Watch(ctx context.Context, request *message.WatchSpec, events 
 		cancel:   cancel,
 	}
 
-	if err := w.run(ctx); err != nil {
+	opts := []runtime.QueryOption{}
+	if request.Context != nil {
+		opts = append(opts, runtime.WithContext(request.Context.Name))
+
+		if request.Context.Cluster != nil {
+			opts = append(opts, runtime.WithCluster(request.Context.Cluster))
+		}
+	}
+
+	client, err := r.getOrCreateClient(ctx, runtime.NewQueryOptions(opts...))
+	if err != nil {
+		return err
+	}
+
+	if err := w.run(ctx, client); err != nil {
 		cancel()
 
 		return err
@@ -394,12 +407,7 @@ type Watch struct {
 	selector string
 }
 
-func (w *Watch) run(ctx context.Context) error {
-	dc, err := dynamic.NewForConfig(w.config)
-	if err != nil {
-		return err
-	}
-
+func (w *Watch) run(ctx context.Context, client *client) error {
 	namespace := v1.NamespaceAll
 	if w.resource.Namespace != "" {
 		namespace = w.resource.Namespace
@@ -412,9 +420,9 @@ func (w *Watch) run(ctx context.Context) error {
 		}
 	}
 
-	dynamicInformer := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dc, 0, namespace, filter)
+	dynamicInformer := dynamicinformer.NewFilteredDynamicSharedInformerFactory(client.Dynamic(), 0, namespace, filter)
 
-	gvr, err := getGVR(w.resource.Type)
+	gvr, err := client.getGVR(w.resource.Type)
 	if err != nil {
 		return err
 	}
