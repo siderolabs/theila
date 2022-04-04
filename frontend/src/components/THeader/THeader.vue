@@ -5,6 +5,7 @@
     :context="context"
     :recordsNotificationStatus="false"
     :isSpinnerActive="false"
+    :errorNotificationStatus="false"
   >
     <template #default="items">
       <header class="theHeader">
