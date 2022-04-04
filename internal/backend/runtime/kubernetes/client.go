@@ -7,21 +7,27 @@ package kubernetes
 import (
 	"context"
 	"fmt"
+	"net"
 	"strings"
+	"time"
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/util/connrotation"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 )
 
 // Unstructured client wrapper.
 type client struct {
-	client dynamic.Interface
-	Mapper meta.RESTMapper
+	client    dynamic.Interface
+	clientset *kubernetes.Clientset
+	Mapper    meta.RESTMapper
+	dialer    *connrotation.Dialer
 }
 
 func (c *client) Resource(res *unstructured.Unstructured) (dynamic.ResourceInterface, error) {
@@ -114,12 +120,27 @@ func (c *client) Update(ctx context.Context, res *unstructured.Unstructured, opt
 	return dr.Update(ctx, res, opts, subresources...)
 }
 
+// Dynamic returns the underlying dynamic client.
+func (c *client) Dynamic() dynamic.Interface {
+	return c.client
+}
+
+// Clientset returns the underlying clientset.
+func (c *client) Clientset() *kubernetes.Clientset {
+	return c.clientset
+}
+
+// Close closes all clients.
+func (c *client) Close() {
+	c.dialer.CloseAll()
+}
+
 func (c *client) kindFor(gvr schema.GroupVersionResource) (schema.GroupVersionKind, error) {
 	return c.Mapper.KindFor(gvr)
 }
 
 func (c *client) parseResource(resource, namespace string) (*unstructured.Unstructured, error) {
-	gvr, err := getGVR(resource)
+	gvr, err := c.getGVR(resource)
 	if err != nil {
 		return nil, err
 	}
@@ -137,31 +158,25 @@ func (c *client) parseResource(resource, namespace string) (*unstructured.Unstru
 	return res, nil
 }
 
-func newClient(config *rest.Config) (*client, error) {
-	mapper, err := apiutil.NewDynamicRESTMapper(config)
-	if err != nil {
-		return nil, err
-	}
-
-	c, err := dynamic.NewForConfig(config)
-	if err != nil {
-		return nil, err
-	}
-
-	return &client{c, mapper}, nil
-}
-
-func getGVR(resource string) (*schema.GroupVersionResource, error) {
+func (c *client) getGVR(resource string) (*schema.GroupVersionResource, error) {
 	var gvr *schema.GroupVersionResource
 
 	parts := strings.Split(resource, ".")
 
-	if len(parts) == 2 {
+	var err error
+
+	switch {
+	case len(parts) == 2:
 		gvr = &schema.GroupVersionResource{
 			Resource: parts[0],
 			Version:  parts[1],
 		}
-	} else {
+	case len(parts) == 1:
+		gvr, err = c.discoverGVR(resource)
+		if err != nil {
+			return nil, err
+		}
+	default:
 		gvr, _ = schema.ParseResourceArg(resource)
 	}
 
@@ -170,4 +185,59 @@ func getGVR(resource string) (*schema.GroupVersionResource, error) {
 	}
 
 	return gvr, nil
+}
+
+func (c *client) discoverGVR(resource string) (*schema.GroupVersionResource, error) {
+	gvr := &schema.GroupVersionResource{
+		Resource: resource,
+	}
+
+	resources, err := c.clientset.ServerPreferredResources()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, res := range resources {
+		for _, r := range res.APIResources {
+			if r.Name == resource {
+				gv, err := schema.ParseGroupVersion(res.GroupVersion)
+				if err != nil {
+					return nil, err
+				}
+
+				gvr.Version = gv.Version
+				gvr.Group = gv.Group
+			}
+		}
+	}
+
+	return gvr, nil
+}
+
+func newClient(config *rest.Config) (*client, error) {
+	mapper, err := apiutil.NewDynamicRESTMapper(config)
+	if err != nil {
+		return nil, err
+	}
+
+	if config.Timeout == 0 {
+		config.Timeout = 30 * time.Second
+	}
+
+	dialer := connrotation.NewDialer((&net.Dialer{Timeout: 30 * time.Second, KeepAlive: 30 * time.Second}).DialContext)
+	config.Dial = dialer.DialContext
+
+	c, err := dynamic.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	var clientset *kubernetes.Clientset
+
+	clientset, err = kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &client{c, clientset, mapper, dialer}, nil
 }
