@@ -89,8 +89,8 @@
           </p>
         </div>
         <div class="overview__data-row">
-          <p class="overview__data-name">
-            Container Runtime Version
+          <p class="overview__data-name">Container Runtime Version</p>
+          <p class="overview__data">
             {{ item[0]?.status?.nodeInfo?.containerRuntimeVersion }}
           </p>
         </div>
