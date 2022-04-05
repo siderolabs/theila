@@ -14,7 +14,7 @@
             :nodeName="item?.spec?.nodeName"
             :phase="item?.status?.phase"
             :podIP="item?.status?.podIP"
-            :age="item?.status?.startTime"
+            :age="getAge(item?.status?.startTime)"
             :containerStatuses="item?.status?.containerStatuses"
             v-for="(item, idx) in paginatedItems"
             :key="item?.metadata?.namespace + '/' + item?.metadata?.name || idx"
@@ -30,6 +30,7 @@ import { computed, toRefs } from "@vue/reactivity";
 import TPodsItem from "./TPodsItem.vue";
 import { TPodsViewFilterOptions } from "@/constants";
 import TPagination from "@/components/common/Pagination/TPagination.vue";
+import { DateTime } from "luxon";
 
 export default {
   props: {
@@ -72,9 +73,21 @@ export default {
         });
       } else return items?.value?.items;
     });
+
+    const getAge = (age) => {
+      const currentDate = DateTime.now();
+      const currentAge = DateTime.fromISO(age);
+
+      const diff = currentDate
+        .diff(currentAge, ["days", "hours", "minutes"])
+        .toFormat("dd'd' hh'h' mm'm'");
+
+      return diff;
+    };
     return {
       filteredItems,
       PAGINATION_PER_PAGE,
+      getAge,
     };
   },
 };
