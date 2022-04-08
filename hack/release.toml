@@ -6,7 +6,7 @@ github_repo = "siderolabs/theila"
 match_deps = "^github.com/((talos-systems|siderolabs)/[a-zA-Z0-9-]+)$"
 
 pre_release = false
-previous = "v0.1.1"
+previous = "v0.2.0"
 
 [notes]
 
@@ -29,7 +29,7 @@ Main changes UX-wise:
     title = "Configuration Priority Changes"
     description = """\
 Starting from 0.2.1 Theila no longer relies on the local Kubeconfig.
-Instead it fetches the initial list of cluster from `~/.talos/config` or whatever is set in the `TALOSCONFIG`
+Instead it fetches the initial list of clusters from `~/.talos/config` or whatever is set in the `TALOSCONFIG`
 environment variable.
 It helps to get rid of strong requirement for matching context in `~/.kube/config` and `~/.talos/config` as
 Kubernetes config is now always retrieved from the Talos API.
